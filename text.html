@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>欢迎页面</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            background-color: #808080; /* 灰色背景 */
+            height: 100vh; /* 使body高度为整个视口高度 */
+            display: flex;
+            justify-content: center; /* 水平居中 */
+            align-items: center; /* 垂直居中 */
+            font-family: 'Microsoft YaHei', sans-serif; /* 使用常见中文字体 */
+        }
+        
+        .welcome-container {
+            text-align: center;
+            padding: 30px;
+            background-color: rgba(255, 255, 255, 0.1); /* 半透明白色背景 */
+            border-radius: 10px;
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.2);
+            animation: fadeIn 1.5s ease-out;
+        }
+        
+        .welcome-text {
+            font-size: 24px; /* 24号字体 */
+            color: #ff0000; /* 红色字体 */
+            font-weight: bold;
+            text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.3);
+        }
+        
+        /* 淡入动画 */
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(-20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="welcome-container">
+        <div class="welcome-text">欢迎</div>
+    </div>
+</body>
+</html>
