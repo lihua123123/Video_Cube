@@ -19,5 +19,26 @@ router.get('/', async function(req, res){
     });
 });
 
+/**
+ * 查询知识卡片详情
+ * GET /admin/knowledge_cards/:id
+ */
+router.get('/:id', async function(req, res){
+    const { id } = req.params;
+    const knowledgeCard = await KnowledgeCard.findByPk(id);
+    if(!knowledgeCard){
+        return res.status(404).json({
+            status: false,
+            message: '知识卡片不存在',
+        });
+    }
+    res.json({
+        status: true,
+        message: '查询知识卡片详情成功',
+        data: {
+            knowledgeCard
+        },
+    });
+});
 module.exports = router;
 
