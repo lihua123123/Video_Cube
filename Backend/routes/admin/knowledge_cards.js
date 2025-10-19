@@ -17,5 +17,7 @@ router.get('/', async function(req, res){
             knowledgeCards
         },
     });
-})
+});
+
+module.exports = router;
 
