@@ -8,21 +8,28 @@ module.exports = (sequelize, DataTypes) => {
       KnowledgeCard.belongsTo(models.Video, { foreignKey: 'video_id', as: 'video' });
     }
   }
+
   KnowledgeCard.init({
-    id: {
-      type: DataTypes.CHAR(36),
-      primaryKey: true,
-      defaultValue: DataTypes.UUIDV4
-    },
-    video_id: {
-      type: DataTypes.CHAR(36),
-      allowNull: false
-    },
-    title: DataTypes.STRING,
-    start_time: DataTypes.FLOAT,
-    end_time: DataTypes.FLOAT,
-    content_type: DataTypes.STRING
-    // 根据你的数据库 schema 添加其他字段
+    id: { type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true },
+    video_id: { type: DataTypes.INTEGER, allowNull: false },
+
+    start_time: { type: DataTypes.INTEGER, allowNull: false },
+    end_time: { type: DataTypes.INTEGER, allowNull: true },
+    display_duration: { type: DataTypes.INTEGER, allowNull: true },
+
+    title: { type: DataTypes.STRING(500), allowNull: false },
+    content: { type: DataTypes.JSON, allowNull: false },
+    content_type: { type: DataTypes.ENUM('text','formula','image','video','mixed'), allowNull: false, defaultValue: 'text' },
+
+    display_style: { type: DataTypes.ENUM('popup','sidebar','drawer','floating'), allowNull: false, defaultValue: 'popup' },
+    template_type: { type: DataTypes.ENUM('concept','person','formula','reading','example'), allowNull: false, defaultValue: 'concept' },
+
+    auto_show: { type: DataTypes.BOOLEAN, allowNull: false, defaultValue: true },
+    auto_hide: { type: DataTypes.BOOLEAN, allowNull: false, defaultValue: true },
+    dismissible: { type: DataTypes.BOOLEAN, allowNull: false, defaultValue: true },
+
+    is_ai_generated: { type: DataTypes.BOOLEAN, allowNull: false, defaultValue: false },
+    ai_suggestion_score: { type: DataTypes.FLOAT, allowNull: true },
   }, {
     sequelize,
     modelName: 'KnowledgeCard',
@@ -31,5 +38,6 @@ module.exports = (sequelize, DataTypes) => {
     createdAt: 'created_at',
     updatedAt: 'updated_at'
   });
+
   return KnowledgeCard;
 };

@@ -18,9 +18,9 @@ module.exports = (sequelize, DataTypes) => {
   }
   Video.init({
     id: {
-      type: DataTypes.CHAR(36),
+      type: DataTypes.INTEGER,
       primaryKey: true,
-      defaultValue: DataTypes.UUIDV4
+      autoIncrement: true
     },
     title: {
       type: DataTypes.STRING(255),

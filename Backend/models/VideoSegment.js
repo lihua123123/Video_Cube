@@ -8,28 +8,29 @@ module.exports = (sequelize, DataTypes) => {
       VideoSegment.belongsTo(models.Video, { foreignKey: 'video_id', as: 'video' });
     }
   }
+
   VideoSegment.init({
-    id: {
-      type: DataTypes.CHAR(36),
-      primaryKey: true,
-      defaultValue: DataTypes.UUIDV4
-    },
-    video_id: {
-      type: DataTypes.CHAR(36),
-      allowNull: false
-    },
-    segment_index: DataTypes.INTEGER,
-    title: DataTypes.STRING,
-    start_time: DataTypes.FLOAT,
-    end_time: DataTypes.FLOAT
-    // 根据你的数据库 schema 添加其他字段
+    id: { type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true },
+    video_id: { type: DataTypes.INTEGER, allowNull: false },
+
+    segment_index: { type: DataTypes.INTEGER, allowNull: false },
+    start_time: { type: DataTypes.INTEGER, allowNull: false },
+    end_time: { type: DataTypes.INTEGER, allowNull: false },
+
+    title: { type: DataTypes.STRING(500), allowNull: false },
+    summary: { type: DataTypes.TEXT, allowNull: true },
+    keywords: { type: DataTypes.JSON, allowNull: false, defaultValue: [] },
+
+    ai_confidence: { type: DataTypes.FLOAT, allowNull: true },
+    analysis_model: { type: DataTypes.STRING(100), allowNull: true },
   }, {
     sequelize,
     modelName: 'VideoSegment',
     tableName: 'video_segments',
     timestamps: true,
     createdAt: 'created_at',
-    updatedAt: 'updated_at'
+    updatedAt: false
   });
+
   return VideoSegment;
 };
