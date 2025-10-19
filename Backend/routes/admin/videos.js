@@ -62,4 +62,36 @@ router.post('/', async function (req, res){
         })
     }
 });
+
+/**
+ * 删除视频
+ * POST /admin/videos
+ */
+router.delete('/:id', async function (req, res){
+    try{
+        //获取视频id
+        const { id} = req.params;
+        const video = await Video.findByPk(id);
+
+        if(video){
+            await video.destroy();
+
+            res.json({
+                status: true,
+                message:'删除视频成功'
+            });
+        }else{
+            res.status(404).json({
+                status: false,
+                message:'视频不存在'
+            });
+        }
+    }catch (error){
+        res.status(500).json({
+            status: false,
+            message:'删除视频失败',
+            error: error.message
+        });
+    }
+})
 module.exports = router;
