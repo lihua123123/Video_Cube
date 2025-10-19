@@ -94,4 +94,35 @@ router.delete('/:id', async function (req, res){
         });
     }
 })
+/**
+ * 更新视频
+ * PUT /admin/videos/:id
+ */
+router.put('/:id', async function (req,res){
+    try{
+        const { id } = req.params;
+        const video = await Video.findByPk(id);
+
+        if(video){
+            await video.update(req.body);
+
+            res.json({
+                status: true,
+                message: '更新视频成功',
+                data: video
+            })
+        }else{
+            res.status(404).json({
+                status: false,
+                message: '视频不存在',
+            });
+        }
+    }catch (error){
+        res.status(500).json({
+            status: false,
+            message: '更新视频失败',
+            error: error.message
+        });
+    }
+})
 module.exports = router;
