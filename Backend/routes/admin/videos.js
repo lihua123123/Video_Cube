@@ -94,6 +94,7 @@ router.delete('/:id', async function (req, res){
         });
     }
 })
+
 /**
  * 更新视频
  * PUT /admin/videos/:id
