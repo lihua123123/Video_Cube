@@ -70,7 +70,7 @@ router.post('/', async function (req, res){
 router.delete('/:id', async function (req, res){
     try{
         //获取视频id
-        const { id} = req.params;
+        const { id } = req.params;
         const video = await Video.findByPk(id);
 
         if(video){

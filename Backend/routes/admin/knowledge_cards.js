@@ -90,5 +90,35 @@ router.delete('/:id', async function (req, res){
     }
 })
 
+/**
+ * 更新知识卡片
+ * PUT /admin/knowledge_cards/:id
+ */
+router.put('/:id', async function(req, res){
+    try{
+        const { id } = req.params;
+        const knowledge_cards = await KnowledgeCard.findByPk(id);
+        if(knowledge_cards){
+            await knowledge_cards.update(req.body);
+            res.json({
+                status: true,
+                message: '更新知识卡片成功',
+                data: knowledge_cards
+            })
+        }else{
+            res.status(404).json({
+                status: false,
+                message: '知识卡片不存在'
+            })
+        }
+    }catch (error){
+        res.status(500).json({
+            status: false,
+            message: '更新知识卡片失败',
+            error: error.message
+        })
+    }
+})
+
 module.exports = router;
 
