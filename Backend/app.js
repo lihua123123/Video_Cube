@@ -7,7 +7,7 @@ var indexRouter = require('./routes/index');
 var usersRouter = require('./routes/users');
 const adminVideosRouter = require('./routes/admin/videos');
 const adminKnowledgeCardsRouter = require('./routes/admin/knowledge_cards');
-
+const adminVideoSegmentsRouter = require('./routes/admin/video_segment');
 var app = express();
 
 // 数据库连接
@@ -29,5 +29,6 @@ app.use('/admin/videos', adminVideosRouter);
 app.use('/admin/knowledge_cards', adminKnowledgeCardsRouter);
 app.use('/', indexRouter);
 app.use('/users', usersRouter);
+app.use('/admin/video_segments', adminVideoSegmentsRouter);
 
 module.exports = app;
