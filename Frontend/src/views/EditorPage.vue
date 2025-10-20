@@ -337,7 +337,7 @@ const resetCardForm = () => {
 }
 
 .header {
-  background: #4682B4;
+  background: #4580b0ff;
   color: white;
   padding: 0 24px;
   height: 60px;
