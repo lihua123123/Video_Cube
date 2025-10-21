@@ -10,25 +10,32 @@ const { VideoSegment } = require("../../models");
 router.get("/", async function (req, res) {
   try {
     // 查询视频分段列表
-    
+    // 当前是第几页，如果不传，那就是第一页
+    const currentPage = Math.abs(Number(query.currentPage)) || 1;
+
+    // 每页显示多少条数据，如果不传，那就显示10条
+    const pageSize = Math.abs(Number(query.pageSize)) || 10;
+    const offset = (currentPage - 1) * pageSize;
     const query = req.query;
     const conditions = {
-        order: [['id', 'DESC']]
+      order: [["id", "DESC"]],
+      limit: pageSize,
+      offset: offset,
     };
     if (query.title) {
-        conditions.where = {
-            title: {
-                [Op.like]: `%${query.title}%`
-            }
-        };
+      conditions.where = {
+        title: {
+          [Op.like]: `%${query.title}%`,
+        },
+      };
     }
 
-      if (query.keywords) {
-        conditions.where = {
-            keywords: {
-                [Op.like]: `%${query.keywords}%`
-            }
-        };
+    if (query.keywords) {
+      conditions.where = {
+        keywords: {
+          [Op.like]: `%${query.keywords}%`,
+        },
+      };
     }
 
     const videoSegments = await VideoSegment.findAll(conditions);

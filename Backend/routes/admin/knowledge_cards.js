@@ -8,18 +8,26 @@ const { Op } = require("sequelize");
  */
 router.get("/", async function (req, res) {
   try {
+    // 当前是第几页，如果不传，那就是第一页
+    const currentPage = Math.abs(Number(query.currentPage)) || 1;
+
+    // 每页显示多少条数据，如果不传，那就显示10条
+    const pageSize = Math.abs(Number(query.pageSize)) || 10;
+    const offset = (currentPage - 1) * pageSize;
     // 查询知识卡片列表
 
     const query = req.query;
     const conditions = {
-        order: [['id', 'DESC']]
+      order: [["id", "DESC"]],
+      limit: pageSize,
+      offset: offset,
     };
-    if(query.title){
-        conditions.where = {
-            title: {
-                [Op.like]: `%${query.title}%`
-            }
-        };
+    if (query.title) {
+      conditions.where = {
+        title: {
+          [Op.like]: `%${query.title}%`,
+        },
+      };
     }
     const knowledgeCards = await KnowledgeCard.findAll(conditions);
     // 返回知识卡片列表
