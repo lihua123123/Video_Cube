@@ -1,21 +1,44 @@
 const express = require("express");
 const router = express.Router();
 const { Video } = require("../../models");
+const { Op } = require("sequelize");
+
 /**
  * 查询视频列表
  * GET /admin/videos
  */
 router.get("/", async function (req, res) {
-  // 查询视频列表
-  const videos = await Video.findAll();
-  // 返回视频列表
-  res.json({
-    status: true,
-    message: "查询视频列表成功",
-    data: {
-      videos,
-    },
-  });
+  try {
+    // 查询视频列表
+
+    const query = req.query;
+    const conditions = {
+        order: [['id', 'DESC']]
+    };
+    if(query.title){
+        conditions.where = {
+            title: {
+                [Op.like]: `%${query.title}%`
+            }
+        };
+    }
+
+    const videos = await Video.findAll(conditions);
+    // 返回视频列表
+    res.json({
+      status: true,
+      message: "查询视频列表成功",
+      data: {
+        videos,
+      },
+    });
+  } catch (error) {
+    res.status(500).json({
+      status: false,
+      message: "查询视频列表失败",
+      error: error.message,
+    });
+  }
 });
 
 /**
@@ -31,6 +54,7 @@ router.get("/:id", async function (req, res) {
       status: false,
       message: "视频不存在",
     });
+    
   }
   // 返回视频详情
   res.json({
@@ -46,84 +70,84 @@ router.get("/:id", async function (req, res) {
  * 新建视频
  * POST /admin/videos
  */
-router.post('/', async function (req, res){
-    try{
-        const video = await Video.create(req.body);
-        res.status(201).json({
-            status: true,
-            message: '新建视频成功',
-            data:  video 
-        });
-    }catch (error){
-        res.status(400).json({
-            status: false,
-            message: '新建视频失败',
-            error: error.message
-        })
-    }
+router.post("/", async function (req, res) {
+  try {
+    const video = await Video.create(req.body);
+    res.status(201).json({
+      status: true,
+      message: "新建视频成功",
+      data: video,
+    });
+  } catch (error) {
+    res.status(400).json({
+      status: false,
+      message: "新建视频失败",
+      error: error.message,
+    });
+  }
 });
 
 /**
  * 删除视频
  * POST /admin/videos
  */
-router.delete('/:id', async function (req, res){
-    try{
-        //获取视频id
-        const { id } = req.params;
-        const video = await Video.findByPk(id);
+router.delete("/:id", async function (req, res) {
+  try {
+    //获取视频id
+    const { id } = req.params;
+    const video = await Video.findByPk(id);
 
-        if(video){
-            await video.destroy();
+    if (video) {
+      await video.destroy();
 
-            res.json({
-                status: true,
-                message:'删除视频成功'
-            });
-        }else{
-            res.status(404).json({
-                status: false,
-                message:'视频不存在'
-            });
-        }
-    }catch (error){
-        res.status(500).json({
-            status: false,
-            message:'删除视频失败',
-            error: error.message
-        });
+      res.json({
+        status: true,
+        message: "删除视频成功",
+      });
+    } else {
+      res.status(404).json({
+        status: false,
+        message: "视频不存在",
+      });
     }
-})
+  } catch (error) {
+    res.status(500).json({
+      status: false,
+      message: "删除视频失败",
+      error: error.message,
+    });
+  }
+});
 
 /**
  * 更新视频
  * PUT /admin/videos/:id
  */
-router.put('/:id', async function (req,res){
-    try{
-        const { id } = req.params;
-        const video = await Video.findByPk(id);
+router.put("/:id", async function (req, res) {
+  try {
+    const { id } = req.params;
+    const video = await Video.findByPk(id);
 
-        if(video){
-            await video.update(req.body);
+    if (video) {
+      await video.update(req.body);
 
-            res.json({
-                status: true,
-                message: '更新视频成功',
-                data: video
-            })
-        }else{
-            res.status(404).json({
-                status: false,
-                message: '视频不存在',
-            });
-        }
-    }catch (error){
-        res.status(500).json({
-            status: false,
-            message: '更新视频失败',
-            error: error.message
-        });
+      res.json({
+        status: true,
+        message: "更新视频成功",
+        data: video,
+      });
+    } else {
+      res.status(404).json({
+        status: false,
+        message: "视频不存在",
+      });
     }
-})
+  } catch (error) {
+    res.status(500).json({
+      status: false,
+      message: "更新视频失败",
+      error: error.message,
+    });
+  }
+});
 module.exports = router;
