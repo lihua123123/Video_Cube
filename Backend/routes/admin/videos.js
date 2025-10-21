@@ -2,6 +2,24 @@ const express = require("express");
 const router = express.Router();
 const { Video } = require("../../models");
 const { Op } = require("sequelize");
+/**
+ * 公共方法：白名单过滤（仅允许写入以下字段）
+ */
+function filterBody(req) {
+  const allowedKeys = [
+    'title',
+    'description',
+    'video_url',
+    'thumbnail_url',
+    'duration',
+    'status'
+  ];
+  const payload = {};
+  for (const k of allowedKeys) {
+    if (req.body[k] !== undefined) payload[k] = req.body[k];
+  }
+  return payload;
+}
 
 /**
  * 查询视频列表
@@ -10,17 +28,16 @@ const { Op } = require("sequelize");
 router.get("/", async function (req, res) {
   try {
     // 查询视频列表
+    const query = req.query || {};
     // 当前是第几页，如果不传，那就是第一页
-    const currentPage = Math.abs(Number(query.currentPage)) || 1;
-
+    const currentPage = Math.max(1, Math.abs(Number(query.currentPage)) || 1);
     // 每页显示多少条数据，如果不传，那就显示10条
-    const pageSize = Math.abs(Number(query.pageSize)) || 10;
+    const pageSize = Math.max(1, Math.abs(Number(query.pageSize)) || 10);
     const offset = (currentPage - 1) * pageSize;
-    const query = req.query;
     const conditions = {
       order: [["id", "DESC"]],
       limit: pageSize,
-      offset: offset
+      offset
     };
     if (query.title) {
       conditions.where = {
@@ -78,7 +95,8 @@ router.get("/:id", async function (req, res) {
  */
 router.post("/", async function (req, res) {
   try {
-    const video = await Video.create(req.body);
+    const payload = filterBody(req);
+    const video = await Video.create(payload);
     res.status(201).json({
       status: true,
       message: "新建视频成功",
@@ -135,7 +153,8 @@ router.put("/:id", async function (req, res) {
     const video = await Video.findByPk(id);
 
     if (video) {
-      await video.update(req.body);
+      const payload = filterBody(req);
+      await video.update(payload);
 
       res.json({
         status: true,
@@ -156,4 +175,5 @@ router.put("/:id", async function (req, res) {
     });
   }
 });
+
 module.exports = router;

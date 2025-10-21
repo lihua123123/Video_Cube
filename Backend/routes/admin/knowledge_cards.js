@@ -2,25 +2,43 @@ const express = require("express");
 const router = express.Router();
 const { KnowledgeCard } = require("../../models");
 const { Op } = require("sequelize");
+
+/**
+ * 公共方法：白名单过滤（仅允许写入以下字段）
+ */
+function filterBody(req) {
+  const allowedKeys = [
+    "video_id",
+    "start_time",
+    "end_time",
+    "title",
+    "content",
+    "content_type",
+    "display_style",
+    "is_ai_generated",
+  ];
+  const payload = {};
+  for (const k of allowedKeys) {
+    if (req.body[k] !== undefined) payload[k] = req.body[k];
+  }
+  return payload;
+}
+
 /**
  * 查询知识卡片列表
  * GET /admin/knowledge_cards
  */
 router.get("/", async function (req, res) {
   try {
-    // 当前是第几页，如果不传，那就是第一页
-    const currentPage = Math.abs(Number(query.currentPage)) || 1;
-
-    // 每页显示多少条数据，如果不传，那就显示10条
-    const pageSize = Math.abs(Number(query.pageSize)) || 10;
+    const query = req.query || {};
+    const currentPage = Math.max(1, Math.abs(Number(query.currentPage)) || 1);
+    const pageSize = Math.max(1, Math.abs(Number(query.pageSize)) || 10);
     const offset = (currentPage - 1) * pageSize;
-    // 查询知识卡片列表
 
-    const query = req.query;
     const conditions = {
       order: [["id", "DESC"]],
       limit: pageSize,
-      offset: offset,
+      offset,
     };
     if (query.title) {
       conditions.where = {
@@ -75,7 +93,8 @@ router.get("/:id", async function (req, res) {
  */
 router.post("/", async function (req, res) {
   try {
-    const knowledgeCard = await KnowledgeCard.create(req.body);
+    const payload = filterBody(req);
+    const knowledgeCard = await KnowledgeCard.create(payload);
     res.status(201).json({
       status: true,
       message: "新建知识卡片成功",
@@ -127,7 +146,8 @@ router.put("/:id", async function (req, res) {
     const { id } = req.params;
     const knowledge_cards = await KnowledgeCard.findByPk(id);
     if (knowledge_cards) {
-      await knowledge_cards.update(req.body);
+      const payload = filterBody(req);
+      await knowledge_cards.update(payload);
       res.json({
         status: true,
         message: "更新知识卡片成功",

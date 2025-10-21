@@ -2,42 +2,54 @@ const express = require("express");
 const router = express.Router();
 const { AiAnalysisTask } = require("../../models");
 const { Op } = require("sequelize");
+
+/**
+ * 公共方法：白名单过滤（仅允许写入以下字段）
+ */
+function filterBody(req) {
+  const allowedKeys = [
+    'video_id',
+    'task_type',
+    'status',
+    'progress',
+    'result_data',
+    'error_message',
+    'completed_at'
+  ];
+  const payload = {};
+  for (const k of allowedKeys) {
+    if (req.body[k] !== undefined) payload[k] = req.body[k];
+  }
+  return payload;
+}
+
 /**
  * 查询AI分析任务列表
  * GET /admin/ai_analysis_tasks
  */
 router.get("/", async function (req, res) {
   try {
-    // 当前是第几页，如果不传，那就是第一页
-    const currentPage = Math.abs(Number(query.currentPage)) || 1;
-
-    // 每页显示多少条数据，如果不传，那就显示10条
-    const pageSize = Math.abs(Number(query.pageSize)) || 10;
+    const query = req.query || {};
+    const currentPage = Math.max(1, Math.abs(Number(query.currentPage)) || 1);
+    const pageSize = Math.max(1, Math.abs(Number(query.pageSize)) || 10);
     const offset = (currentPage - 1) * pageSize;
-    // 查询AI分析任务列表
 
-    const query = req.query;
+    const where = {};
+    if (query.status) where.status = query.status;
+    if (query.task_type) where.task_type = query.task_type;
+
     const conditions = {
       order: [["id", "DESC"]],
       limit: pageSize,
-      offset: offset,
+      offset,
+      where: Object.keys(where).length ? where : undefined
     };
 
-    if (query.model_used) {
-      conditions.where = {
-        model_used: {
-          [Op.like]: `%${query.model_used}%`,
-        },
-      };
-    }
     const tasks = await AiAnalysisTask.findAll(conditions);
-    // 返回AI分析任务列表
     res.json({
       status: true,
       message: "查询AI分析任务列表成功",
-      data: {
-        tasks,
-      },
+      data: { tasks },
     });
   } catch (error) {
     res.status(500).json({
@@ -78,7 +90,8 @@ router.get("/:id", async function (req, res) {
  */
 router.post("/", async function (req, res) {
   try {
-    const task = await AiAnalysisTask.create(req.body);
+    const payload = filterBody(req);
+    const task = await AiAnalysisTask.create(payload);
     res.status(201).json({
       status: true,
       message: "新建AI分析任务成功",
@@ -135,7 +148,8 @@ router.put("/:id", async function (req, res) {
     const task = await AiAnalysisTask.findByPk(id);
 
     if (task) {
-      await task.update(req.body);
+      const payload = filterBody(req);
+      await task.update(payload);
 
       res.json({
         status: true,

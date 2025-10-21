@@ -2,50 +2,52 @@ const express = require("express");
 const router = express.Router();
 const { Op } = require("sequelize");
 const { VideoSegment } = require("../../models");
+
+/**
+ * 公共方法：白名单过滤（仅允许写入以下字段）
+ */
+function filterBody(req) {
+  const allowedKeys = [
+    'video_id',
+    'segment_index',
+    'start_time',
+    'end_time',
+    'title',
+    'summary'
+  ];
+  const payload = {};
+  for (const k of allowedKeys) {
+    if (req.body[k] !== undefined) payload[k] = req.body[k];
+  }
+  return payload;
+}
+
 /**
  * 查询视频分段列表
  * GET /admin/video_segments
  */
-
 router.get("/", async function (req, res) {
   try {
-    // 查询视频分段列表
-    // 当前是第几页，如果不传，那就是第一页
-    const currentPage = Math.abs(Number(query.currentPage)) || 1;
-
-    // 每页显示多少条数据，如果不传，那就显示10条
-    const pageSize = Math.abs(Number(query.pageSize)) || 10;
+    const query = req.query || {};
+    const currentPage = Math.max(1, Math.abs(Number(query.currentPage)) || 1);
+    const pageSize = Math.max(1, Math.abs(Number(query.pageSize)) || 10);
     const offset = (currentPage - 1) * pageSize;
-    const query = req.query;
     const conditions = {
       order: [["id", "DESC"]],
       limit: pageSize,
-      offset: offset,
+      offset,
     };
     if (query.title) {
       conditions.where = {
-        title: {
-          [Op.like]: `%${query.title}%`,
-        },
-      };
-    }
-
-    if (query.keywords) {
-      conditions.where = {
-        keywords: {
-          [Op.like]: `%${query.keywords}%`,
-        },
+        title: { [Op.like]: `%${query.title}%` },
       };
     }
 
     const videoSegments = await VideoSegment.findAll(conditions);
-    // 返回视频分段列表
     res.json({
       status: true,
       message: "查询视频分段列表成功",
-      data: {
-        videoSegments,
-      },
+      data: { videoSegments },
     });
   } catch (error) {
     res.status(500).json({
@@ -85,7 +87,11 @@ router.get("/:id", async function (req, res) {
  */
 router.post("/", async function (req, res) {
   try {
-    const videoSegment = await VideoSegment.create(req.body);
+    const payload = filterBody(req);
+    if (payload.segment_index === undefined) {
+      return res.status(400).json({ status: false, message: 'segment_index 为必填' });
+    }
+    const videoSegment = await VideoSegment.create(payload);
     res.status(201).json({
       status: true,
       message: "新建视频分段成功",
@@ -142,7 +148,8 @@ router.put("/:id", async function (req, res) {
     const videoSegment = await VideoSegment.findByPk(id);
 
     if (videoSegment) {
-      await videoSegment.update(req.body);
+      const payload = filterBody(req);
+      await videoSegment.update(payload);
 
       res.json({
         status: true,

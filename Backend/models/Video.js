@@ -38,24 +38,9 @@ module.exports = (sequelize, DataTypes) => {
       defaultValue: 0
     },
     status: {
-      type: DataTypes.ENUM('uploading', 'processing', 'ready', 'published', 'private'),
+      type: DataTypes.STRING(20),
       allowNull: false,
-      defaultValue: 'uploading'
-    },
-    ai_analysis_status: {
-      type: DataTypes.ENUM('pending', 'processing', 'completed', 'failed'),
-      allowNull: false,
-      defaultValue: 'pending'
-    },
-    edit_token: {
-      type: DataTypes.STRING(100),
-      allowNull: false,
-      unique: true
-    },
-    view_token: {
-      type: DataTypes.STRING(100),
-      allowNull: false,
-      unique: true
+      defaultValue: 'processing'
     },
     created_at: {
       type: DataTypes.DATE,
