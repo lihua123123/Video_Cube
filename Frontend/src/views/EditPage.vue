@@ -32,38 +32,63 @@
           <div class="editor-actions">
             <button @click="aiAnalyze" class="action-btn ai-analysis-btn">AI分析</button>
             <button @click="addNewCard" class="action-btn add-card-btn">+ 新增卡</button>
-            <button @click="deleteCard" class="action-btn delete-card-btn">删除卡</button>
-            <button @click="saveCard" class="action-btn save-card-btn">保存卡</button>
+            <div class="batch-actions">
+              <button @click="selectAllCards" class="action-btn select-all-btn">
+                {{ isAllSelected ? '取消全选' : '全选' }}
+              </button>
+              <button 
+                @click="batchDeleteCards" 
+                class="action-btn batch-delete-btn" 
+                :disabled="batchSelectedCards.length === 0"
+              >
+                批量删除 ({{ batchSelectedCards.length }})
+              </button>
+            </div>
           </div>
         </div>
 
         <!-- 卡片列表 -->
         <div class="card-list-container">
-          <h4>卡片列表</h4>
+          <h4>卡片列表 ({{ cardList.length }}) - 已选 {{  selectedCardsCount }} 张</h4>
           <div class="cards-list">
             <div
               v-for="(card, index) in cardList"
               :key="index"
-              :class="['card-item', { active: selectedCardIndex === index }]"
-              @click="selectCard(index)"
+              :class="['card-item', { 
+                active: selectedCardIndex === index,
+                'batch-selected': batchSelectedCards.includes(index)
+              }]"
+              @click="handleCardClick(index)"
             >
               <!-- 卡片头部 -->
               <div class="card-header">
-                <span class="card-time">{{ card.time }}s</span>
+                <span class="card-time">{{ card.startTime }}s - {{ card.endTime }}s</span>
                 <span class="card-title">{{ card.title }}</span>
-                <div v-if="selectedCardIndex === index" class="card-actions">
-                  <img
-                    src="@/assets/images/iconEdit.png"
-                    alt="编辑"
-                    class="action-icon"
-                    @click.stop="editCard(index)"
-                  />
-                  <img
-                    src="@/assets/images/iconDelete.png"
-                    alt="删除"
-                    class="action-icon"
-                    @click.stop="deleteCard(index)"
-                  />
+                <div class="card-actions">
+                  <!-- 编辑和删除按钮 - 只在选中单个卡片且没有批量选择时显示 -->
+                  <div 
+                    v-if="selectedCardIndex === index && batchSelectedCards.length === 0" 
+                    class="single-card-actions"
+                  >
+                    <img 
+                      src="@/assets/images/iconEdit.png" 
+                      alt="编辑" 
+                      class="action-icon"
+                      @click.stop="editCard(index)"
+                      title="编辑卡片"
+                    >
+                    <img 
+                      src="@/assets/images/iconDelete.png" 
+                      alt="删除" 
+                      class="action-icon"
+                      @click.stop="deleteSingleCard(index)"
+                      title="删除卡片"
+                    >
+                  </div>
+                  
+                  <div v-if="batchSelectedCards.includes(index)" class="selection-indicator">
+                    ✓
+                  </div>
                 </div>
               </div>
 
@@ -106,7 +131,7 @@
         </div>
       </section>
 
-      <!-- 右侧：视频预览 - 修改为横屏尺寸 -->
+      <!-- 右侧：视频预览 -->
       <section class="video-preview-section">
         <h3>视频预览</h3>
         <div class="video-preview-container">
@@ -126,42 +151,50 @@
     <div v-if="showCardModal" class="modal-overlay">
       <div class="modal-content">
         <div class="modal-header">
-          <h3>知识卡片编辑</h3>
+          <h3>{{ editingCardIndex >= 0 ? '编辑知识卡片' : '新增知识卡片' }}</h3>
           <button @click="closeModal" class="modal-close">×</button>
         </div>
 
         <div class="modal-body">
-          <!-- 时间设置 -->
+          <!-- 时间设置 - 修改为时间段选择 -->
           <div class="time-setting">
-            <label>卡片出现时间（秒）</label>
-            <div class="time-input-wrapper">
-              <input type="number" v-model="cardTime" min="0" step="1" class="time-input" />
+            <label>卡片出现时间段（秒）</label>
+            <div class="time-range-wrapper">
+              <div class="time-input-group">
+                <span class="time-label">开始时间：</span>
+                <input type="number" v-model="cardStartTime" min="0" step="1" class="time-input" />
+                <span class="time-unit">秒</span>
+              </div>
+              <div class="time-input-group">
+                <span class="time-label">结束时间：</span>
+                <input type="number" v-model="cardEndTime" min="0" step="1" class="time-input" />
+                <span class="time-unit">秒</span>
+              </div>
+              <div class="time-duration" v-if="timeDuration > 0">
+                时长：{{ timeDuration }}秒
+              </div>
             </div>
           </div>
 
           <!-- 富文本工具栏 -->
           <div class="rich-text-toolbar">
             <button @click="formatText('bold')" class="tool-btn" title="加粗">
-              <img src="@/assets/images/fa5-bold-fas.png" alt="加粗" class="tool-icon" />
+              <img src="@/assets/images/fa5-bold-fas.png" alt="加粗" class="tool-icon">
             </button>
             <button @click="formatText('italic')" class="tool-btn" title="斜体">
-              <img src="@/assets/images/if-italic-alt.png" alt="斜体" class="tool-icon" />
+              <img src="@/assets/images/if-italic-alt.png" alt="斜体" class="tool-icon">
             </button>
             <button @click="formatText('link')" class="tool-btn" title="链接">
-              <img
-                src="@/assets/images/semiDesign-semi-icons-link.png"
-                alt="链接"
-                class="tool-icon"
-              />
+              <img src="@/assets/images/semiDesign-semi-icons-link.png" alt="链接" class="tool-icon">
             </button>
             <button @click="insertImage" class="tool-btn" title="插入图片">
-              <img src="@/assets/images/riLine-image-line.png" alt="图片" class="tool-icon" />
+              <img src="@/assets/images/riLine-image-line.png" alt="图片" class="tool-icon">
             </button>
             <button @click="insertFormula" class="tool-btn" title="插入公式">
-              <img src="@/assets/images/iconPark-formula.png" alt="公式" class="tool-icon" />
+              <img src="@/assets/images/iconPark-formula.png" alt="公式" class="tool-icon">
             </button>
             <button @click="openColorPicker" class="tool-btn" title="颜色">
-              <img src="@/assets/images/md-palette.png" alt="颜色" class="tool-icon" />
+              <img src="@/assets/images/md-palette.png" alt="颜色" class="tool-icon">
             </button>
           </div>
 
@@ -193,136 +226,177 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 
 const router = useRouter()
 
-// 卡片列表数据（包含三种总结类型）
+// 卡片列表数据
 const cardList = ref([
   {
-    time: 15,
+    startTime: 10,
+    endTime: 25,
     title: '平行线的性质',
-    activeTab: 'brief', // 当前激活的选项卡
+    activeTab: 'brief',
     summaries: {
       brief: '两直线平行，同位角相等，内错角相等，同旁内角互补。',
       normal: '1. 两直线平行，同位角相等\n2. 两直线平行，内错角相等\n3. 两直线平行，同旁内角互补',
-      detailed:
-        '平行线性质详解：\n\n1. 同位角相等：两条平行线被第三条直线所截，同位角相等。\n2. 内错角相等：两条平行线被第三条直线所截，内错角相等。\n3. 同旁内角互补：两条平行线被第三条直线所截，同旁内角之和为180度。',
+      detailed: '平行线性质详解：\n\n1. 同位角相等：两条平行线被第三条直线所截，同位角相等。\n2. 内错角相等：两条平行线被第三条直线所截，内错角相等。\n3. 同旁内角互补：两条平行线被第三条直线所截，同旁内角之和为180度。',
     },
   },
   {
-    time: 45,
+    startTime: 40,
+    endTime: 60,
     title: '牛顿第二定律',
     activeTab: 'brief',
     summaries: {
       brief: 'F=ma，物体加速度与合外力成正比，与质量成反比。',
-      normal:
-        '核心公式：F=ma\n\nF代表物体所受的合外力(单位:牛顿，N)\nm代表物体的质量(单位:千克，kg)\na代表物体的加速度(单位:米/秒²，m/s²)',
-      detailed:
-        '牛顿第二定律详解：\n\n核心公式：F = ma\n\n物理意义：\n1. 物体加速度与合外力成正比：F ∝ a\n2. 加速度与物体质量成反比：a ∝ 1/m\n\n完整表达式：F = ma（F为合力，m为质量，a为加速度）\n\n应用说明：该定律描述了力、质量和加速度之间的关系，是经典力学的核心定律之一。',
+      normal: '核心公式：F=ma\n\nF代表物体所受的合外力(单位:牛顿，N)\nm代表物体的质量(单位:千克，kg)\na代表物体的加速度(单位:米/秒²，m/s²)',
+      detailed: '牛顿第二定律详解：\n\n核心公式：F = ma\n\n物理意义：\n1. 物体加速度与合外力成正比：F ∝∝∝∝ a\n2. 加速度与物体质量成反比：a ∝∝∝∝ 1/m\n\n完整表达式：F = ma（F为合力，m为质量，a为加速度）\n\n应用说明：该定律描述了力、质量和加速度之间的关系，是经典力学的核心定律之一。',
     },
-  },
+  }
 ])
 
-// 选中状态
+// 响应式状态
 const selectedCardIndex = ref(-1)
-
-// 弹窗相关状态
+const batchSelectedCards = ref<number[]>([])
 const showCardModal = ref(false)
-const cardTime = ref(0)
+const cardStartTime = ref(0)
+const cardEndTime = ref(0)
 const cardTitle = ref('')
 const cardContent = ref('')
-const editingCardIndex = ref(-1) // -1表示新增，>=0表示编辑
+const editingCardIndex = ref(-1)
+
+// 计算属性
+const isAllSelected = computed(() => {
+  return batchSelectedCards.value.length === cardList.value.length && cardList.value.length > 0
+})
+
+const selectedCardsCount = computed(() => {
+  return batchSelectedCards.value.length
+})
+
+const timeDuration = computed(() => {
+  return Math.max(0, cardEndTime.value - cardStartTime.value)
+})
 
 // 方法定义
 const goBack = () => {
   router.push('/user')
 }
 
+const handleCardClick = (index: number) => {
+  if (batchSelectedCards.value.length > 0) {
+    toggleCardSelection(index)
+  } else {
+    selectCard(index)
+  }
+}
+
 const selectCard = (index: number) => {
+  if (index < 0 || index >= cardList.value.length) return
   selectedCardIndex.value = index
+  batchSelectedCards.value = []
 }
 
-// 切换卡片内的选项卡
+const toggleCardSelection = (index: number) => {
+  if (index < 0 || index >= cardList.value.length) return
+  
+  if (batchSelectedCards.value.includes(index)) {
+    batchSelectedCards.value = batchSelectedCards.value.filter(i => i !== index)
+  } else {
+    batchSelectedCards.value.push(index)
+  }
+  selectedCardIndex.value = -1
+}
+
+const selectAllCards = () => {
+  if (isAllSelected.value) {
+    batchSelectedCards.value = []
+  } else {
+    batchSelectedCards.value = cardList.value.map((_, index) => index)
+  }
+  selectedCardIndex.value = -1
+}
+
 const switchTab = (cardIndex: number, tabType: string) => {
-  cardList.value[cardIndex].activeTab = tabType
+  if (cardIndex < 0 || cardIndex >= cardList.value.length) return
+  
+  const card = cardList.value[cardIndex]
+  if (!card) return
+  
+  card.activeTab = tabType
 }
 
+// 编辑卡片功能
 const editCard = (index: number) => {
+  if (index < 0 || index >= cardList.value.length) return
+  
   const card = cardList.value[index]
-  cardTime.value = card.time
+  if (!card) return
+  
+  cardStartTime.value = card.startTime
+  cardEndTime.value = card.endTime
   cardTitle.value = card.title
-  cardContent.value = card.summaries.normal // 默认编辑一般总结
+  cardContent.value = card.summaries.normal
   editingCardIndex.value = index
   showCardModal.value = true
 }
 
 const addNewCard = () => {
-  // 重置表单
-  cardTime.value = 0
+  cardStartTime.value = 0
+  cardEndTime.value = 0
   cardTitle.value = ''
   cardContent.value = ''
   editingCardIndex.value = -1
   showCardModal.value = true
 }
 
-const deleteCard = (index?: number) => {
-  const targetIndex = index ?? selectedCardIndex.value
-  if (targetIndex >= 0 && targetIndex < cardList.value.length) {
-    if (confirm('确定要删除这张卡片吗？')) {
-      cardList.value.splice(targetIndex, 1)
+// 修复：重命名删除函数以避免冲突，并添加空值检查
+const deleteSingleCard = (index: number) => {
+  if (index < 0 || index >= cardList.value.length) return
+  
+  const card = cardList.value[index]
+  if (!card) return
+  
+  if (confirm(`确定要删除"${card.title}"这张卡片吗？`)) {
+    cardList.value.splice(index, 1)
+    // 更新选中状态
+    if (selectedCardIndex.value === index) {
       selectedCardIndex.value = -1
     }
-  } else {
-    alert('请先选择要删除的卡片')
+    // 更新批量选择索引
+    batchSelectedCards.value = batchSelectedCards.value
+      .filter(i => i !== index)
+      .map(i => i > index ? i - 1 : i)
   }
 }
 
-const saveCard = () => {
-  if (selectedCardIndex.value >= 0) {
-    editCard(selectedCardIndex.value)
-  } else {
-    alert('请先选择要保存的卡片')
+// 批量删除功能
+const batchDeleteCards = () => {
+  if (batchSelectedCards.value.length === 0) {
+    alert('请先选择要删除的卡片')
+    return
+  }
+  
+  if (confirm(`确定要删除选中的 ${batchSelectedCards.value.length} 张卡片吗？`)) {
+    // 从大到小排序删除
+    const sortedIndexes = [...batchSelectedCards.value].sort((a, b) => b - a)
+    sortedIndexes.forEach(index => {
+      if (index >= 0 && index < cardList.value.length) {
+        const card = cardList.value[index]
+        // 添加空值检查
+        if (card) {
+          cardList.value.splice(index, 1)
+        }
+      }
+    })
+    batchSelectedCards.value = []
   }
 }
 
 const aiAnalyze = () => {
   console.log('AI分析视频内容')
-  // 后续实现AI分析逻辑
-}
-
-const saveCurrentCard = () => {
-  if (!cardTitle.value.trim() || !cardContent.value.trim()) {
-    alert('请填写卡片标题和内容')
-    return
-  }
-
-  const cardData = {
-    time: cardTime.value,
-    title: cardTitle.value,
-    activeTab: 'brief',
-    summaries: {
-      brief: cardContent.value.substring(0, 50) + '...', // 简略版
-      normal: cardContent.value, // 一般版
-      detailed: cardContent.value + '\n\n详细说明：' + cardContent.value, // 详细版
-    },
-  }
-
-  if (editingCardIndex.value >= 0) {
-    // 编辑现有卡片
-    cardList.value[editingCardIndex.value] = cardData
-  } else {
-    // 新增卡片
-    cardList.value.push(cardData)
-  }
-
-  closeModal()
-}
-
-const closeModal = () => {
-  showCardModal.value = false
-  editingCardIndex.value = -1
 }
 
 // 富文本编辑方法
@@ -343,8 +417,44 @@ const openColorPicker = () => {
   console.log('打开颜色选择器')
 }
 
+const saveCurrentCard = () => {
+  if (!cardTitle.value.trim() || !cardContent.value.trim()) {
+    alert('请填写卡片标题和内容')
+    return
+  }
+
+  if (cardStartTime.value >= cardEndTime.value) {
+    alert('结束时间必须大于开始时间')
+    return
+  }
+
+  const cardData = {
+    startTime: cardStartTime.value,
+    endTime: cardEndTime.value,
+    title: cardTitle.value,
+    activeTab: 'brief',
+    summaries: {
+      brief: cardContent.value.substring(0, 50) + (cardContent.value.length > 50 ? '...' : ''),
+      normal: cardContent.value,
+      detailed: cardContent.value + '\n\n详细说明：' + cardContent.value,
+    },
+  }
+
+  if (editingCardIndex.value >= 0) {
+    cardList.value[editingCardIndex.value] = cardData
+  } else {
+    cardList.value.push(cardData)
+  }
+
+  closeModal()
+}
+
+const closeModal = () => {
+  showCardModal.value = false
+  editingCardIndex.value = -1
+}
+
 onMounted(() => {
-  // 初始化数据
   if (cardList.value.length > 0) {
     selectedCardIndex.value = 0
   }
@@ -474,6 +584,7 @@ onMounted(() => {
 .editor-actions {
   display: flex;
   gap: 12px;
+  align-items: center;
 }
 
 .action-btn {
@@ -487,9 +598,8 @@ onMounted(() => {
 }
 
 .ai-analysis-btn {
-  background: #fefa83;
-  color: #333;
-  border: 1px solid #bbbbbb;
+  background: #006dda;
+  color: white;
 }
 
 .add-card-btn {
@@ -497,14 +607,31 @@ onMounted(() => {
   color: white;
 }
 
-.delete-card-btn {
-  background: #f5f5f5;
-  color: #333;
-}
-
 .save-card-btn {
   background: #1890ff;
   color: white;
+}
+
+.batch-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.select-all-btn {
+  background: #3abef9;
+  color: white;
+}
+
+.batch-delete-btn {
+  background: #ff4d4f;
+  color: white;
+  font-weight: 600;
+}
+
+.batch-delete-btn:disabled {
+  background: #d9d9d9;
+  color: #8c8c8c;
+  cursor: not-allowed;
 }
 
 .card-list-container {
@@ -539,6 +666,12 @@ onMounted(() => {
   box-shadow: 0 2px 6px rgba(24, 144, 255, 0.2);
 }
 
+.card-item.batch-selected {
+  border-color: #ff4d4f;
+  background: #fff2f0;
+  box-shadow: 0 2px 6px rgba(255, 77, 79, 0.2);
+}
+
 .card-item:hover {
   border-color: #1890ff;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
@@ -571,6 +704,13 @@ onMounted(() => {
 .card-actions {
   display: flex;
   gap: 8px;
+  align-items: center;
+}
+
+.single-card-actions {
+  display: flex;
+  gap: 8px;
+  align-items: center;
 }
 
 .action-icon {
@@ -583,6 +723,19 @@ onMounted(() => {
 
 .action-icon:hover {
   opacity: 1;
+}
+
+.selection-indicator {
+  background: #52c41a;
+  color: white;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  font-weight: bold;
 }
 
 /* 总结类型选项卡 */
@@ -629,7 +782,7 @@ onMounted(() => {
   white-space: pre-wrap;
 }
 
-/* 右侧视频预览 - 修改为横屏尺寸 */
+/* 右侧视频预览 */
 .video-preview-section {
   width: 450px;
   background: white;
@@ -647,15 +800,20 @@ onMounted(() => {
 }
 
 .video-preview-container {
+  width: 100%;
+  height: 0;
+  padding-bottom: 56.25%;
   background: #000;
   border-radius: 8px;
   overflow: hidden;
-  height: 300px; /* 横屏视频高度 */
   position: relative;
-  flex: 1;
 }
 
 .video-placeholder {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
   height: 100%;
   display: flex;
   align-items: center;
@@ -665,10 +823,13 @@ onMounted(() => {
   flex-direction: column;
 }
 
+.placeholder-content {
+  text-align: center;
+}
+
 .placeholder-icon {
   font-size: 48px;
-  margin-bottom: 12px;
-  color: #8b5cf6;
+  margin-bottom: 8px;
 }
 
 .video-placeholder p {
@@ -783,8 +944,22 @@ onMounted(() => {
   font-size: 14px;
 }
 
-.time-input-wrapper {
+.time-range-wrapper {
   display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.time-input-group {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.time-label {
+  font-size: 14px;
+  color: #333;
+  min-width: 80px;
 }
 
 .time-input {
@@ -795,6 +970,21 @@ onMounted(() => {
   font-size: 14px;
 }
 
+.time-unit {
+  font-size: 14px;
+  color: #666;
+}
+
+.time-duration {
+  padding: 8px 12px;
+  background: #f0f7ff;
+  border-radius: 4px;
+  font-size: 14px;
+  color: #1890ff;
+  font-weight: 500;
+}
+
+/* 富文本工具栏 */
 .rich-text-toolbar {
   display: grid;
   grid-template-columns: repeat(6, 1fr);
@@ -852,7 +1042,6 @@ onMounted(() => {
   .project-sidebar {
     width: 200px;
   }
-
   .video-preview-section {
     width: 320px;
   }
@@ -862,12 +1051,21 @@ onMounted(() => {
   .main-content {
     flex-direction: column;
   }
-
   .project-sidebar,
   .video-preview-section {
     width: 100%;
     border-right: none;
     border-left: none;
+  }
+  
+  .time-input-group {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 4px;
+  }
+  
+  .time-label {
+    min-width: auto;
   }
 }
 </style>

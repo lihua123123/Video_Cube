@@ -18,7 +18,7 @@
         </div>
       </div>
 
-      <!-- 视频播放区域（自适应高度） -->
+      <!-- 视频播放区域（16:9横屏比例） -->
       <div class="video-player-container">
         <div v-if="!currentVideo" class="video-placeholder">
           <div class="placeholder-content">
@@ -57,14 +57,14 @@ import { useRouter } from 'vue-router'
 
 const router = useRouter()
 
-// 视频相关数据（保持不变）
+// 视频相关数据
 const videoUrl = ref('')
 const currentVideo = ref('')
 const currentTime = ref(0)
 const duration = ref(0)
 const isEncoding = ref(false)
 
-// 计算属性（保持不变）
+// 计算属性
 const currentTimeDisplay = computed(() => {
   const minutes = Math.floor(currentTime.value / 60)
   const seconds = Math.floor(currentTime.value % 60)
@@ -77,7 +77,7 @@ const durationDisplay = computed(() => {
   return `${minutes}:${seconds.toString().padStart(2, '0')}`
 })
 
-// 方法（保持不变）
+// 方法
 const loadVideo = () => {
   if (videoUrl.value.trim()) {
     isEncoding.value = true
@@ -122,7 +122,6 @@ const handleVideoLoaded = (event: Event) => {
   flex-direction: column;
   background: #f8f9fa;
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-  /* 添加滚动支持 */
   overflow: hidden;
 }
 
@@ -134,7 +133,6 @@ const handleVideoLoaded = (event: Event) => {
   display: flex;
   align-items: center;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-  /* 固定顶部，不随内容滚动 */
   flex-shrink: 0;
 }
 
@@ -150,14 +148,13 @@ const handleVideoLoaded = (event: Event) => {
   flex-direction: column;
   padding: 24px;
   background: white;
-  /* 允许内容区域滚动 */
   overflow-y: auto;
-  min-height: 0; /* 重要：允许flex子元素滚动 */
+  min-height: 0;
 }
 
 .video-url-section {
   margin-bottom: 20px;
-  flex-shrink: 0; /* 防止输入区域被压缩 */
+  flex-shrink: 0;
 }
 
 .url-input-group label {
@@ -201,29 +198,31 @@ const handleVideoLoaded = (event: Event) => {
   background: #40a9ff;
 }
 
-/* 视频播放区域 - 关键修改 */
+/* 视频播放区域 - 16:9横屏比例 */
 .video-player-container {
-  flex: 1; /* 占据剩余空间 */
+  width: 100%;
+  height: 0;
+  padding-bottom: 56.25%; /* 16:9比例 (9/16=0.5625) */
+  position: relative;
   background: #000;
   border-radius: 8px;
   margin-bottom: 20px;
   overflow: hidden;
-  display: flex;
-  flex-direction: column;
-  min-height: 400px; /* 最小高度 */
-  max-height: 70vh; /* 最大高度为视口的70% */
-  /* 添加滚动支持 */
-  overflow: auto;
+  flex: none;
 }
 
 .video-placeholder {
-  flex: 1;
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
   display: flex;
   align-items: center;
   justify-content: center;
   color: #666;
   background: #1a1a1a;
-  min-height: 300px;
+  flex-direction: column;
 }
 
 .placeholder-content {
@@ -242,35 +241,41 @@ const handleVideoLoaded = (event: Event) => {
 }
 
 .video-wrapper {
-  position: relative;
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
   height: 100%;
-  min-height: 300px;
 }
 
 .video-player {
   width: 100%;
-  height: auto; /* 改为自适应高度 */
-  max-height: calc(100vh - 200px); /* 限制最大高度 */
+  height: 100%;
+  object-fit: contain;
   background: #000;
   display: block;
 }
 
 .video-time-display {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
   height: 40px;
-  background: #333;
+  background: rgba(51, 51, 51, 0.8);
   color: white;
   display: flex;
   align-items: center;
   justify-content: center;
   font-size: 14px;
-  flex-shrink: 0; /* 时间显示不压缩 */
+  z-index: 10;
 }
 
 .video-action-buttons {
   display: flex;
   gap: 12px;
   justify-content: flex-start;
-  flex-shrink: 0; /* 按钮区域不压缩 */
+  flex-shrink: 0;
   padding-top: 20px;
   border-top: 1px solid #e8e8e8;
 }
@@ -311,21 +316,27 @@ const handleVideoLoaded = (event: Event) => {
 }
 
 /* 响应式设计 */
-@media (max-height: 600px) {
-  .video-player-container {
-    min-height: 300px;
-    max-height: 50vh;
-  }
-
+@media (max-width: 768px) {
   .video-main {
     padding: 16px;
   }
+  
+  .video-action-buttons {
+    flex-wrap: wrap;
+  }
+  
+  .action-btn {
+    min-width: 80px;
+    font-size: 13px;
+    padding: 6px 12px;
+  }
 }
 
-@media (min-height: 900px) {
+@media (min-width: 1200px) {
   .video-player-container {
-    min-height: 500px;
-    max-height: 75vh;
+    max-width: 1200px;
+    margin-left: auto;
+    margin-right: auto;
   }
 }
 </style>
