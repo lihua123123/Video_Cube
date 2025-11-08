@@ -49,11 +49,78 @@
 
         <!-- 卡片列表 -->
         <div class="card-list-container">
-          <h4>卡片列表 ({{ cardList.length }}) - 已选 {{  selectedCardsCount }} 张</h4>
+          <h4>卡片列表 ({{ showExampleCards ? exampleCards.length : userCards.length }}) - 已选 {{ selectedCardsCount }} 张</h4>
+          
+          <!-- 提示查看示例卡片 -->
+          <div v-if="!showExampleCards && userCards.length === 0" class="example-cards-tip" @click="toggleExampleCards">
+            <span class="tip-text">📚 点击查看示例卡片</span>
+          </div>
+          
+          <!-- 示例卡片标题栏 -->
+          <div v-if="showExampleCards" class="example-cards-header">
+            <span class="example-title">示例卡片</span>
+            <button @click="toggleExampleCards" class="close-example-btn" title="关闭示例">
+              × 关闭示例
+            </button>
+          </div>
+
           <div class="cards-list">
+            <!-- 显示示例卡片 -->
             <div
-              v-for="(card, index) in cardList"
-              :key="index"
+              v-for="(card, index) in exampleCards"
+              :key="'example-' + index"
+              v-show="showExampleCards"
+              :class="['card-item', 'example-card']"
+            >
+              <div class="card-header">
+                <span class="card-time">{{ card.startTime }}s - {{ card.endTime }}s</span>
+                <span class="card-title">{{ card.title }}</span>
+                <div class="card-actions">
+                  <div class="example-badge">示例</div>
+                </div>
+              </div>
+
+              <!-- 总结类型选项卡 -->
+              <div class="summary-tabs">
+                <button
+                  :class="['tab-btn', { active: card.activeTab === 'brief' }]"
+                  @click.stop="switchExampleTab(index, 'brief')"
+                >
+                  简略总结
+                </button>
+                <button
+                  :class="['tab-btn', { active: card.activeTab === 'normal' }]"
+                  @click.stop="switchExampleTab(index, 'normal')"
+                >
+                  一般总结
+                </button>
+                <button
+                  :class="['tab-btn', { active: card.activeTab === 'detailed' }]"
+                  @click.stop="switchExampleTab(index, 'detailed')"
+                >
+                  详细总结
+                </button>
+              </div>
+
+              <!-- 卡片内容（根据选项卡切换） -->
+              <div class="card-content">
+                <div v-if="card.activeTab === 'brief'" class="tab-content">
+                  {{ card.summaries.brief }}
+                </div>
+                <div v-if="card.activeTab === 'normal'" class="tab-content">
+                  {{ card.summaries.normal }}
+                </div>
+                <div v-if="card.activeTab === 'detailed'" class="tab-content">
+                  {{ card.summaries.detailed }}
+                </div>
+              </div>
+            </div>
+
+            <!-- 显示用户创建的卡片 -->
+            <div
+              v-for="(card, index) in userCards"
+              :key="'user-' + index"
+              v-show="!showExampleCards"
               :class="['card-item', { 
                 active: selectedCardIndex === index,
                 'batch-selected': batchSelectedCards.includes(index)
@@ -231,8 +298,26 @@ import { useRouter } from 'vue-router'
 
 const router = useRouter()
 
-// 卡片列表数据
-const cardList = ref([
+// 定义卡片类型
+interface CardSummary {
+  brief: string
+  normal: string
+  detailed: string
+}
+
+interface Card {
+  startTime: number
+  endTime: number
+  title: string
+  activeTab: 'brief' | 'normal' | 'detailed'
+  summaries: CardSummary
+}
+
+// 用户创建的卡片列表（初始为空）
+const userCards = ref<Card[]>([])
+
+// 示例卡片数据
+const exampleCards = ref<Card[]>([
   {
     startTime: 10,
     endTime: 25,
@@ -252,7 +337,7 @@ const cardList = ref([
     summaries: {
       brief: 'F=ma，物体加速度与合外力成正比，与质量成反比。',
       normal: '核心公式：F=ma\n\nF代表物体所受的合外力(单位:牛顿，N)\nm代表物体的质量(单位:千克，kg)\na代表物体的加速度(单位:米/秒²，m/s²)',
-      detailed: '牛顿第二定律详解：\n\n核心公式：F = ma\n\n物理意义：\n1. 物体加速度与合外力成正比：F ∝∝∝∝ a\n2. 加速度与物体质量成反比：a ∝∝∝∝ 1/m\n\n完整表达式：F = ma（F为合力，m为质量，a为加速度）\n\n应用说明：该定律描述了力、质量和加速度之间的关系，是经典力学的核心定律之一。',
+      detailed: '牛顿第二定律详解：\n\n核心公式：F = ma\n\n物理意义：\n1. 物体加速度与合外力成正比\n2. 加速度与物体质量成反比\n\n完整表达式：F = ma（F为合力，m为质量，a为加速度）\n\n应用说明：该定律描述了力、质量和加速度之间的关系，是经典力学的核心定律之一。',
     },
   }
 ])
@@ -266,10 +351,12 @@ const cardEndTime = ref(0)
 const cardTitle = ref('')
 const cardContent = ref('')
 const editingCardIndex = ref(-1)
+const showExampleCards = ref(false)
 
 // 计算属性
 const isAllSelected = computed(() => {
-  return batchSelectedCards.value.length === cardList.value.length && cardList.value.length > 0
+  const currentCards = showExampleCards.value ? exampleCards.value : userCards.value
+  return batchSelectedCards.value.length === currentCards.length && currentCards.length > 0
 })
 
 const selectedCardsCount = computed(() => {
@@ -294,13 +381,13 @@ const handleCardClick = (index: number) => {
 }
 
 const selectCard = (index: number) => {
-  if (index < 0 || index >= cardList.value.length) return
+  if (index < 0 || index >= userCards.value.length) return
   selectedCardIndex.value = index
   batchSelectedCards.value = []
 }
 
 const toggleCardSelection = (index: number) => {
-  if (index < 0 || index >= cardList.value.length) return
+  if (index < 0 || index >= userCards.value.length) return
   
   if (batchSelectedCards.value.includes(index)) {
     batchSelectedCards.value = batchSelectedCards.value.filter(i => i !== index)
@@ -311,28 +398,47 @@ const toggleCardSelection = (index: number) => {
 }
 
 const selectAllCards = () => {
+  const currentCards = showExampleCards.value ? exampleCards.value : userCards.value
+  
   if (isAllSelected.value) {
     batchSelectedCards.value = []
   } else {
-    batchSelectedCards.value = cardList.value.map((_, index) => index)
+    batchSelectedCards.value = currentCards.map((_, index) => index)
   }
   selectedCardIndex.value = -1
 }
 
-const switchTab = (cardIndex: number, tabType: string) => {
-  if (cardIndex < 0 || cardIndex >= cardList.value.length) return
+const switchTab = (cardIndex: number, tabType: 'brief' | 'normal' | 'detailed') => {
+  if (cardIndex < 0 || cardIndex >= userCards.value.length) return
   
-  const card = cardList.value[cardIndex]
-  if (!card) return
+  const card = userCards.value[cardIndex]
+  if (card) {
+    card.activeTab = tabType
+  }
+}
+
+// 示例卡片相关方法
+const switchExampleTab = (cardIndex: number, tabType: 'brief' | 'normal' | 'detailed') => {
+  if (cardIndex < 0 || cardIndex >= exampleCards.value.length) return
   
-  card.activeTab = tabType
+  const card = exampleCards.value[cardIndex]
+  if (card) {
+    card.activeTab = tabType
+  }
+}
+
+const toggleExampleCards = () => {
+  showExampleCards.value = !showExampleCards.value
+  // 切换时清空选中状态
+  selectedCardIndex.value = -1
+  batchSelectedCards.value = []
 }
 
 // 编辑卡片功能
 const editCard = (index: number) => {
-  if (index < 0 || index >= cardList.value.length) return
+  if (index < 0 || index >= userCards.value.length) return
   
-  const card = cardList.value[index]
+  const card = userCards.value[index]
   if (!card) return
   
   cardStartTime.value = card.startTime
@@ -352,15 +458,15 @@ const addNewCard = () => {
   showCardModal.value = true
 }
 
-// 修复：重命名删除函数以避免冲突，并添加空值检查
+// 删除单个卡片功能
 const deleteSingleCard = (index: number) => {
-  if (index < 0 || index >= cardList.value.length) return
+  if (index < 0 || index >= userCards.value.length) return
   
-  const card = cardList.value[index]
+  const card = userCards.value[index]
   if (!card) return
   
   if (confirm(`确定要删除"${card.title}"这张卡片吗？`)) {
-    cardList.value.splice(index, 1)
+    userCards.value.splice(index, 1)
     // 更新选中状态
     if (selectedCardIndex.value === index) {
       selectedCardIndex.value = -1
@@ -383,11 +489,11 @@ const batchDeleteCards = () => {
     // 从大到小排序删除
     const sortedIndexes = [...batchSelectedCards.value].sort((a, b) => b - a)
     sortedIndexes.forEach(index => {
-      if (index >= 0 && index < cardList.value.length) {
-        const card = cardList.value[index]
+      if (index >= 0 && index < userCards.value.length) {
+        const card = userCards.value[index]
         // 添加空值检查
         if (card) {
-          cardList.value.splice(index, 1)
+          userCards.value.splice(index, 1)
         }
       }
     })
@@ -428,7 +534,7 @@ const saveCurrentCard = () => {
     return
   }
 
-  const cardData = {
+  const cardData: Card = {
     startTime: cardStartTime.value,
     endTime: cardEndTime.value,
     title: cardTitle.value,
@@ -441,9 +547,9 @@ const saveCurrentCard = () => {
   }
 
   if (editingCardIndex.value >= 0) {
-    cardList.value[editingCardIndex.value] = cardData
+    userCards.value[editingCardIndex.value] = cardData
   } else {
-    cardList.value.push(cardData)
+    userCards.value.push(cardData)
   }
 
   closeModal()
@@ -455,7 +561,7 @@ const closeModal = () => {
 }
 
 onMounted(() => {
-  if (cardList.value.length > 0) {
+  if (userCards.value.length > 0) {
     selectedCardIndex.value = 0
   }
 })
@@ -604,11 +710,6 @@ onMounted(() => {
 
 .add-card-btn {
   background: #00b42a;
-  color: white;
-}
-
-.save-card-btn {
-  background: #1890ff;
   color: white;
 }
 
@@ -1067,5 +1168,77 @@ onMounted(() => {
   .time-label {
     min-width: auto;
   }
+}
+
+/* 示例卡片相关样式 */
+.example-cards-tip {
+  padding: 12px 16px;
+  background: #f0f7ff;
+  border: 1px dashed #1890ff;
+  border-radius: 6px;
+  margin-bottom: 16px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  text-align: center;
+}
+
+.example-cards-tip:hover {
+  background: #e6f7ff;
+  border-color: #40a9ff;
+  box-shadow: 0 2px 8px rgba(24, 144, 255, 0.1);
+}
+
+.tip-text {
+  color: #1890ff;
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.example-cards-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 16px;
+  background: #f6ffed;
+  border: 1px solid #b7eb8f;
+  border-radius: 6px;
+  margin-bottom: 16px;
+}
+
+.example-title {
+  color: #52c41a;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.close-example-btn {
+  background: #ff4d4f;
+  color: white;
+  border: none;
+  padding: 4px 8px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 12px;
+  font-weight: 500;
+  transition: all 0.3s ease;
+}
+
+.close-example-btn:hover {
+  background: #ff7875;
+  transform: scale(1.05);
+}
+
+.example-card {
+  border-left: 4px solid #52c41a;
+  background: #f6ffed;
+}
+
+.example-badge {
+  background: #52c41a;
+  color: white;
+  padding: 2px 8px;
+  border-radius: 12px;
+  font-size: 12px;
+  font-weight: 600;
 }
 </style>
