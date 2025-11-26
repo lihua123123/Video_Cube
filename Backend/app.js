@@ -26,6 +26,8 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
+// 添加静态文件服务，允许访问上传的视频和缩略图
+app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 app.use('/admin/videos', adminVideosRouter);
 app.use('/admin/knowledge_cards', adminKnowledgeCardsRouter);
 app.use('/', indexRouter);

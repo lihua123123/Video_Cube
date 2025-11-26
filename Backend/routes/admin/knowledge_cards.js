@@ -39,21 +39,36 @@ router.get("/", async function (req, res) {
       order: [["id", "DESC"]],
       limit: pageSize,
       offset,
+      where: {},
     };
+    
+    // 支持按video_id过滤
+    if (query.video_id) {
+      conditions.where.video_id = query.video_id;
+    }
+    
+    // 支持按title模糊搜索
     if (query.title) {
-      conditions.where = {
-        title: {
-          [Op.like]: `%${query.title}%`,
-        },
+      conditions.where.title = {
+        [Op.like]: `%${query.title}%`,
       };
     }
-    const knowledgeCards = await KnowledgeCard.findAll(conditions);
+    
+    // 如果没有任何过滤条件,删除空的where对象
+    if (Object.keys(conditions.where).length === 0) {
+      delete conditions.where;
+    }
+    const result = await KnowledgeCard.findAndCountAll(conditions);
+    
     // 返回知识卡片列表
     res.json({
       status: true,
       message: "查询知识卡片列表成功",
       data: {
-        knowledgeCards,
+        knowledgeCards: result.rows,
+        total: result.count,
+        currentPage,
+        pageSize,
       },
     });
   } catch (error) {

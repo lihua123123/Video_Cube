@@ -42,6 +42,24 @@ module.exports = (sequelize, DataTypes) => {
       allowNull: false,
       defaultValue: 'processing'
     },
+    file_name: {
+      type: DataTypes.STRING(255),
+      allowNull: true
+    },
+    thumbnail_name: {
+      type: DataTypes.STRING(255),
+      allowNull: true
+    },
+    file_size: {
+      type: DataTypes.BIGINT,
+      allowNull: true,
+      comment: '文件大小（字节）'
+    },
+    resolution: {
+      type: DataTypes.STRING(50),
+      allowNull: true,
+      comment: '视频分辨率，如 1920x1080'
+    },
     created_at: {
       type: DataTypes.DATE,
       defaultValue: DataTypes.NOW
