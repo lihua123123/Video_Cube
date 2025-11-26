@@ -1,0 +1,2 @@
+Backend/public/uploads/videos/* filter=lfs diff=lfs merge=lfs -text
+ffmpeg/extracted/ffmpeg-master-latest-win64-gpl/bin/*.exe filter=lfs diff=lfs merge=lfs -text

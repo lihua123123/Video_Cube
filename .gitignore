@@ -1,0 +1,85 @@
+# 依赖目录
+node_modules/
+**/node_modules/
+
+# 日志文件
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+
+# 环境变量
+.env
+.env.*
+!.env.example
+
+# 编辑器
+.DS_Store
+.vscode/*
+!.vscode/extensions.json
+.idea
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+
+# 前端构建产物
+Frontend/dist/
+Frontend/dist-ssr/
+Frontend/*.local
+
+# 后端上传文件 (视频文件很大,不应提交到 Git)
+Backend/public/uploads/
+Backend/uploads/
+**/uploads/videos/
+**/uploads/thumbnails/
+*.mp4
+*.avi
+*.mov
+*.wmv
+*.flv
+*.webm
+*.mkv
+
+# FFmpeg 二进制文件 (太大,不应提交)
+**/ffmpeg/
+**/ffmpeg-*/
+**/ffprobe
+**/ffplay
+ffmpeg.exe
+ffprobe.exe
+ffplay.exe
+*.exe
+
+# 数据库配置 (包含敏感信息)
+Backend/config/config.json
+
+# 临时文件
+*.tmp
+*.temp
+.cache/
+
+# 测试覆盖率
+coverage/
+*.lcov
+.nyc_output/
+
+# PM2
+.pm2/
+*.pid
+*.seed
+*.pid.lock
+
+# 操作系统
+Thumbs.db
+Desktop.ini
+$RECYCLE.BIN/
+
+# 备份文件
+*.bak
+*.backup
+*.old

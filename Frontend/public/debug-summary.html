@@ -1,0 +1,357 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>视频总结组件调试</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif;
+      background: #f5f5f5;
+      padding: 20px;
+    }
+    
+    .debug-container {
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+    
+    .debug-info {
+      background: white;
+      padding: 20px;
+      border-radius: 8px;
+      margin-bottom: 20px;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+    
+    .debug-info h2 {
+      margin-bottom: 15px;
+      color: #333;
+    }
+    
+    .check-item {
+      display: flex;
+      align-items: center;
+      padding: 10px;
+      border-bottom: 1px solid #eee;
+    }
+    
+    .check-item:last-child {
+      border-bottom: none;
+    }
+    
+    .status {
+      width: 30px;
+      height: 30px;
+      border-radius: 50%;
+      margin-right: 15px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: bold;
+      color: white;
+    }
+    
+    .status.success {
+      background: #28a745;
+    }
+    
+    .status.error {
+      background: #dc3545;
+    }
+    
+    .status.warning {
+      background: #ffc107;
+      color: #333;
+    }
+    
+    button {
+      background: #007bff;
+      color: white;
+      border: none;
+      padding: 10px 20px;
+      border-radius: 5px;
+      cursor: pointer;
+      margin: 5px;
+    }
+    
+    button:hover {
+      background: #0056b3;
+    }
+    
+    .code-block {
+      background: #f8f9fa;
+      padding: 15px;
+      border-radius: 5px;
+      font-family: 'Courier New', monospace;
+      font-size: 14px;
+      overflow-x: auto;
+      margin: 10px 0;
+    }
+    
+    .highlight {
+      background: yellow;
+      padding: 2px 5px;
+      border-radius: 3px;
+    }
+  </style>
+</head>
+<body>
+  <div class="debug-container">
+    <div class="debug-info">
+      <h2>🔍 视频总结组件显示问题诊断</h2>
+      <p>请按照以下步骤检查问题:</p>
+    </div>
+    
+    <div class="debug-info">
+      <h2>步骤 1: 检查组件是否存在于 DOM</h2>
+      <div class="check-item">
+        <div class="status" id="dom-status">?</div>
+        <div>
+          <strong>检查 .video-summary-container 元素</strong>
+          <div id="dom-result"></div>
+        </div>
+      </div>
+      <button onclick="checkDOM()">🔍 检查 DOM</button>
+      <div class="code-block">
+        document.querySelector('.video-summary-container')
+      </div>
+    </div>
+    
+    <div class="debug-info">
+      <h2>步骤 2: 检查 currentVideo 状态</h2>
+      <div class="check-item">
+        <div class="status" id="video-status">?</div>
+        <div>
+          <strong>检查视频是否已加载</strong>
+          <div id="video-result"></div>
+        </div>
+      </div>
+      <button onclick="checkVideo()">🎬 检查视频状态</button>
+      <div class="code-block">
+        document.querySelector('video')
+      </div>
+    </div>
+    
+    <div class="debug-info">
+      <h2>步骤 3: 检查 CSS 显示属性</h2>
+      <div class="check-item">
+        <div class="status" id="css-status">?</div>
+        <div>
+          <strong>检查组件可见性</strong>
+          <div id="css-result"></div>
+        </div>
+      </div>
+      <button onclick="checkCSS()">🎨 检查 CSS</button>
+      <div class="code-block">
+        getComputedStyle(element).display
+      </div>
+    </div>
+    
+    <div class="debug-info">
+      <h2>步骤 4: 检查滚动位置</h2>
+      <div class="check-item">
+        <div class="status" id="scroll-status">?</div>
+        <div>
+          <strong>检查是否需要滚动</strong>
+          <div id="scroll-result"></div>
+        </div>
+      </div>
+      <button onclick="checkScroll()">📜 检查滚动</button>
+      <button onclick="scrollToSummary()">⬇️ 滚动到总结组件</button>
+    </div>
+    
+    <div class="debug-info">
+      <h2>步骤 5: 强制显示组件</h2>
+      <button onclick="forceShow()">💪 强制显示组件</button>
+      <button onclick="addTestComponent()">➕ 添加测试组件</button>
+      <div class="code-block">
+        临时移除 v-if 条件或修改 CSS
+      </div>
+    </div>
+    
+    <div class="debug-info">
+      <h2>📋 诊断结果</h2>
+      <div id="diagnostic-result"></div>
+    </div>
+  </div>
+  
+  <script>
+    function checkDOM() {
+      const element = window.opener?.document.querySelector('.video-summary-container');
+      const status = document.getElementById('dom-status');
+      const result = document.getElementById('dom-result');
+      
+      if (element) {
+        status.className = 'status success';
+        status.textContent = '✓';
+        result.innerHTML = '✅ 组件存在于 DOM 中<br>位置: ' + getElementPath(element);
+      } else {
+        status.className = 'status error';
+        status.textContent = '✗';
+        result.innerHTML = '❌ 组件不存在于 DOM 中<br><span class="highlight">可能原因: v-if 条件未满足或组件未渲染</span>';
+      }
+    }
+    
+    function checkVideo() {
+      const video = window.opener?.document.querySelector('video');
+      const status = document.getElementById('video-status');
+      const result = document.getElementById('video-result');
+      
+      if (video && video.src) {
+        status.className = 'status success';
+        status.textContent = '✓';
+        result.innerHTML = `✅ 视频已加载<br>URL: ${video.src}<br>时长: ${video.duration} 秒`;
+      } else if (video) {
+        status.className = 'status warning';
+        status.textContent = '!';
+        result.innerHTML = '⚠️ 视频元素存在但未加载<br><span class="highlight">请加载一个视频</span>';
+      } else {
+        status.className = 'status error';
+        status.textContent = '✗';
+        result.innerHTML = '❌ 视频元素不存在';
+      }
+    }
+    
+    function checkCSS() {
+      const element = window.opener?.document.querySelector('.video-summary-container');
+      const status = document.getElementById('css-status');
+      const result = document.getElementById('css-result');
+      
+      if (!element) {
+        status.className = 'status error';
+        status.textContent = '✗';
+        result.innerHTML = '❌ 组件不存在,无法检查 CSS';
+        return;
+      }
+      
+      const styles = window.opener?.getComputedStyle(element);
+      const display = styles.display;
+      const visibility = styles.visibility;
+      const opacity = styles.opacity;
+      const height = styles.height;
+      
+      if (display === 'none') {
+        status.className = 'status error';
+        status.textContent = '✗';
+        result.innerHTML = '❌ display: none<br><span class="highlight">组件被隐藏了!</span>';
+      } else if (visibility === 'hidden') {
+        status.className = 'status error';
+        status.textContent = '✗';
+        result.innerHTML = '❌ visibility: hidden';
+      } else if (opacity === '0') {
+        status.className = 'status warning';
+        status.textContent = '!';
+        result.innerHTML = '⚠️ opacity: 0';
+      } else {
+        status.className = 'status success';
+        status.textContent = '✓';
+        result.innerHTML = `✅ CSS 正常<br>display: ${display}<br>visibility: ${visibility}<br>opacity: ${opacity}<br>height: ${height}`;
+      }
+    }
+    
+    function checkScroll() {
+      const element = window.opener?.document.querySelector('.video-summary-container');
+      const main = window.opener?.document.querySelector('.video-main');
+      const status = document.getElementById('scroll-status');
+      const result = document.getElementById('scroll-result');
+      
+      if (!element) {
+        status.className = 'status error';
+        status.textContent = '✗';
+        result.innerHTML = '❌ 组件不存在';
+        return;
+      }
+      
+      const rect = element.getBoundingClientRect();
+      const windowHeight = window.opener?.innerHeight || 0;
+      const isVisible = rect.top < windowHeight && rect.bottom > 0;
+      
+      if (isVisible) {
+        status.className = 'status success';
+        status.textContent = '✓';
+        result.innerHTML = '✅ 组件在可见区域内';
+      } else {
+        status.className = 'status warning';
+        status.textContent = '!';
+        result.innerHTML = `⚠️ 组件在可见区域外<br>距离顶部: ${Math.round(rect.top)}px<br><span class="highlight">需要滚动才能看到</span>`;
+      }
+      
+      if (main) {
+        result.innerHTML += `<br>容器滚动高度: ${main.scrollHeight}px<br>容器可见高度: ${main.clientHeight}px`;
+      }
+    }
+    
+    function scrollToSummary() {
+      const element = window.opener?.document.querySelector('.video-summary-container');
+      if (element) {
+        element.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        alert('已滚动到总结组件位置');
+      } else {
+        alert('❌ 找不到组件');
+      }
+    }
+    
+    function forceShow() {
+      const element = window.opener?.document.querySelector('.video-summary-container');
+      if (element) {
+        element.style.display = 'block';
+        element.style.visibility = 'visible';
+        element.style.opacity = '1';
+        element.style.position = 'relative';
+        element.style.zIndex = '9999';
+        alert('✅ 已强制显示组件');
+      } else {
+        alert('❌ 找不到组件');
+      }
+    }
+    
+    function addTestComponent() {
+      const main = window.opener?.document.querySelector('.video-main');
+      if (main) {
+        const test = window.opener?.document.createElement('div');
+        test.style.cssText = 'background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 30px; margin: 20px 0; border-radius: 12px; text-align: center; font-size: 24px; font-weight: bold;';
+        test.textContent = '🧪 测试组件 - 如果你能看到这个,说明组件可以显示';
+        main.appendChild(test);
+        test.scrollIntoView({ behavior: 'smooth' });
+        alert('✅ 已添加测试组件');
+      } else {
+        alert('❌ 找不到 .video-main 容器');
+      }
+    }
+    
+    function getElementPath(element) {
+      const path = [];
+      while (element) {
+        let selector = element.tagName.toLowerCase();
+        if (element.id) {
+          selector += '#' + element.id;
+        } else if (element.className) {
+          selector += '.' + element.className.split(' ').join('.');
+        }
+        path.unshift(selector);
+        element = element.parentElement;
+        if (path.length > 5) break;
+      }
+      return path.join(' > ');
+    }
+    
+    // 自动运行检查
+    window.addEventListener('load', () => {
+      setTimeout(() => {
+        if (window.opener) {
+          alert('✅ 调试工具已加载!\n\n请点击各个按钮检查问题。');
+        } else {
+          alert('⚠️ 请从主页面打开此调试工具!\n\n在浏览器控制台执行:\nwindow.open("/debug.html")');
+        }
+      }, 500);
+    });
+  </script>
+</body>
+</html>
