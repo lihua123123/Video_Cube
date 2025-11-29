@@ -9,11 +9,7 @@
     <div class="main-content-wrapper">
       <!-- 左侧：视频编辑区域（支持滚动） -->
       <main class="video-main">
-      <!-- 视频上传区 -->
-      <div class="video-upload-section">
-        <VideoUpload ref="videoUploadRef" @success="handleUploadSuccess" @progress="handleUploadProgress" @error="handleUploadError" />
-      </div>
-      
+
       <!-- 上传状态提示 -->
       <div v-if="uploadStatus" class="upload-status">
         {{ uploadStatus }}
@@ -76,10 +72,80 @@
                     <div class="progress-bar-played" :style="{ width: playedPercent + '%' }">
                       <div class="progress-handle"></div>
                     </div>
+                    
+                    <!-- 视频分段标记 -->
+                    <div v-if="isSegmentMode && videoSegments.length > 0" class="segment-markers">
+                      <div 
+                        v-for="segment in videoSegments" 
+                        :key="segment.id"
+                      >
+                        <!-- 分段间填充区域 -->
+                        <div 
+                          v-if="segment.end_time > segment.start_time"
+                          class="segment-fill"
+                          :class="{ 
+                            'active': activeSegmentId === segment.id,
+                            'hover': hoverSegment?.id === segment.id
+                          }"
+                          :style="{ 
+                            left: (segment.start_time / duration * 100) + '%',
+                            width: ((segment.end_time - segment.start_time) / duration * 100) + '%',
+                            '--segment-color': getSegmentColor(segment)
+                          }"
+                          @mouseenter="hoverSegment = segment"
+                          @mouseleave="hoverSegment = null"
+                          @click="handleSegmentClick(segment, $event)"
+                        >
+                        </div>
+                        
+                        <!-- 开始时间标记点 -->
+                        <div 
+                          class="segment-marker start-marker"
+                          :class="{ 
+                            'active': activeSegmentId === segment.id,
+                            'hover': hoverSegment?.id === segment.id
+                          }"
+                          :style="{ 
+                            left: (segment.start_time / duration * 100) + '%',
+                            '--segment-color': getSegmentColor(segment)
+                          }"
+                          @mouseenter="hoverSegment = segment"
+                          @mouseleave="hoverSegment = null"
+                          @click="seekToSegment(segment)"
+                        >
+                        </div>
+                        <!-- 结束时间标记点 -->
+                        <div 
+                          v-if="segment.end_time > segment.start_time"
+                          class="segment-marker end-marker"
+                          :class="{ 
+                            'active': activeSegmentId === segment.id,
+                            'hover': hoverSegment?.id === segment.id
+                          }"
+                          :style="{ 
+                            left: (segment.end_time / duration * 100) + '%',
+                            '--segment-color': getSegmentColor(segment)
+                          }"
+                          @mouseenter="hoverSegment = segment"
+                          @mouseleave="hoverSegment = null"
+                          @click="seekToSegment(segment)"
+                        >
+                        </div>
+                      </div>
+                    </div>
                   </div>
+                  
                   <!-- 时间提示 -->
                   <div v-if="hoverTime !== null" class="time-tooltip" :style="{ left: hoverPosition + '%' }">
                     {{ formatTime(hoverTime) }}
+                  </div>
+                  
+                  <!-- 分段信息显示区域 -->
+                  <div v-if="hoverSegment" class="segment-info-display">
+                    <div class="segment-info-content">
+                      <div class="segment-info-title">{{ hoverSegment.title }}</div>
+                      <div class="segment-info-time">{{ formatTime(hoverSegment.start_time) }} - {{ formatTime(hoverSegment.end_time) }}</div>
+                    </div>
                   </div>
                 </div>
                 
@@ -154,17 +220,19 @@
                       </transition>
                     </div>
                     
-                    <!-- 测试卡片按钮 -->
+                    <!-- 分段模式切换 -->
                     <button 
-                      v-if="currentCards.length > 0" 
-                      @click="forceShowCard" 
-                      class="control-btn test-card-btn"
-                      title="测试知识卡片"
+                      @click="isSegmentMode = !isSegmentMode" 
+                      class="control-btn segment-mode-btn"
+                      :class="{ active: isSegmentMode }"
+                      :title="isSegmentMode ? '关闭分段模式：隐藏视频进度条上的分段标记点' : '开启分段模式：在视频进度条上显示分段标记点'"
                     >
                       <svg width="20" height="20" viewBox="0 0 24 24" fill="white">
-                        <path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-5 14H7v-2h7v2zm3-4H7v-2h10v2zm0-4H7V7h10v2z"/>
+                        <path d="M3 9h14V7H3v2zm0 4h14v-2H3v2zm0 4h14v-2H3v2zm16 0h2v-2h-2v2zm0-10v2h2V7h-2zm0 6h2v-2h-2v2z"/>
                       </svg>
                     </button>
+                    
+
                     
                     <!-- 全屏 -->
                     <button @click="toggleFullscreen" class="control-btn" :title="isFullscreen ? '退出全屏 (F/ESC)' : '全屏 (F/双击)'">
@@ -202,15 +270,6 @@
           <!-- 视频时间显示 -->
           <div class="video-time-display">
             {{ currentTimeDisplay }} / {{ durationDisplay }}
-            <!-- 调试按钮 - 手动触发卡片显示 -->
-            <button 
-              v-if="currentCards.length > 0" 
-              @click="forceShowCard" 
-              class="debug-show-card-btn"
-              title="强制显示知识卡片(测试用)"
-            >
-              测试卡片
-            </button>
           </div>
           
           <!-- 知识卡片弹窗 - 在video-wrapper内部,支持全屏显示 -->
@@ -225,6 +284,117 @@
             @close="handlePopupClose"
             @card-link-click="handleCardLinkClick"
           />
+          
+          <!-- 文字进度条 -->
+          <div 
+            class="fullscreen-text-progress-bar"
+            @click="handleFullscreenProgressClick" 
+            @mousemove="handleFullscreenProgressHover"
+            @mouseleave="handleFullscreenProgressLeave"
+            ref="fullscreenProgressBarRef"
+          >
+            <!-- 进度条背景 - 连接视频边框 -->
+            <div class="text-progress-bg">
+              <!-- 播放进度条 -->
+              <div class="text-progress-played" :style="{ width: playedPercent + '%' }"></div>
+              
+              <!-- 播放进度指示器 -->
+              <div class="text-progress-indicator" :style="{ left: playedPercent + '%' }">
+                <div class="progress-handle">▶</div>
+              </div>
+              
+              <!-- 分段标记和信息区域 -->
+              <div v-if="isSegmentMode && videoSegments.length > 0" class="text-segment-container">
+                <!-- 分段间填充区域 -->
+                <div 
+                  v-for="(segment, index) in videoSegments" 
+                  :key="'fill-' + segment.id"
+                  class="text-segment-fill"
+                  :class="{ 
+                    'active': activeSegmentId === segment.id,
+                    'hover': hoverFullscreenSegment?.id === segment.id
+                  }"
+                  :style="{ 
+                    left: (segment.start_time / duration * 100) + '%',
+                    width: ((segment.end_time - segment.start_time) / duration * 100) + '%',
+                    '--segment-color': getSegmentColor(segment)
+                  }"
+                  @click="handleFullscreenSegmentClick(segment, $event)"
+                >
+                  <!-- 分段信息文字 -->
+                  <div 
+                    v-if="segment.title"
+                    class="text-segment-info"
+                    :class="{ 
+                      'active': activeSegmentId === segment.id,
+                      'hover': hoverFullscreenSegment?.id === segment.id
+                    }"
+                  >
+                    <div class="segment-title">{{ segment.title }}</div>
+                  </div>
+                </div>
+                
+                <div 
+                  v-for="segment in videoSegments" 
+                  :key="segment.id"
+                  class="text-segment-item"
+                >
+                  <!-- 分段开始标记 - 使用 | 符号 -->
+                  <div 
+                    class="text-segment-marker start-marker"
+                    :class="{ 
+                      'active': activeSegmentId === segment.id,
+                      'hover': hoverFullscreenSegment?.id === segment.id
+                    }"
+                    :style="{ 
+                      left: (segment.start_time / duration * 100) + '%',
+                      '--segment-color': getSegmentColor(segment)
+                    }"
+                    @mouseenter="hoverFullscreenSegment = segment"
+                    @mouseleave="hoverFullscreenSegment = null"
+                    @click="handleFullscreenSegmentClick(segment, $event)"
+                  >
+                    |
+                  </div>
+                  
+                  <!-- 分段结束标记 - 使用 | 符号 -->
+                  <div 
+                    v-if="segment.end_time > segment.start_time"
+                    class="text-segment-marker end-marker"
+                    :class="{ 
+                      'active': activeSegmentId === segment.id,
+                      'hover': hoverFullscreenSegment?.id === segment.id
+                    }"
+                    :style="{ 
+                      left: (segment.end_time / duration * 100) + '%',
+                      '--segment-color': getSegmentColor(segment)
+                    }"
+                    @mouseenter="hoverFullscreenSegment = segment"
+                    @mouseleave="hoverFullscreenSegment = null"
+                    @click="handleFullscreenSegmentClick(segment, $event)"
+                  >
+                    |
+                  </div>
+                  
+
+                </div>
+              </div>
+            </div>
+            
+            <!-- 时间提示 -->
+            <div v-if="hoverFullscreenTime !== null" class="text-time-tooltip" :style="{ left: hoverFullscreenPosition + '%' }">
+              {{ formatTime(hoverFullscreenTime) }}
+            </div>
+            
+            <!-- 分段详细信息显示 -->
+            <div v-if="hoverFullscreenSegment" class="text-segment-detail">
+              <div class="detail-content">
+                <div class="detail-title">{{ hoverFullscreenSegment.title }}</div>
+                <div class="detail-type">{{ getSegmentTypeText(hoverFullscreenSegment.segment_type) }}</div>
+                <div class="detail-time">{{ formatTime(hoverFullscreenSegment.start_time) }} - {{ formatTime(hoverFullscreenSegment.end_time) }}</div>
+              </div>
+            </div>
+          </div>
         </div>
     </div>
     
@@ -435,6 +605,19 @@ interface Card {
   created_at?: string
 }
 
+// 定义视频分段类型
+interface VideoSegment {
+  id: number
+  video_id: number
+  start_time: number
+  end_time: number
+  title: string
+  description?: string
+  segment_type: 'chapter' | 'highlight' | 'summary' | 'custom'
+  color?: string
+  created_at?: string
+}
+
 // 视频相关数据
 const videoUrl = ref('')
 const currentVideo = ref('')
@@ -456,6 +639,12 @@ const currentCards = ref<Card[]>([])
 const isLoadingCards = ref(false)
 const videoId = ref<number | null>(null)
 const selectedCardId = ref<string | number | null>(null)
+
+// 视频分段相关数据
+const videoSegments = ref<VideoSegment[]>([])
+const isSegmentMode = ref(true) // 是否启用分段模式
+const activeSegmentId = ref<number | null>(null)
+const hoverSegment = ref<VideoSegment | null>(null)
 
 // 通知提示相关状态
 const notification = ref<{ show: boolean; message: string; type: 'success' | 'error' | 'info' }>({ show: false, message: '', type: 'info' })
@@ -503,6 +692,14 @@ const hoverTime = ref<number | null>(null)
 const hoverPosition = ref(0)
 const progressBarRef = ref<HTMLElement | null>(null)
 let controlsTimer: number | null = null
+
+// 全屏进度条相关状态
+const showFullscreenProgressBar = ref(true)
+const hoverFullscreenTime = ref<number | null>(null)
+const hoverFullscreenPosition = ref(0)
+const hoverFullscreenSegment = ref<VideoSegment | null>(null)
+const fullscreenProgressBarRef = ref<HTMLElement | null>(null)
+let fullscreenControlsTimer: number | null = null
 
 // 关闭全屏提示
 const closeFullscreenTip = () => {
@@ -658,6 +855,22 @@ const handleFullscreenChange = () => {
     console.warn('   请使用右下角的自定义全屏按钮,而不是video自带的全屏按钮')
   }
   
+  // 全屏进度条控制
+  if (isFullscreen.value) {
+    // 进入全屏时显示控制UI，但延迟显示全屏进度条
+    showControls.value = true
+    // 延迟500ms后显示全屏进度条，让原进度条先消失
+    setTimeout(() => {
+      showFullscreenProgressBar.value = true
+      resetFullscreenControlsTimer()
+    }, 500)
+    resetControlsTimer()
+  } else {
+    // 退出全屏时确保显示控制UI，隐藏全屏进度条
+    showControls.value = true
+    showFullscreenProgressBar.value = false
+  }
+  
   // 检查 overlay 元素是否存在及其样式
   if (isFullscreen.value) {
     setTimeout(() => {
@@ -806,6 +1019,196 @@ const setPlaybackRate = (rate: number) => {
   showRateMenu.value = false
 }
 
+// 分段相关方法
+// 获取分段颜色
+const getSegmentColor = (segment: VideoSegment): string => {
+  const colors = {
+    chapter: '#ff6b6b',
+    highlight: '#4ecdc4', 
+    summary: '#45b7d1',
+    custom: '#96ceb4'
+  }
+  return segment.color || colors[segment.segment_type] || colors.custom
+}
+
+// 获取分段类型文本描述
+const getSegmentTypeText = (segmentType: string): string => {
+  const typeMap: Record<string, string> = {
+    'introduction': '开场介绍',
+    'key-point': '核心概念',
+    'example': '实例演示',
+    'analysis': '深入分析',
+    'summary': '总结回顾',
+    'exercise': '练习环节',
+    'highlight': '重点',
+    'custom': '自定义'
+  }
+  return typeMap[segmentType] || '分段'
+}
+
+// 跳转到指定分段
+const seekToSegment = (segment: VideoSegment) => {
+  const video = videoPlayerRef.value
+  if (!video || !duration.value) return
+  
+  // 跳转到分段开始时间
+  video.currentTime = segment.start_time
+  activeSegmentId.value = segment.id
+  
+  console.log(`🎯 跳转到分段: ${segment.title} (${formatTime(segment.start_time)})`)
+}
+
+// 处理分段点击事件 - 支持高亮显示和取消高亮
+const handleSegmentClick = (segment: VideoSegment, event: Event) => {
+  // 阻止事件冒泡，避免触发进度条点击事件
+  event.stopPropagation()
+  
+  // 如果当前分段已经是高亮状态，则取消高亮
+  if (activeSegmentId.value === segment.id) {
+    activeSegmentId.value = null
+    console.log(`🔘 取消分段高亮: ${segment.title}`)
+  } else {
+    // 否则跳转到该分段并高亮显示
+    seekToSegment(segment)
+  }
+}
+
+// 获取视频分段数据
+const fetchVideoSegments = async () => {
+  if (!videoId.value) return
+  
+  try {
+    const response = await fetch(`/api/admin/video-segments?video_id=${videoId.value}`)
+    if (response.ok) {
+      const data = await response.json()
+      videoSegments.value = data.data?.segments || []
+      console.log(`📊 加载了 ${videoSegments.value.length} 个视频分段`)
+    } else {
+      console.warn('获取视频分段失败，尝试从知识卡片生成分段')
+      // 如果后端没有分段数据，从知识卡片生成
+      generateSegmentsFromCards()
+    }
+  } catch (error) {
+    console.error('获取视频分段时出错:', error)
+    // 出错时也从知识卡片生成
+    generateSegmentsFromCards()
+  }
+  
+  // 如果没有分段数据，生成测试数据
+  if (!videoSegments.value.length && duration.value > 0) {
+    generateTestSegments()
+  }
+}
+
+// 从知识卡片生成分段
+const generateSegmentsFromCards = () => {
+  if (!knowledgeCards.value.length) return
+  
+  const segments: VideoSegment[] = []
+  
+  // 将知识卡片转换为分段，每个卡片生成一个分段
+  knowledgeCards.value.forEach((card, index) => {
+    if (card.startTime >= 0 && card.endTime > card.startTime) {
+      segments.push({
+        id: card.id,
+        video_id: card.video_id,
+        start_time: card.startTime,
+        end_time: card.endTime,
+        title: card.title,
+        description: card.content,
+        segment_type: 'knowledge_card',
+        color: getSegmentColorByIndex(index)
+      })
+    }
+  })
+  
+  videoSegments.value = segments
+  console.log(`📝 从知识卡片生成了 ${segments.length} 个分段，每个卡片有开始和结束时间标记点`)
+}
+
+// 生成测试分段数据
+const generateTestSegments = () => {
+  if (!duration.value || duration.value <= 0) return
+  
+  const testSegments: VideoSegment[] = [
+    {
+      id: 1,
+      video_id: videoId.value || 0,
+      start_time: 0,
+      end_time: Math.min(60, duration.value),
+      title: '视频开场介绍',
+      description: '视频的开头部分，介绍主题和内容概要',
+      segment_type: 'introduction',
+      color: '#4CAF50'
+    },
+    {
+      id: 2,
+      video_id: videoId.value || 0,
+      start_time: Math.min(60, duration.value),
+      end_time: Math.min(180, duration.value),
+      title: '核心概念讲解',
+      description: '详细讲解视频的核心概念和重点内容',
+      segment_type: 'key-point',
+      color: '#2196F3'
+    },
+    {
+      id: 3,
+      video_id: videoId.value || 0,
+      start_time: Math.min(180, duration.value),
+      end_time: Math.min(300, duration.value),
+      title: '实例演示',
+      description: '通过具体实例演示概念的应用',
+      segment_type: 'example',
+      color: '#FF9800'
+    },
+    {
+      id: 4,
+      video_id: videoId.value || 0,
+      start_time: Math.min(300, duration.value),
+      end_time: Math.min(420, duration.value),
+      title: '深入分析',
+      description: '对关键内容进行深入分析和讨论',
+      segment_type: 'analysis',
+      color: '#9C27B0'
+    },
+    {
+      id: 5,
+      video_id: videoId.value || 0,
+      start_time: Math.min(420, duration.value),
+      end_time: duration.value,
+      title: '总结回顾',
+      description: '总结视频内容，回顾重点知识点',
+      segment_type: 'summary',
+      color: '#F44336'
+    }
+  ].filter(segment => segment.start_time < segment.end_time)
+  
+  videoSegments.value = testSegments
+  console.log(`🧪 生成了 ${testSegments.length} 个测试分段，视频时长: ${duration.value}秒`)
+}
+
+// 根据索引获取分段颜色 - 为不同知识卡片提供丰富的颜色选择
+const getSegmentColorByIndex = (index: number): string => {
+  const colors = [
+    '#ff6b6b', '#4ecdc4', '#45b7d1', '#96ceb4', '#feca57', '#ff9ff3', '#54a0ff', '#5f27cd',
+    '#ff9f43', '#10ac84', '#2e86de', '#a55eea', '#fd79a8', '#00d2d3', '#ff9ff3', '#54a0ff',
+    '#5f27cd', '#c8d6e5', '#ff9ff3', '#54a0ff', '#5f27cd', '#ff9f43', '#10ac84', '#2e86de',
+    '#a55eea', '#fd79a8', '#00d2d3', '#ff9ff3', '#54a0ff', '#5f27cd', '#c8d6e5', '#ff9ff3'
+  ]
+  return colors[index % colors.length]
+}
+
+// 更新活跃分段
+const updateActiveSegment = () => {
+  if (!videoSegments.value.length || !duration.value) return
+  
+  const currentSegment = videoSegments.value.find(segment => 
+    currentTime.value >= segment.start_time && currentTime.value <= segment.end_time
+  )
+  
+  activeSegmentId.value = currentSegment?.id || null
+}
+
 // 进度条点击
 const handleProgressClick = (event: MouseEvent) => {
   const video = videoPlayerRef.value
@@ -846,12 +1249,19 @@ const seekBy = (seconds: number) => {
 const handleMouseMove = () => {
   showControls.value = true
   resetControlsTimer()
+  
+  // 全屏时也显示全屏进度条
+  if (isFullscreen.value) {
+    showFullscreenProgressBar.value = true
+    resetFullscreenControlsTimer()
+  }
 }
 
 // 鼠标离开 - 隐藏控制UI(仅全屏时)
 const handleMouseLeave = () => {
   if (isFullscreen.value && isPlaying.value) {
     showControls.value = false
+    showFullscreenProgressBar.value = false
   }
 }
 
@@ -875,7 +1285,94 @@ const resetControlsTimer = () => {
   if (isFullscreen.value && isPlaying.value) {
     controlsTimer = window.setTimeout(() => {
       showControls.value = false
+      
+      // 原进度条隐藏后，显示文字进度条
+      showFullscreenProgressBar.value = true
     }, 3000)
+  }
+}
+
+// 全屏进度条相关方法
+const handleFullscreenProgressClick = (event: MouseEvent) => {
+  const progressBar = fullscreenProgressBarRef.value
+  if (!progressBar || !videoPlayerRef.value) return
+  
+  const rect = progressBar.getBoundingClientRect()
+  const clickX = event.clientX - rect.left
+  const percent = clickX / rect.width
+  
+  videoPlayerRef.value.currentTime = percent * videoPlayerRef.value.duration
+  
+  // 重置全屏控制UI显示
+  showFullscreenProgressBar.value = true
+  resetFullscreenControlsTimer()
+}
+
+const handleFullscreenProgressHover = (event: MouseEvent) => {
+  const progressBar = fullscreenProgressBarRef.value
+  if (!progressBar || !videoPlayerRef.value) return
+  
+  const rect = progressBar.getBoundingClientRect()
+  const hoverX = event.clientX - rect.left
+  const percent = hoverX / rect.width
+  
+  hoverFullscreenTime.value = percent * videoPlayerRef.value.duration
+  hoverFullscreenPosition.value = percent * 100
+  
+  // 查找悬停位置的分段
+  hoverFullscreenSegment.value = videoSegments.value.find(segment => 
+    hoverFullscreenTime.value! >= segment.start_time && 
+    hoverFullscreenTime.value! <= segment.end_time
+  ) || null
+  
+  // 显示全屏进度条
+  showFullscreenProgressBar.value = true
+  resetFullscreenControlsTimer()
+}
+
+const handleFullscreenProgressLeave = () => {
+  hoverFullscreenTime.value = null
+  hoverFullscreenSegment.value = null
+}
+
+const handleFullscreenSegmentClick = (segment: VideoSegment, event: MouseEvent) => {
+  event.stopPropagation()
+  if (videoPlayerRef.value) {
+    videoPlayerRef.value.currentTime = segment.start_time
+  }
+  
+  // 重置全屏控制UI显示
+  showFullscreenProgressBar.value = true
+  resetFullscreenControlsTimer()
+}
+
+// 重置全屏控制UI隐藏计时器
+const resetFullscreenControlsTimer = () => {
+  if (fullscreenControlsTimer !== null) {
+    clearTimeout(fullscreenControlsTimer)
+  }
+  
+  // 全屏且播放中时,3秒后隐藏全屏进度条
+  if (isFullscreen.value && isPlaying.value) {
+    fullscreenControlsTimer = window.setTimeout(() => {
+      showFullscreenProgressBar.value = false
+    }, 3000)
+  }
+}
+
+// 全屏鼠标移动事件
+const handleFullscreenMouseMove = () => {
+  // 鼠标移动时隐藏文字进度条，显示原进度条
+  showFullscreenProgressBar.value = false
+  
+  // 重置原进度条的隐藏计时器
+  resetControlsTimer()
+}
+
+// 全屏鼠标离开事件
+const handleFullscreenMouseLeave = () => {
+  if (isFullscreen.value && isPlaying.value) {
+    showFullscreenProgressBar.value = false
   }
 }
 
@@ -1308,6 +1805,11 @@ const handleTimeUpdate = (event: Event) => {
   
   // 实时更新当前时间点的知识卡片
   updateCurrentCards()
+  
+  // 更新活跃分段
+  if (isSegmentMode.value) {
+    updateActiveSegment()
+  }
 }
 
 // 处理视频跳转事件(用户拖动进度条)
@@ -1409,21 +1911,7 @@ const checkAndShowPopup = (previousCards: Card[]) => {
   }
 }
 
-// 强制显示卡片(调试用)
-const forceShowCard = () => {
-  console.log('🧪 强制显示卡片测试')
-  console.log('   当前卡片:', currentCards.value.map(c => c.title))
-  console.log('   全屏状态:', isFullscreen.value)
-  console.log('   showCardPopup:', showCardPopup.value)
-  
-  if (currentCards.value.length > 0 && currentCards.value[0]) {
-    const card = currentCards.value[0]
-    console.log('   强制显示:', card.title)
-    showPopup(card)
-  } else {
-    console.log('   ⚠️ 没有可显示的卡片')
-  }
-}
+
 
 // 显示弹窗
 const showPopup = (card: Card) => {
@@ -1623,15 +2111,24 @@ const fetchKnowledgeCards = async () => {
       } else {
         console.log('ℹ️ 该视频暂无知识卡片')
       }
+      
+      // 加载视频分段数据
+      await fetchVideoSegments()
     } else {
       console.error('❌ API返回错误状态:', response.status)
       knowledgeCards.value = []
       showNotification('获取知识卡片失败', 'error')
+      
+      // 即使卡片加载失败，也尝试加载分段
+      await fetchVideoSegments()
     }
   } catch (error) {
     console.error('❌ 获取知识卡片失败:', error)
     knowledgeCards.value = []
     showNotification('获取知识卡片失败，请稍后重试', 'error')
+    
+    // 出错时也尝试加载分段
+    await fetchVideoSegments()
   } finally {
     isLoadingCards.value = false
   }
@@ -2405,6 +2902,7 @@ const handleVideoError = (event: Event) => {
   margin-bottom: 20px;
   overflow: hidden;
   flex: none;
+  z-index: 1; /* 视频容器在底层 */
 }
 
 .video-placeholder {
@@ -2452,6 +2950,7 @@ const handleVideoError = (event: Event) => {
   object-fit: contain;
   background: #000;
   display: block;
+  z-index: 1; /* 视频播放器在底层 */
 }
 
 .video-time-display {
@@ -2470,21 +2969,7 @@ const handleVideoError = (event: Event) => {
   z-index: 5; /* 降低z-index，让原生进度条在上面 */
 }
 
-.debug-show-card-btn {
-  padding: 2px 8px;
-  background: rgba(64, 158, 255, 0.9);
-  color: white;
-  border: none;
-  border-radius: 3px;
-  font-size: 11px;
-  cursor: pointer;
-  transition: all 0.2s;
-}
 
-.debug-show-card-btn:hover {
-  background: rgba(102, 177, 255, 0.9);
-  transform: scale(1.05);
-}
 
 /* 全屏操作区域 - 更大的可点击区域 */
 .fullscreen-zone {
@@ -2820,15 +3305,21 @@ const handleVideoError = (event: Event) => {
   font-weight: 600;
 }
 
-/* 测试卡片按钮 */
-.test-card-btn {
-  background: rgba(24, 144, 255, 0.3);
-  border: 1px solid rgba(24, 144, 255, 0.5);
+
+
+/* 分段模式按钮 */
+.segment-mode-btn {
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.3);
 }
 
-.test-card-btn:hover {
-  background: rgba(24, 144, 255, 0.5);
-  border-color: #1890ff;
+.segment-mode-btn:hover {
+  background: rgba(255, 255, 255, 0.2);
+  border-color: rgba(255, 255, 255, 0.5);
+}
+
+.segment-mode-btn.active {
+  background: rgba(255, 107, 53, 0.7);
 }
 
 /* 全屏使用提示 */
@@ -3189,4 +3680,633 @@ const handleVideoError = (event: Event) => {
   bottom: 50px;
   z-index: 9998;
 }
+
+/* ===== 视频分段标记点样式 ===== */
+/* 分段标记点容器 */
+.segment-markers {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  z-index: 10 !important; /* 分段标记点在视频层之上 */
+}
+
+/* 单个分段标记点 */
+.segment-marker {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--segment-color, #ff6b35);
+  cursor: pointer;
+  pointer-events: auto;
+  transition: all 0.3s ease;
+  box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.8);
+  z-index: 10006 !important;
+}
+
+/* 开始时间标记点样式 */
+.segment-marker.start-marker {
+  background: var(--segment-color, #ff6b35);
+  border: 2px solid white;
+  box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.2);
+}
+
+/* 结束时间标记点样式 */
+.segment-marker.end-marker {
+  background: var(--segment-color, #ff6b35);
+  border: 2px solid white;
+  box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.2);
+}
+
+.segment-marker:hover {
+  transform: translateY(-50%) scale(1.5);
+  box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.9), 0 2px 8px rgba(0, 0, 0, 0.3);
+  z-index: 10007 !important;
+}
+
+.segment-marker.active {
+  transform: translateY(-50%) scale(1.3);
+  box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.9), 0 0 0 6px var(--segment-color, rgba(255, 107, 53, 0.3));
+  animation: segmentPulse 2s ease-in-out infinite;
+  z-index: 10008 !important;
+}
+
+@keyframes segmentPulse {
+  0%, 100% {
+    box-shadow: 0 0 0 4px rgba(255, 255, 255, 0.9), 0 0 0 8px var(--segment-color, rgba(255, 107, 53, 0.3));
+  }
+  50% {
+    box-shadow: 0 0 0 4px rgba(255, 255, 255, 0.9), 0 0 0 12px var(--segment-color, rgba(255, 107, 53, 0.1));
+  }
+}
+
+/* 分段间填充区域样式 */
+.segment-fill {
+  position: absolute;
+  top: 0;
+  height: 100%;
+  background: var(--segment-color, #ff6b35);
+  opacity: 0.3;
+  cursor: pointer;
+  pointer-events: auto;
+  transition: all 0.3s ease;
+  z-index: 10004 !important;
+  border-radius: 0;
+}
+
+.segment-fill:hover {
+  opacity: 0.5;
+}
+
+.segment-fill.active {
+  opacity: 0.4;
+}
+
+.segment-fill.hover {
+  opacity: 0.45;
+}
+
+/* 分段信息条样式 - 隐藏分段信息但保留分段点 */
+.segment-info-bar {
+  position: absolute;
+  top: 0;
+  height: 100%;
+  background: transparent; /* 隐藏背景色 */
+  border-radius: 3px;
+  cursor: pointer;
+  pointer-events: auto;
+  transition: all 0.3s ease;
+  z-index: 10005 !important;
+  opacity: 0.7 !important;
+  border: none; /* 移除边框 */
+}
+
+/* 取消鼠标移动到分段时的高亮显示 */
+.segment-info-bar:hover {
+  opacity: 0; /* 保持隐藏状态 */
+}
+
+.segment-info-bar.active {
+  opacity: 0; /* 保持隐藏状态 */
+}
+
+/* 分段标题文字 - 隐藏显示 */
+.segment-title {
+  display: block !important;
+}
+
+/* 当分段宽度过小时，调整标题显示位置，用"..."代替竖着显示 */
+.segment-info-bar.narrow .segment-title {
+  display: none; /* 保持隐藏 */
+}
+
+.segment-info-bar:hover .segment-title {
+  display: none; /* 保持隐藏 */
+}
+
+.segment-info-bar.narrow:hover .segment-title {
+  display: none; /* 保持隐藏 */
+}
+
+/* 分段标记点悬停时的标题显示 */
+.segment-marker:hover + .segment-info-bar .segment-title,
+.segment-marker.hover + .segment-info-bar .segment-title {
+  display: none; /* 保持隐藏 */
+}
+
+.segment-marker:hover + .segment-info-bar.narrow .segment-title,
+.segment-marker.hover + .segment-info-bar.narrow .segment-title {
+  display: none; /* 保持隐藏 */
+}
+
+/* 分段信息显示区域的优化样式 */
+.segment-info-display {
+  position: absolute;
+  bottom: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  background: linear-gradient(135deg, rgba(0, 0, 0, 0.95) 0%, rgba(0, 0, 0, 0.85) 100%);
+  color: white;
+  padding: 12px 16px;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 500;
+  white-space: nowrap;
+  z-index: 10015 !important;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+  backdrop-filter: blur(15px);
+  max-width: 300px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  pointer-events: none;
+}
+
+.segment-info-content {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.segment-info-title {
+  font-size: 14px;
+  font-weight: 600;
+  color: #fff;
+}
+
+.segment-info-time {
+  font-size: 12px;
+  color: rgba(255, 255, 255, 0.8);
+  font-weight: 400;
+}
+
+/* 全屏模式下的分段标记优化 */
+:fullscreen .segment-marker,
+:-webkit-full-screen .segment-marker,
+:-moz-full-screen .segment-marker,
+:-ms-fullscreen .segment-marker {
+  width: 10px;
+  height: 10px;
+}
+
+:fullscreen .segment-info-bar,
+:-webkit-full-screen .segment-info-bar,
+:-moz-full-screen .segment-info-bar,
+:-ms-fullscreen .segment-info-bar {
+  opacity: 0.5;
+}
+
+:fullscreen .segment-info-bar:hover,
+:-webkit-full-screen .segment-info-bar:hover,
+:-moz-full-screen .segment-info-bar:hover,
+:-ms-fullscreen .segment-info-bar:hover {
+  opacity: 0.9;
+  transform: scaleY(1.4);
+}
+
+:fullscreen .segment-title,
+:-webkit-full-screen .segment-title,
+:-moz-full-screen .segment-title,
+:-ms-fullscreen .segment-title {
+  font-size: 14px;
+  padding: 8px 16px;
+  top: -35px;
+}
+
+
+
+/* 分段信息显示区域 - 固定位置显示 */
+.segment-info-display {
+  position: absolute;
+  top: -25px;
+  left: 0;
+  right: 0;
+  z-index: 10020 !important;
+  display: flex;
+  justify-content: center;
+  pointer-events: none;
+}
+
+.segment-info-content {
+  background: rgba(255, 255, 255, 0.95);
+  color: #333;
+  padding: 12px 20px;
+  border-radius: 8px;
+  backdrop-filter: blur(10px);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2), 0 2px 8px rgba(0, 0, 0, 0.1);
+  max-width: 400px;
+  text-align: center;
+  animation: segmentInfoFadeIn 0.3s ease-out;
+  border: 1px solid rgba(0, 0, 0, 0.1);
+}
+
+@keyframes segmentInfoFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.segment-info-title {
+  font-size: 16px;
+  font-weight: 600;
+  margin-bottom: 4px;
+  color: #222;
+}
+
+.segment-info-time {
+  font-size: 13px;
+  color: #666;
+  margin-bottom: 6px;
+}
+
+.segment-info-type {
+  font-size: 12px;
+  padding: 2px 8px;
+  border-radius: 4px;
+  display: inline-block;
+  font-weight: 500;
+}
+
+.segment-info-type.introduction {
+  background: rgba(76, 175, 80, 0.15);
+  color: #2E7D32;
+  border: 1px solid rgba(76, 175, 80, 0.3);
+}
+
+.segment-info-type.key-point {
+  background: rgba(33, 150, 243, 0.15);
+  color: #1565C0;
+  border: 1px solid rgba(33, 150, 243, 0.3);
+}
+
+.segment-info-type.example {
+  background: rgba(255, 152, 0, 0.15);
+  color: #EF6C00;
+  border: 1px solid rgba(255, 152, 0, 0.3);
+}
+
+.segment-info-type.summary {
+  background: rgba(156, 39, 176, 0.15);
+  color: #7B1FA2;
+  border: 1px solid rgba(156, 39, 176, 0.3);
+}
+
+.segment-info-type.exercise {
+  background: rgba(244, 67, 54, 0.15);
+  color: #C62828;
+  border: 1px solid rgba(244, 67, 54, 0.3);
+}
+
+/* 分段标记点颜色变体 */
+.segment-marker[data-segment-type="introduction"] {
+  background: #4CAF50;
+}
+
+.segment-marker[data-segment-type="key-point"] {
+  background: #2196F3;
+}
+
+.segment-marker[data-segment-type="example"] {
+  background: #FF9800;
+}
+
+.segment-marker[data-segment-type="summary"] {
+  background: #9C27B0;
+}
+
+.segment-marker[data-segment-type="exercise"] {
+  background: #F44336;
+}
+
+/* ===== 全屏模式文字进度条样式 ===== */
+.fullscreen-text-progress-bar {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  height: 60px;
+  cursor: pointer;
+  z-index: 8; /* 文字进度条在视频进度条之下 */
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.fullscreen-text-progress-bar:hover {
+  height: 80px;
+}
+
+/* 文字进度条背景 */
+.text-progress-bg {
+  position: relative;
+  width: 100%;
+  height: 40px;
+  background: rgba(128, 128, 128, 0.3);
+  border-radius: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  overflow: visible;
+  backdrop-filter: blur(10px);
+}
+
+.fullscreen-text-progress-bar:hover .text-progress-bg {
+  background: rgba(128, 128, 128, 0.4);
+  border: 1px solid rgba(255, 255, 255, 0.5);
+}
+
+/* 文字进度条播放进度 */
+.text-progress-played {
+  position: absolute;
+  top: 0;
+  left: 0;
+  height: 100%;
+  background: rgba(77, 77, 77, 0.4); /* 比文字进度条深一点的透灰色 */
+  border-radius: 8px 0 0 8px;
+  z-index: 10001;
+  pointer-events: none;
+  transition: width 0.1s ease;
+}
+
+.fullscreen-text-progress-bar:hover .text-progress-played {
+  background: rgba(64, 64, 64, 0.9); /* 悬停时更深的透灰色 */
+}
+
+/* 播放进度指示器 */
+.text-progress-indicator {
+  position: absolute;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 10002; /* 在分段填充区域之下 */
+  pointer-events: none;
+}
+
+.progress-handle {
+  font-size: 16px;
+  color: #ff6b35;
+  text-shadow: 0 0 10px rgba(255, 107, 53, 0.8);
+  font-weight: bold;
+  animation: progressPulse 2s ease-in-out infinite;
+}
+
+@keyframes progressPulse {
+  0%, 100% {
+    text-shadow: 0 0 10px rgba(255, 107, 53, 0.8);
+  }
+  50% {
+    text-shadow: 0 0 20px rgba(255, 107, 53, 1);
+  }
+}
+
+/* 分段标记和信息容器 */
+.text-segment-container {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  z-index: 5; /* 文字进度条分段信息在视频进度条之下 */
+}
+
+.text-segment-item {
+  position: relative;
+  width: 100%;
+  height: 100%;
+}
+
+/* 分段间填充区域 */
+.text-segment-fill {
+  position: absolute;
+  top: 0;
+  height: 100%;
+  background: linear-gradient(90deg, 
+    var(--segment-color, rgba(102, 126, 234, 0.15)) 0%, 
+    var(--segment-color, rgba(102, 126, 234, 0.1)) 50%,
+    var(--segment-color, rgba(102, 126, 234, 0.05)) 100%);
+  border-radius: 6px;
+  cursor: pointer;
+  pointer-events: auto;
+  transition: all 0.3s ease;
+  z-index: 10003;
+  opacity: 0.3;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.text-segment-fill:hover {
+  opacity: 0.5;
+  transform: scaleY(1.05);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+}
+
+.text-segment-fill.active {
+  opacity: 0.4;
+  box-shadow: 0 0 0 2px var(--segment-color, rgba(102, 126, 234, 0.4));
+  border: 1px solid rgba(255, 255, 255, 0.4);
+}
+
+/* 文字分段标记 - 使用 | 符号 */
+.text-segment-marker {
+  display: none; /* 隐藏文字进度条的分段竖杠 */
+}
+
+.text-segment-marker:hover {
+  font-size: 32px;
+  text-shadow: 0 0 12px rgba(255, 255, 255, 1);
+  z-index: 10007;
+  background: rgba(0, 0, 0, 0.5);
+  transform: scaleX(1.2);
+}
+
+.text-segment-marker.active {
+  font-size: 30px;
+  text-shadow: 0 0 15px var(--segment-color, rgba(255, 107, 53, 0.9));
+  animation: textSegmentPulse 2s ease-in-out infinite;
+  z-index: 10008;
+  background: rgba(0, 0, 0, 0.6);
+  box-shadow: 0 0 0 2px var(--segment-color, rgba(255, 107, 53, 0.5));
+}
+
+@keyframes textSegmentPulse {
+  0%, 100% {
+    text-shadow: 0 0 10px var(--segment-color, rgba(255, 107, 53, 0.8));
+  }
+  50% {
+    text-shadow: 0 0 20px var(--segment-color, rgba(255, 107, 53, 1));
+  }
+}
+
+/* 分段信息文字显示 */
+.text-segment-info {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: transparent;
+  border-radius: 6px;
+  cursor: pointer;
+  pointer-events: auto;
+  transition: all 0.3s ease;
+  z-index: 10004; /* 在分段填充区域之上显示文字 */
+  opacity: 1;
+  border: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 4px;
+  overflow: hidden;
+}
+
+.text-segment-info:hover {
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.text-segment-info.active {
+  background: rgba(255, 255, 255, 0.15);
+}
+
+/* 分段标题和时间文字 */
+.segment-title {
+  font-size: 12px;
+  font-weight: 600;
+  color: white;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.8);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 100%;
+  text-align: center;
+}
+
+.segment-time {
+  font-size: 10px;
+  color: rgba(255, 255, 255, 0.8);
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.6);
+  margin-top: 2px;
+}
+
+/* 文字进度条时间提示 */
+.text-time-tooltip {
+  position: absolute;
+  top: -55px;
+  left: 0;
+  transform: translateX(-50%);
+  background: linear-gradient(135deg, rgba(0, 0, 0, 0.95) 0%, rgba(0, 0, 0, 0.85) 100%);
+  color: white;
+  padding: 8px 16px;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  white-space: nowrap;
+  z-index: 10015;
+  pointer-events: none;
+  backdrop-filter: blur(15px);
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.4);
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.8);
+}
+
+/* 文字进度条分段详细信息显示 */
+.text-segment-detail {
+  position: absolute;
+  top: -80px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: linear-gradient(135deg, rgba(0, 0, 0, 0.98) 0%, rgba(0, 0, 0, 0.9) 100%);
+  color: white;
+  padding: 16px 20px;
+  border-radius: 12px;
+  font-size: 14px;
+  font-weight: 500;
+  white-space: nowrap;
+  z-index: 10020;
+  border: 2px solid rgba(255, 255, 255, 0.4);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+  backdrop-filter: blur(20px);
+  max-width: 350px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  pointer-events: none;
+  text-align: center;
+}
+
+.detail-content {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  align-items: center;
+}
+
+.detail-title {
+  font-size: 16px;
+  font-weight: 700;
+  color: #fff;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.8);
+}
+
+.detail-type {
+  font-size: 12px;
+  color: rgba(255, 255, 255, 0.7);
+  font-weight: 500;
+  background: rgba(255, 255, 255, 0.1);
+  padding: 2px 8px;
+  border-radius: 4px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.detail-time {
+  font-size: 13px;
+  color: rgba(255, 255, 255, 0.8);
+  font-weight: 400;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.6);
+}
+
+/* 全屏模式下分段标记点调整 */
+.video-wrapper:fullscreen .segment-markers,
+.video-wrapper:-webkit-full-screen .segment-markers,
+.video-wrapper:-moz-full-screen .segment-markers,
+.video-wrapper:-ms-fullscreen .segment-markers {
+  z-index: 9999;
+}
+
+.video-wrapper:fullscreen .segment-marker,
+.video-wrapper:-webkit-full-screen .segment-marker,
+.video-wrapper:-moz-full-screen .segment-marker,
+.video-wrapper:-ms-fullscreen .segment-marker {
+  width: 10px;
+  height: 10px;
+}
+
+
 </style>

@@ -4,9 +4,12 @@ const fs = require('fs');
 
 class FFmpegService {
   constructor() {
-    // 配置FFmpeg路径，明确指定我们安装的FFmpeg位置
-    ffmpeg.setFfmpegPath('D:\\Code\\nodejs\\Video_Cube\\ffmpeg\\extracted\\ffmpeg-master-latest-win64-gpl\\bin\\ffmpeg.exe');
-    ffmpeg.setFfprobePath('D:\\Code\\nodejs\\Video_Cube\\ffmpeg\\extracted\\ffmpeg-master-latest-win64-gpl\\bin\\ffprobe.exe');
+    // 使用相对路径配置FFmpeg
+    const projectRoot = path.resolve(__dirname, '../..'); // 项目根目录
+    const ffmpegDir = path.join(projectRoot, 'ffmpeg/extracted/ffmpeg-master-latest-win64-gpl/bin');
+    
+    ffmpeg.setFfmpegPath(path.join(ffmpegDir, 'ffmpeg.exe'));
+    ffmpeg.setFfprobePath(path.join(ffmpegDir, 'ffprobe.exe'));
   }
 
   /**
@@ -89,7 +92,7 @@ class FFmpegService {
       fps = null
     } = options;
 
-    // 确保使用绝对路径，防止相对路径在Windows下可能出现的编码问题
+    // 使用相对路径解析
     const absoluteInputPath = path.resolve(inputPath);
     const absoluteOutputPath = path.resolve(outputPath);
     

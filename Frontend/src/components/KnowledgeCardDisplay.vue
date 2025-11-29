@@ -465,12 +465,12 @@ const jumpToCardTime = (card: KnowledgeCard) => {
   content: '▶';
   font-size: 10px;
   margin-right: 4px;
-  opacity: 0;
+  opacity: 1; /* 改为常驻显示 */
   transition: opacity 0.2s ease;
 }
 
 .clickable-time:hover::before {
-  opacity: 1;
+  opacity: 0.8; /* 悬停时稍微调整透明度 */
 }
 
 .expand-btn {
