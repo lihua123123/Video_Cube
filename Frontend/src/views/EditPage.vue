@@ -23,16 +23,7 @@
       <section class="project-sidebar">
         <h3>我的项目</h3>
         <div class="project-list">
-          <div class="project-item active">
-            <div class="project-info">
-              <div class="project-title">专项练习视频</div>
-            </div>
-          </div>
-          <div class="project-item active">
-            <div class="project-info">
-              <div class="project-title">大纲图</div>
-            </div>
-          </div>
+          <!-- 项目列表已清空 -->
         </div>
       </section>
 
@@ -248,20 +239,94 @@
         <div class="modal-body">
           <!-- 时间设置 - 修改为时间段选择 -->
           <div class="time-setting">
-            <label>卡片出现时间段（秒）</label>
+            <label>卡片出现时间段</label>
             <div class="time-range-wrapper">
-              <div class="time-input-group">
+              <!-- 开始时间 -->
+              <div class="time-input-section">
                 <span class="time-label">开始时间：</span>
-                <input type="number" v-model="cardStartTime" min="0" step="1" class="time-input" />
-                <span class="time-unit">秒</span>
+                <div class="time-input-group">
+                  <div class="time-input-item" v-if="showHoursInput">
+                    <input 
+                      type="number" 
+                      v-model="startHours" 
+                      @input="handleStartTimeChange"
+                      min="0"
+                      placeholder="时"
+                      class="time-input" 
+                    />
+                    <span class="time-unit">时</span>
+                  </div>
+                  <div class="time-input-item" v-if="showMinutesInput">
+                    <input 
+                      type="number" 
+                      v-model="startMinutes" 
+                      @input="handleStartTimeChange"
+                      min="0"
+                      max="59"
+                      placeholder="分"
+                      class="time-input" 
+                    />
+                    <span class="time-unit">分</span>
+                  </div>
+                  <div class="time-input-item">
+                    <input 
+                      type="number" 
+                      v-model="startSeconds" 
+                      @input="handleStartTimeChange"
+                      min="0"
+                      max="59"
+                      placeholder="秒"
+                      class="time-input" 
+                    />
+                    <span class="time-unit">秒</span>
+                  </div>
+                </div>
               </div>
-              <div class="time-input-group">
+              
+              <!-- 结束时间 -->
+              <div class="time-input-section">
                 <span class="time-label">结束时间：</span>
-                <input type="number" v-model="cardEndTime" min="0" step="1" class="time-input" />
-                <span class="time-unit">秒</span>
+                <div class="time-input-group">
+                  <div class="time-input-item" v-if="showHoursInput">
+                    <input 
+                      type="number" 
+                      v-model="endHours" 
+                      @input="handleEndTimeChange"
+                      min="0"
+                      placeholder="时"
+                      class="time-input" 
+                    />
+                    <span class="time-unit">时</span>
+                  </div>
+                  <div class="time-input-item" v-if="showMinutesInput">
+                    <input 
+                      type="number" 
+                      v-model="endMinutes" 
+                      @input="handleEndTimeChange"
+                      min="0"
+                      max="59"
+                      placeholder="分"
+                      class="time-input" 
+                    />
+                    <span class="time-unit">分</span>
+                  </div>
+                  <div class="time-input-item">
+                    <input 
+                      type="number" 
+                      v-model="endSeconds" 
+                      @input="handleEndTimeChange"
+                      min="0"
+                      max="59"
+                      placeholder="秒"
+                      class="time-input" 
+                    />
+                    <span class="time-unit">秒</span>
+                  </div>
+                </div>
               </div>
+              
               <div class="time-duration" v-if="timeDuration > 0">
-                时长：{{ timeDuration }}秒
+                时长：{{ formatDuration(timeDuration) }}
               </div>
               <button @click="fillTimeFromVideo" class="fill-time-btn">
                 从当前视频时间填充
@@ -380,6 +445,109 @@ const cardContent = ref('')
 const editingCardIndex = ref(-1)
 const showExampleCards = ref(false)
 
+// 时间格式相关状态
+const timeFormatMode = ref<'seconds' | 'minutes' | 'hours'>('seconds') // 时间输入格式模式
+const cardStartTimeDisplay = ref('0') // 显示给用户的开始时间
+const cardEndTimeDisplay = ref('0') // 显示给用户的结束时间
+
+// 时分秒分别输入
+const startHours = ref(0)
+const startMinutes = ref(0)
+const startSeconds = ref(0)
+const endHours = ref(0)
+const endMinutes = ref(0)
+const endSeconds = ref(0)
+
+// 时间格式转换函数
+// 将秒数转换为指定格式的时间字符串
+const formatTimeForInput = (seconds: number, format: 'seconds' | 'minutes' | 'hours'): string => {
+  switch (format) {
+    case 'seconds':
+      return seconds.toString()
+    case 'minutes':
+      const mins = Math.floor(seconds / 60)
+      const secs = Math.floor(seconds % 60)
+      return `${mins}:${secs.toString().padStart(2, '0')}`
+    case 'hours':
+      const hours = Math.floor(seconds / 3600)
+      const minutes = Math.floor((seconds % 3600) / 60)
+      const secondsRemain = Math.floor(seconds % 60)
+      return `${hours}:${minutes.toString().padStart(2, '0')}:${secondsRemain.toString().padStart(2, '0')}`
+    default:
+      return seconds.toString()
+  }
+}
+
+// 将时间字符串解析为秒数（智能解析，支持多种格式）
+const parseTimeToSeconds = (timeStr: string, format: 'seconds' | 'minutes' | 'hours'): number => {
+  if (!timeStr.trim()) return 0
+  
+  // 移除所有空格
+  const cleanStr = timeStr.replace(/\s/g, '')
+  
+  // 尝试根据冒号数量自动识别格式
+  const colonCount = (cleanStr.match(/:/g) || []).length
+  
+  // 如果用户输入了冒号，优先使用冒号格式解析
+  if (colonCount > 0) {
+    const parts = cleanStr.split(':')
+    
+    if (colonCount === 2) {
+      // 时:分:秒格式
+      const hours = parseInt(parts[0] || '0') || 0
+      const mins = parseInt(parts[1] || '0') || 0
+      const secs = parseInt(parts[2] || '0') || 0
+      return hours * 3600 + mins * 60 + secs
+    } else if (colonCount === 1) {
+      // 分:秒格式
+      const mins = parseInt(parts[0] || '0') || 0
+      const secs = parseInt(parts[1] || '0') || 0
+      return mins * 60 + secs
+    }
+  }
+  
+  // 如果没有冒号，根据当前格式解析
+  switch (format) {
+    case 'seconds':
+      return parseInt(cleanStr) || 0
+    case 'minutes':
+      // 如果输入纯数字且大于60，自动转换为分钟格式
+      const num = parseInt(cleanStr) || 0
+      if (num >= 60) {
+        const mins = Math.floor(num / 60)
+        const secs = num % 60
+        return mins * 60 + secs
+      }
+      return num
+    case 'hours':
+      const numHours = parseInt(cleanStr) || 0
+      if (numHours >= 3600) {
+        const hours = Math.floor(numHours / 3600)
+        const mins = Math.floor((numHours % 3600) / 60)
+        const secs = numHours % 60
+        return hours * 3600 + mins * 60 + secs
+      } else if (numHours >= 60) {
+        const mins = Math.floor(numHours / 60)
+        const secs = numHours % 60
+        return mins * 60 + secs
+      }
+      return numHours
+    default:
+      return parseInt(cleanStr) || 0
+  }
+}
+
+// 根据视频时长自动选择合适的时间格式
+const autoDetectTimeFormat = (duration: number): 'seconds' | 'minutes' | 'hours' => {
+  if (duration >= 3600) {
+    return 'hours'
+  } else if (duration >= 60) {
+    return 'minutes'
+  } else {
+    return 'seconds'
+  }
+}
+
 // 计算属性
 const isAllSelected = computed(() => {
   const currentCards = showExampleCards.value ? exampleCards.value : userCards.value
@@ -392,6 +560,16 @@ const selectedCardsCount = computed(() => {
 
 const timeDuration = computed(() => {
   return Math.max(0, cardEndTime.value - cardStartTime.value)
+})
+
+// 是否需要显示时的输入框（视频时长超过1小时）
+const showHoursInput = computed(() => {
+  return videoDuration.value >= 3600
+})
+
+// 是否需要显示分的输入框（视频时长超过1分钟）
+const showMinutesInput = computed(() => {
+  return videoDuration.value >= 60
 })
 
 // 视频时间格式化
@@ -410,11 +588,101 @@ const formatTime = (seconds: number): string => {
   return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`
 }
 
+// 监听视频时长变化，自动调整时间格式
+watch(videoDuration, (newDuration) => {
+  if (newDuration > 0) {
+    const newFormat = autoDetectTimeFormat(newDuration)
+    if (newFormat !== timeFormatMode.value) {
+      timeFormatMode.value = newFormat
+      
+      // 更新显示的时间格式
+      cardStartTimeDisplay.value = formatTimeForInput(cardStartTime.value, newFormat)
+      cardEndTimeDisplay.value = formatTimeForInput(cardEndTime.value, newFormat)
+      
+      console.log(`🕒 视频时长 ${newDuration}秒，自动切换到 ${newFormat} 格式`)
+    }
+  }
+})
+
 // 方法定义
 const goBack = () => {
   // 使用数据库存储后，不需要在返回时自动保存
   // 保存操作已在每次编辑时执行
   router.push('/user')
+}
+
+// 时间输入处理函数
+const handleStartTimeInput = () => {
+  const seconds = parseTimeToSeconds(cardStartTimeDisplay.value, timeFormatMode.value)
+  cardStartTime.value = seconds
+}
+
+const handleEndTimeInput = () => {
+  const seconds = parseTimeToSeconds(cardEndTimeDisplay.value, timeFormatMode.value)
+  cardEndTime.value = seconds
+}
+
+// 时分秒分别输入处理函数
+const handleStartTimeChange = () => {
+  // 计算总秒数
+  const totalSeconds = startHours.value * 3600 + startMinutes.value * 60 + startSeconds.value
+  cardStartTime.value = totalSeconds
+}
+
+const handleEndTimeChange = () => {
+  // 计算总秒数
+  const totalSeconds = endHours.value * 3600 + endMinutes.value * 60 + endSeconds.value
+  cardEndTime.value = totalSeconds
+}
+
+// 格式化时长显示
+const formatDuration = (seconds: number): string => {
+  const hours = Math.floor(seconds / 3600)
+  const minutes = Math.floor((seconds % 3600) / 60)
+  const secs = Math.floor(seconds % 60)
+  
+  if (hours > 0) {
+    return `${hours}时${minutes}分${secs}秒`
+  } else if (minutes > 0) {
+    return `${minutes}分${secs}秒`
+  } else {
+    return `${secs}秒`
+  }
+}
+
+// 获取时间单位显示
+const getTimeUnit = (): string => {
+  switch (timeFormatMode.value) {
+    case 'seconds': return '秒'
+    case 'minutes': return '分:秒'
+    case 'hours': return '时:分:秒'
+    default: return '秒'
+  }
+}
+
+// 获取时间输入框的占位符
+const getTimePlaceholder = (): string => {
+  switch (timeFormatMode.value) {
+    case 'seconds': return '例如: 30'
+    case 'minutes': return '例如: 1:30'
+    case 'hours': return '例如: 1:05:30'
+    default: return '例如: 30'
+  }
+}
+
+// 获取时间格式显示名称
+const getFormatDisplayName = (): string => {
+  switch (timeFormatMode.value) {
+    case 'seconds': return '秒数格式'
+    case 'minutes': return '分:秒格式'
+    case 'hours': return '时:分:秒格式'
+    default: return '秒数格式'
+  }
+}
+
+// 获取时间格式对应的CSS类名
+const getFormatClass = (): string => {
+  return timeFormatMode.value
 }
 
 const handleCardClick = (index: number) => {
@@ -472,6 +740,10 @@ const editCard = (index: number) => {
   cardTitle.value = card.title
   cardContent.value = card.summary
   editingCardIndex.value = index
+  
+  // 更新时分秒输入框
+  updateTimeInputsFromSeconds(cardStartTime.value, cardEndTime.value)
+  
   showCardModal.value = true
 }
 
@@ -489,6 +761,10 @@ const addNewCard = () => {
   cardTitle.value = ''
   cardContent.value = ''
   editingCardIndex.value = -1
+  
+  // 更新时分秒输入框
+  updateTimeInputsFromSeconds(cardStartTime.value, cardEndTime.value)
+  
   showCardModal.value = true
 }
 
@@ -705,10 +981,27 @@ const fillTimeFromVideo = () => {
     // 这里为了简化，直接设置开始时间为当前时间，结束时间为当前时间+5秒
     cardStartTime.value = currentTime
     cardEndTime.value = currentTime + 5
+    
+    // 更新时分秒输入框
+    updateTimeInputsFromSeconds(cardStartTime.value, cardEndTime.value)
+    
     console.log('已从视频当前时间填充卡片时间段')
   } else {
     console.warn('视频元素未就绪，无法填充时间')
   }
+}
+
+// 根据秒数更新时分秒输入框
+const updateTimeInputsFromSeconds = (startSecondsVal: number, endSecondsVal: number) => {
+  // 更新开始时间
+  startHours.value = Math.floor(startSecondsVal / 3600)
+  startMinutes.value = Math.floor((startSecondsVal % 3600) / 60)
+  startSeconds.value = Math.floor(startSecondsVal % 60)
+  
+  // 更新结束时间
+  endHours.value = Math.floor(endSecondsVal / 3600)
+  endMinutes.value = Math.floor((endSecondsVal % 3600) / 60)
+  endSeconds.value = Math.floor(endSecondsVal % 60)
 }
 
 // 批量删除功能
@@ -1760,10 +2053,72 @@ onMounted(async () => {
   gap: 12px;
 }
 
+/* 时间格式指示器样式 */
+.time-format-indicator {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 12px;
+  padding: 8px 12px;
+  background: #f8f9fa;
+  border-radius: 6px;
+  border: 1px solid #e9ecef;
+}
+
+.format-label {
+  font-size: 14px;
+  color: #666;
+  font-weight: 500;
+}
+
+.format-value {
+  font-size: 14px;
+  font-weight: 600;
+  padding: 4px 8px;
+  border-radius: 4px;
+}
+
+.format-value.seconds {
+  background: #e6f7ff;
+  color: #1890ff;
+  border: 1px solid #91d5ff;
+}
+
+.format-value.minutes {
+  background: #f6ffed;
+  color: #52c41a;
+  border: 1px solid #b7eb8f;
+}
+
+.format-value.hours {
+  background: #fff7e6;
+  color: #fa8c16;
+  border: 1px solid #ffd591;
+}
+
+.format-hint {
+  font-size: 12px;
+  color: #999;
+  font-style: italic;
+}
+
+/* 新的时分秒输入样式 */
+.time-input-section {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
 .time-input-group {
   display: flex;
   align-items: center;
   gap: 8px;
+}
+
+.time-input-item {
+  display: flex;
+  align-items: center;
+  gap: 4px;
 }
 
 .time-label {
@@ -1773,16 +2128,18 @@ onMounted(async () => {
 }
 
 .time-input {
-  width: 100px;
+  width: 80px;
   padding: 8px 12px;
   border: 1px solid #d9d9d9;
   border-radius: 4px;
   font-size: 14px;
+  text-align: center;
 }
 
 .time-unit {
   font-size: 14px;
   color: #666;
+  min-width: 20px;
 }
 
 .time-duration {

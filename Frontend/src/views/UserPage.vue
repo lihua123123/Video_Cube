@@ -139,14 +139,6 @@
                   <div v-if="hoverTime !== null" class="time-tooltip" :style="{ left: hoverPosition + '%' }">
                     {{ formatTime(hoverTime) }}
                   </div>
-                  
-                  <!-- 分段信息显示区域 -->
-                  <div v-if="hoverSegment" class="segment-info-display">
-                    <div class="segment-info-content">
-                      <div class="segment-info-title">{{ hoverSegment.title }}</div>
-                      <div class="segment-info-time">{{ formatTime(hoverSegment.start_time) }} - {{ formatTime(hoverSegment.end_time) }}</div>
-                    </div>
-                  </div>
                 </div>
                 
                 <!-- 控制按钮组 -->
@@ -2005,6 +1997,13 @@ const handleCardClick = (card: Card) => {
 // 知识卡片链接点击事件
 const handleCardLinkClick = (url: string, title?: string) => {
   console.log('链接被点击:', url)
+  
+  // 如果当前处于全屏状态，自动退出全屏以便用户观看弹窗内容
+  if (isFullscreen.value) {
+    console.log('📱 检测到全屏状态，自动退出全屏以显示链接弹窗')
+    toggleFullscreen()
+  }
+  
   currentLinkUrl.value = url
   currentLinkTitle.value = title || '链接内容'
   showLinkModal.value = true

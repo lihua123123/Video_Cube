@@ -1187,10 +1187,8 @@ onUnmounted(() => {
 .popup-body::-webkit-scrollbar-thumb:hover {
   background: rgba(0, 0, 0, 0.3);
 }
-</style>
 
-<!-- 全屏模式样式 - 使用非scoped样式以确保能覆盖 -->
-<style>
+/* 全屏模式样式 - 使用非scoped样式以确保能覆盖 */
 /* ===== 全屏模式支持 ===== */
 /* 当父容器(video-wrapper)处于全屏状态时,overlay必须使用absolute定位 */
 /* 重要: 这个样式必须是非scoped的,才能在全屏模式下生效 */
@@ -1219,4 +1217,15 @@ onUnmounted(() => {
   position: relative !important;
   z-index: 10001 !important;
 }
+
+/* 确保在全屏模式下，当链接弹窗显示时，知识卡片弹窗不会阻止链接弹窗的显示 */
+.video-wrapper:fullscreen .link-modal-overlay ~ .knowledge-card-popup-overlay,
+.video-wrapper:-webkit-full-screen .link-modal-overlay ~ .knowledge-card-popup-overlay,
+.video-wrapper:-moz-full-screen .link-modal-overlay ~ .knowledge-card-popup-overlay,
+.video-wrapper:-ms-fullscreen .link-modal-overlay ~ .knowledge-card-popup-overlay {
+  z-index: 9999 !important; /* 当链接弹窗显示时，知识卡片弹窗降低层级 */
+}
+
 </style>
+
+<!-- 全屏模式样式 - 使用非scoped样式以确保能覆盖 -->
