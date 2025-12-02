@@ -15,28 +15,21 @@ module.exports = (sequelize, DataTypes) => {
 
     start_time: { type: DataTypes.INTEGER, allowNull: false },
     end_time: { type: DataTypes.INTEGER, allowNull: true },
-    display_duration: { type: DataTypes.INTEGER, allowNull: true },
 
-    title: { type: DataTypes.STRING(500), allowNull: false },
-    content: { type: DataTypes.JSON, allowNull: false },
-    content_type: { type: DataTypes.ENUM('text','formula','image','video','mixed'), allowNull: false, defaultValue: 'text' },
+    title: { type: DataTypes.STRING(200), allowNull: false },
+    content: { type: DataTypes.TEXT, allowNull: false },
+    content_type: { type: DataTypes.STRING(20), allowNull: false, defaultValue: 'text' },
 
-    display_style: { type: DataTypes.ENUM('popup','sidebar','drawer','floating'), allowNull: false, defaultValue: 'popup' },
-    template_type: { type: DataTypes.ENUM('concept','person','formula','reading','example'), allowNull: false, defaultValue: 'concept' },
-
-    auto_show: { type: DataTypes.BOOLEAN, allowNull: false, defaultValue: true },
-    auto_hide: { type: DataTypes.BOOLEAN, allowNull: false, defaultValue: true },
-    dismissible: { type: DataTypes.BOOLEAN, allowNull: false, defaultValue: true },
+    display_style: { type: DataTypes.STRING(20), allowNull: false, defaultValue: 'popup' },
 
     is_ai_generated: { type: DataTypes.BOOLEAN, allowNull: false, defaultValue: false },
-    ai_suggestion_score: { type: DataTypes.FLOAT, allowNull: true },
   }, {
     sequelize,
     modelName: 'KnowledgeCard',
     tableName: 'knowledge_cards',
     timestamps: true,
     createdAt: 'created_at',
-    updatedAt: 'updated_at'
+    updatedAt: false
   });
 
   return KnowledgeCard;

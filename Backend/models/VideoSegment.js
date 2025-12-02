@@ -17,12 +17,9 @@ module.exports = (sequelize, DataTypes) => {
     start_time: { type: DataTypes.INTEGER, allowNull: false },
     end_time: { type: DataTypes.INTEGER, allowNull: false },
 
-    title: { type: DataTypes.STRING(500), allowNull: false },
+    title: { type: DataTypes.STRING(200), allowNull: false },
     summary: { type: DataTypes.TEXT, allowNull: true },
-    keywords: { type: DataTypes.JSON, allowNull: false, defaultValue: [] },
-
-    ai_confidence: { type: DataTypes.FLOAT, allowNull: true },
-    analysis_model: { type: DataTypes.STRING(100), allowNull: true },
+    created_at: { type: DataTypes.DATE, defaultValue: DataTypes.NOW }
   }, {
     sequelize,
     modelName: 'VideoSegment',

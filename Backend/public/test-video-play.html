@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>视频播放测试</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            padding: 20px;
+            background: #f5f7fa;
+        }
+        .test-section {
+            background: white;
+            padding: 20px;
+            margin-bottom: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        h2 {
+            color: #409eff;
+        }
+        video {
+            width: 100%;
+            max-width: 800px;
+            background: black;
+            border-radius: 8px;
+        }
+        .url-display {
+            background: #f0f0f0;
+            padding: 10px;
+            border-radius: 4px;
+            margin: 10px 0;
+            word-break: break-all;
+        }
+        .test-btn {
+            padding: 10px 20px;
+            background: #409eff;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        .log {
+            background: #f0f0f0;
+            padding: 15px;
+            border-radius: 4px;
+            max-height: 300px;
+            overflow-y: auto;
+            font-size: 13px;
+            line-height: 1.6;
+        }
+        .success { color: #67c23a; }
+        .error { color: #f56c6c; }
+    </style>
+</head>
+<body>
+    <h1>🎬 视频播放功能测试</h1>
+    
+    <div class="test-section">
+        <h2>1. 直接播放测试</h2>
+        <p>使用第一个视频的 URL 进行播放测试</p>
+        <button class="test-btn" onclick="testPlayback()">开始测试</button>
+        <div id="url-info"></div>
+        <video id="test-video" controls></video>
+        <div id="play-log" class="log"></div>
+    </div>
+
+    <script>
+        let logContent = '';
+        
+        function addLog(message, type = 'info') {
+            const timestamp = new Date().toLocaleTimeString();
+            const color = type === 'success' ? 'success' : type === 'error' ? 'error' : '';
+            logContent += `<div class="${color}">[${timestamp}] ${message}</div>`;
+            document.getElementById('play-log').innerHTML = logContent;
+            console.log(message);
+        }
+        
+        async function testPlayback() {
+            logContent = '';
+            addLog('=== 开始视频播放测试 ===');
+            
+            try {
+                // 1. 获取视频列表
+                addLog('📡 正在获取视频列表...');
+                const response = await fetch('/api/admin/videos?limit=1&offset=0');
+                const data = await response.json();
+                
+                if (!data.status || data.data.videos.length === 0) {
+                    addLog('❌ 没有找到视频', 'error');
+                    return;
+                }
+                
+                const video = data.data.videos[0];
+                addLog(`✅ 获取到视频: ${video.title}`, 'success');
+                addLog(`原始 video_url: ${video.video_url}`);
+                
+                // 2. 构建播放URL
+                const playUrl = `/api${video.video_url}`;
+                addLog(`构建的播放URL: ${playUrl}`);
+                
+                document.getElementById('url-info').innerHTML = `
+                    <div class="url-display">
+                        <strong>视频信息:</strong><br>
+                        标题: ${video.title}<br>
+                        原始URL: ${video.video_url}<br>
+                        播放URL: ${playUrl}
+                    </div>
+                `;
+                
+                // 3. 测试URL可访问性
+                addLog('🔍 测试URL可访问性...');
+                try {
+                    const headResponse = await fetch(playUrl, { method: 'HEAD' });
+                    addLog(`URL响应状态: ${headResponse.status}`);
+                    addLog(`Content-Type: ${headResponse.headers.get('content-type')}`);
+                    addLog(`Content-Length: ${headResponse.headers.get('content-length')}`);
+                    
+                    if (headResponse.status === 200) {
+                        addLog('✅ URL可访问!', 'success');
+                    } else {
+                        addLog(`❌ URL返回错误状态码: ${headResponse.status}`, 'error');
+                    }
+                } catch (error) {
+                    addLog(`❌ URL访问失败: ${error.message}`, 'error');
+                }
+                
+                // 4. 设置视频并播放
+                const videoElement = document.getElementById('test-video');
+                
+                // 监听视频事件
+                videoElement.onloadstart = () => addLog('📥 视频开始加载...');
+                videoElement.onloadedmetadata = () => {
+                    addLog(`✅ 视频元数据加载完成`, 'success');
+                    addLog(`视频时长: ${videoElement.duration}秒`);
+                    addLog(`视频宽度: ${videoElement.videoWidth}px`);
+                    addLog(`视频高度: ${videoElement.videoHeight}px`);
+                };
+                videoElement.oncanplay = () => addLog('✅ 视频可以播放了!', 'success');
+                videoElement.onplay = () => addLog('▶️ 视频开始播放', 'success');
+                videoElement.onerror = (e) => {
+                    addLog('❌ 视频加载错误!', 'error');
+                    if (videoElement.error) {
+                        const errorMessages = [
+                            '未知错误',
+                            '获取视频被中止 (MEDIA_ERR_ABORTED)',
+                            '网络错误 (MEDIA_ERR_NETWORK)',
+                            '解码错误 (MEDIA_ERR_DECODE)',
+                            '视频格式不支持 (MEDIA_ERR_SRC_NOT_SUPPORTED)'
+                        ];
+                        addLog(`错误代码: ${videoElement.error.code} - ${errorMessages[videoElement.error.code] || errorMessages[0]}`, 'error');
+                        addLog(`错误信息: ${videoElement.error.message}`, 'error');
+                    }
+                };
+                
+                addLog('🎬 设置视频源并尝试播放...');
+                videoElement.src = playUrl;
+                videoElement.load();
+                
+                // 尝试自动播放
+                try {
+                    await videoElement.play();
+                    addLog('✅ 自动播放成功!', 'success');
+                } catch (error) {
+                    addLog(`⚠️ 自动播放失败 (可能被浏览器阻止): ${error.message}`);
+                    addLog('💡 请手动点击播放按钮');
+                }
+                
+            } catch (error) {
+                addLog(`❌ 测试过程出错: ${error.message}`, 'error');
+                console.error(error);
+            }
+        }
+    </script>
+</body>
+</html>
