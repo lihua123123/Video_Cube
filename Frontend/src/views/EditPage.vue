@@ -11,36 +11,81 @@
       <div class="loading-text">处理中...</div>
     </div>
 
-    <!-- 顶部标题栏 -->
-    <header class="header">
-      <h1>知识卡片编辑器</h1>
-      <button @click="goBack" class="back-btn">返回视频页面</button>
+    <!-- 顶部标题栏 - 应用玻璃态效果 -->
+    <header class="premium-header glass-card">
+      <div class="header-content">
+        <div class="logo-section">
+          <h1 class="app-title">知识卡片编辑器</h1>
+          <p class="subtitle">Knowledge Card Editor</p>
+        </div>
+        <div class="header-actions">
+          <button @click="goBack" class="premium-action-btn back-btn">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+              <path d="M19 12H5M12 19l-7-7 7-7"/>
+            </svg>
+            返回视频页面
+          </button>
+          <!-- 保存项目按钮已删除 -->
+        </div>
+      </div>
     </header>
 
     <!-- 主内容区 - 三栏布局 -->
-    <main class="main-content">
+    <main class="main-content premium-main-content">
       <!-- 左侧：我的项目侧边栏 -->
-      <section class="project-sidebar">
-        <h3>我的项目</h3>
+      <section class="project-sidebar glass-card">
+        <div class="sidebar-header">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" class="sidebar-icon">
+            <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>
+            <polyline points="9 22 9 12 15 12 15 22"/>
+          </svg>
+          <h3 class="sidebar-title">我的项目</h3>
+        </div>
         <div class="project-list">
           <!-- 项目列表已清空 -->
+          <div class="empty-projects">
+            <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" class="empty-icon">
+              <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+              <polyline points="14 2 14 8 20 8"/>
+              <line x1="16" y1="13" x2="8" y2="13"/>
+              <line x1="16" y1="17" x2="8" y2="17"/>
+              <polyline points="10 9 9 9 8 9"/>
+            </svg>
+            
+          </div>
         </div>
       </section>
 
       <!-- 中间：卡片编辑 -->
-      <section class="card-editor-section">
-        <div class="editor-header">
-          <h2>卡片编辑</h2>
-          <div class="editor-actions">
-            <button @click="aiAnalyze" class="action-btn ai-analysis-btn" :disabled="isLoading">AI分析</button>
-          <button @click="addNewCard" class="action-btn add-card-btn" :disabled="isLoading">+ 新增卡</button>
-            <div class="batch-actions">
-            <button @click="selectAllCards" class="action-btn select-all-btn" :disabled="isLoading">
-              {{ isAllSelected ? '取消全选' : '全选' }}
+      <section class="card-editor-section glass-card">
+        <div class="editor-header premium-editor-header">
+          <div class="editor-title-section">
+            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" class="editor-icon">
+              <path d="M12 20h9"/>
+              <path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/>
+            </svg>
+            <h2 class="editor-title">卡片编辑</h2>
+          </div>
+          <div class="editor-actions premium-actions">
+            <button @click="aiAnalyze" class="premium-action-btn ai-analysis-btn" :disabled="isLoading">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                <path d="M9 3H5a2 2 0 0 0-2 2v4m6-6h10a2 2 0 0 1 2 2v4M9 3v18m0 0h10a2 2 0 0 0 2-2V9M9 21H5a2 2 0 0 1-2-2V9m0 0h18"/>
+              </svg>
+              AI分析
             </button>
+            <button @click="addNewCard" class="premium-action-btn add-card-btn" :disabled="isLoading">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                <path d="M12 5v14M5 12h14"/>
+              </svg>
+              + 新增卡
+            </button>
+            <div class="batch-actions">
+              <button @click="selectAllCards" class="premium-action-btn select-all-btn" :disabled="isLoading">
+                {{ isAllSelected ? '取消全选' : '全选' }}
+              </button>
               <button 
                 @click="batchDeleteCards" 
-                class="action-btn batch-delete-btn" 
+                class="premium-action-btn batch-delete-btn" 
                 :disabled="batchSelectedCards.length === 0"
               >
                 批量删除 ({{ batchSelectedCards.length }})
@@ -151,8 +196,14 @@
       </section>
 
       <!-- 右侧：视频预览 -->
-      <section class="video-preview-section">
-        <h3>视频预览</h3>
+      <section class="video-preview-section glass-card">
+        <div class="preview-header">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" class="preview-icon">
+            <path d="M23 7l-7 5 7 5V7z"/>
+            <rect x="1" y="5" width="15" height="14" rx="2" ry="2"/>
+          </svg>
+          <h3 class="preview-title">视频预览</h3>
+        </div>
         <div class="video-preview-container">
           <!-- 只有当videoUrl有值时才渲染视频元素 -->
           <video 
@@ -1383,19 +1434,33 @@ onMounted(async () => {
   font-weight: 600;
 }
 
-.back-btn {
-  background: #89b40b;
+.header-btn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 20px;
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 12px;
   color: white;
-  border: none;
-  padding: 8px 16px;
-  border-radius: 4px;
-  cursor: pointer;
   font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.3s ease;
 }
+
+.header-btn:hover {
+  background: rgba(255, 255, 255, 0.2);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
+}
+
+
 
 .main-content {
   flex: 1;
   display: flex;
+  align-items: stretch;
   height: calc(100vh - 60px);
 }
 
@@ -1406,6 +1471,28 @@ onMounted(async () => {
   border-right: 1px solid #e8e8e8;
   padding: 20px;
   overflow-y: auto;
+}
+
+/* 主内容区域样式 */
+.premium-main-content {
+  background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+  min-height: calc(100vh - 160px);
+  padding: 0;
+  display: flex;
+  align-items: stretch;
+}
+
+/* 项目侧边栏样式 */
+.premium-main-content .project-sidebar {
+  width: 220px;
+  background: rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 16px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+  margin-right: 24px;
+  padding: 20px;
 }
 
 .project-sidebar h3 {
@@ -2364,5 +2451,434 @@ onMounted(async () => {
     color: white;
     margin-top: 10px;
     font-size: 16px;
+  }
+
+  /* ===== EditPage 现代UI样式 ===== */
+  
+  /* 玻璃态效果基础样式 */
+  .glass-card {
+    background: rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 16px;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+    transition: all 0.3s ease;
+  }
+  
+  .glass-card:hover {
+    box-shadow: 0 12px 40px rgba(0, 0, 0, 0.15);
+    transform: translateY(-2px);
+  }
+  
+  /* 顶部标题栏样式 */
+  .premium-header {
+    padding: 16px 24px;
+    margin-bottom: 24px;
+    background: linear-gradient(135deg, rgba(102, 126, 234, 0.15) 0%, rgba(118, 75, 162, 0.1) 100%);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 16px;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+  }
+  
+  .header-content {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    max-width: 1200px;
+    margin: 0 auto;
+    width: 100%;
+  }
+  
+  .logo-section {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  
+  .logo-section .app-title {
+    font-size: 28px;
+    font-weight: 700;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    margin: 0;
+  }
+  
+  .logo-section .subtitle {
+    font-size: 14px;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    margin: 4px 0 0 0;
+  }
+  
+  .header-logo-section {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  
+  .header-logo {
+    width: 40px;
+    height: 40px;
+    background: linear-gradient(135deg, #4a90e2, #a855f7);
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-weight: 600;
+    font-size: 18px;
+  }
+  
+  .header-title-section h1 {
+    font-size: 28px;
+    font-weight: 700;
+    background: linear-gradient(135deg, #4a90e2, #a855f7);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    margin: 0;
+  }
+  
+  .header-subtitle {
+    font-size: 14px;
+    color: #666;
+    margin-top: 4px;
+    font-weight: 500;
+  }
+  
+  .header-actions {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  
+  .premium-btn {
+    background: linear-gradient(135deg, #4a90e2, #a855f7);
+    border: none;
+    border-radius: 12px;
+    padding: 12px 24px;
+    color: white;
+    font-weight: 600;
+    font-size: 14px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    box-shadow: 0 4px 16px rgba(74, 144, 226, 0.3);
+  }
+  
+  .premium-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(74, 144, 226, 0.4);
+  }
+  
+  .premium-btn:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+    transform: none;
+  }
+  
+  /* 主内容区域样式 */
+  .premium-main-content {
+    background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+    min-height: calc(100vh - 160px);
+    padding: 0;
+  }
+  
+  /* 项目侧边栏样式 */
+  .project-sidebar {
+    background: rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 16px;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+    margin-right: 24px;
+    padding: 20px;
+  }
+  
+  .sidebar-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 20px;
+    padding-bottom: 16px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+  }
+  
+  .sidebar-icon {
+    width: 24px;
+    height: 24px;
+    color: #4a90e2;
+  }
+  
+  .sidebar-title {
+    font-size: 20px;
+    font-weight: 600;
+    color: #333;
+    margin: 0;
+  }
+  
+  .empty-projects {
+    text-align: center;
+    padding: 40px 20px;
+    color: #666;
+  }
+  
+  .empty-icon {
+    width: 64px;
+    height: 64px;
+    color: #ccc;
+    margin-bottom: 16px;
+  }
+  
+  .empty-title {
+    font-size: 16px;
+    font-weight: 600;
+    margin-bottom: 8px;
+    color: #999;
+  }
+  
+  .empty-description {
+    font-size: 14px;
+    color: #999;
+    line-height: 1.5;
+  }
+  
+  /* 卡片编辑区域样式 */
+  .card-editor-section {
+    background: rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 16px;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+    padding: 24px;
+    margin-bottom: 24px;
+  }
+  
+  .premium-editor-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+    padding-bottom: 16px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+  }
+  
+  .editor-title-section {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  
+  .editor-icon {
+    width: 24px;
+    height: 24px;
+    color: #4a90e2;
+  }
+  
+  .editor-title {
+    font-size: 18px;
+    font-weight: 600;
+    color: #333;
+    margin: 0;
+    background: linear-gradient(135deg, #4a90e2, #a855f7);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+  
+  .premium-actions {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  
+  .premium-action-btn {
+    background: rgba(255, 255, 255, 0.2);
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    border-radius: 12px;
+    padding: 10px 20px;
+    color: #333;
+    font-weight: 600;
+    font-size: 14px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+  }
+  
+  /* 移除通用hover效果，改为为每个按钮添加特定hover效果 */
+  .premium-action-btn:hover {
+    transform: translateY(-1px);
+    transition: all 0.3s ease;
+  }
+  
+  /* AI分析按钮hover效果 */
+  .ai-analysis-btn:hover {
+    box-shadow: 0 6px 20px rgba(16, 185, 129, 0.4);
+  }
+  
+  /* 新增卡按钮hover效果 */
+  .add-card-btn:hover {
+    box-shadow: 0 6px 20px rgba(59, 130, 246, 0.4);
+  }
+  
+  /* 全选按钮hover效果 */
+  .select-all-btn:hover {
+    box-shadow: 0 6px 20px rgba(245, 158, 11, 0.4);
+  }
+  
+  /* 批量删除按钮hover效果 */
+  .batch-delete-btn:hover {
+    box-shadow: 0 6px 20px rgba(239, 68, 68, 0.4);
+  }
+  
+  .premium-action-btn:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+    transform: none;
+  }
+  
+  .ai-analysis-btn {
+    background: linear-gradient(135deg, #10b981, #059669);
+    color: white;
+    border: none;
+  }
+  
+  .add-card-btn {
+    background: linear-gradient(135deg, #3b82f6, #1d4ed8);
+    color: white;
+    border: none;
+  }
+  
+  .select-all-btn {
+    background: linear-gradient(135deg, #f59e0b, #d97706);
+    color: white;
+    border: none;
+  }
+  
+  .batch-delete-btn {
+    background: linear-gradient(135deg, #ef4444, #dc2626);
+    color: white;
+    border: none;
+  }
+  
+  .back-btn {
+    background: linear-gradient(135deg, #3b82f6, #1d4ed8);
+    color: white;
+    border: none;
+  }
+  
+  .back-btn:hover {
+    box-shadow: 0 6px 20px rgba(59, 130, 246, 0.4);
+  }
+  
+  .batch-actions {
+    display: flex;
+    gap: 8px;
+  }
+  
+  /* 视频预览区域样式 */
+  .video-preview-section {
+    background: rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 16px;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+    margin-left: 24px;
+    padding: 20px;
+  }
+  
+  .preview-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 20px;
+    padding-bottom: 16px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+  }
+  
+  .preview-icon {
+    width: 24px;
+    height: 24px;
+    color: #4a90e2;
+  }
+  
+  .preview-title {
+    font-size: 20px;
+    font-weight: 600;
+    color: #333;
+    margin: 0;
+  }
+  
+  /* 响应式设计 */
+  @media (max-width: 1200px) {
+    .premium-header {
+      padding: 16px 20px;
+    }
+    
+    .header-title-section h1 {
+      font-size: 24px;
+    }
+    
+    .card-editor-section {
+      padding: 20px;
+    }
+    
+    .premium-editor-header {
+      flex-direction: column;
+      gap: 16px;
+      align-items: flex-start;
+    }
+    
+    .premium-actions {
+      flex-wrap: wrap;
+    }
+  }
+  
+  @media (max-width: 768px) {
+    .premium-main-content {
+      flex-direction: column;
+      gap: 16px;
+    }
+    
+    .project-sidebar,
+    .video-preview-section {
+      width: 100%;
+      margin: 0 0 16px 0;
+    }
+    
+    .premium-header {
+      padding: 12px 16px;
+      border-radius: 12px;
+    }
+    
+    .header-title-section h1 {
+      font-size: 20px;
+    }
+    
+    .header-actions {
+      flex-direction: column;
+      gap: 8px;
+    }
+    
+    .premium-btn {
+      width: 100%;
+      justify-content: center;
+    }
   }
 </style>
