@@ -59,24 +59,15 @@ module.exports = (sequelize, DataTypes) => {
       type: DataTypes.STRING(50),
       allowNull: true,
       comment: '视频分辨率，如 1920x1080'
-    },
-    /*created_at: {
-      type: DataTypes.DATE,
-      defaultValue: DataTypes.NOW
-    },
-    updated_at: {
-      type: DataTypes.DATE,
-      defaultValue: DataTypes.NOW,
-      onUpdate: DataTypes.NOW
-    }*/
+    }
   }, {
     sequelize,
     modelName: 'Video',
     tableName: 'videos',
     timestamps: true,
-    underscored: false,      // ❗重要：使用驼峰命名
-  createdAt: 'createdAt',  // 映射到数据库的createdAt字段
-  updatedAt: 'updatedAt'    // 映射到数据库的updatedAt字段
+    underscored: true,      // ✅ 修复：使用下划线命名
+    createdAt: 'created_at',  // ✅ 映射到数据库的 created_at 字段
+    updatedAt: 'updated_at'   // ✅ 映射到数据库的 updated_at 字段
   });
   return Video;
 };

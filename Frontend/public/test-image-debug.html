@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>图片加载测试</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            padding: 20px;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        .test-section {
+            margin: 30px 0;
+            padding: 20px;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            background: #f9f9f9;
+        }
+        h2 {
+            color: #333;
+            margin-top: 0;
+        }
+        img {
+            max-width: 100%;
+            border: 3px solid #4CAF50;
+            margin: 10px 0;
+            display: block;
+        }
+        .error {
+            color: red;
+            font-weight: bold;
+        }
+        .success {
+            color: green;
+            font-weight: bold;
+        }
+        .info {
+            background: #e3f2fd;
+            padding: 10px;
+            border-left: 4px solid #2196F3;
+            margin: 10px 0;
+        }
+        code {
+            background: #f5f5f5;
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-family: 'Courier New', monospace;
+        }
+    </style>
+</head>
+<body>
+    <h1>🧪 图片加载测试页面</h1>
+    
+    <div class="test-section">
+        <h2>测试 1: 直接使用 img 标签 (无 crossorigin)</h2>
+        <div class="info">
+            <strong>图片URL:</strong><br>
+            <code>http://localhost:3000/uploads/images/3e778a74-5c69-43fd-8b92-49b206613bf7.png</code>
+        </div>
+        <img 
+            id="test1"
+            src="http://localhost:3000/uploads/images/3e778a74-5c69-43fd-8b92-49b206613bf7.png" 
+            alt="测试图片1"
+            onload="document.getElementById('result1').innerHTML = '✅ <span class=success>加载成功!</span>'; console.log('Test1 加载成功');"
+            onerror="document.getElementById('result1').innerHTML = '❌ <span class=error>加载失败!</span>'; console.error('Test1 加载失败', event);"
+        >
+        <div id="result1" style="margin-top: 10px; font-size: 18px;">⏳ 加载中...</div>
+    </div>
+
+    <div class="test-section">
+        <h2>测试 2: 使用 crossorigin="anonymous"</h2>
+        <div class="info">
+            <strong>图片URL:</strong><br>
+            <code>http://localhost:3000/uploads/images/3e778a74-5c69-43fd-8b92-49b206613bf7.png</code>
+        </div>
+        <img 
+            id="test2"
+            src="http://localhost:3000/uploads/images/3e778a74-5c69-43fd-8b92-49b206613bf7.png" 
+            alt="测试图片2"
+            crossorigin="anonymous"
+            onload="document.getElementById('result2').innerHTML = '✅ <span class=success>加载成功!</span>'; console.log('Test2 加载成功');"
+            onerror="document.getElementById('result2').innerHTML = '❌ <span class=error>加载失败!</span>'; console.error('Test2 加载失败', event);"
+        >
+        <div id="result2" style="margin-top: 10px; font-size: 18px;">⏳ 加载中...</div>
+    </div>
+
+    <div class="test-section">
+        <h2>测试 3: 使用 crossorigin="use-credentials"</h2>
+        <div class="info">
+            <strong>图片URL:</strong><br>
+            <code>http://localhost:3000/uploads/images/3e778a74-5c69-43fd-8b92-49b206613bf7.png</code>
+        </div>
+        <img 
+            id="test3"
+            src="http://localhost:3000/uploads/images/3e778a74-5c69-43fd-8b92-49b206613bf7.png" 
+            alt="测试图片3"
+            crossorigin="use-credentials"
+            onload="document.getElementById('result3').innerHTML = '✅ <span class=success>加载成功!</span>'; console.log('Test3 加载成功');"
+            onerror="document.getElementById('result3').innerHTML = '❌ <span class=error>加载失败!</span>'; console.error('Test3 加载失败', event);"
+        >
+        <div id="result3" style="margin-top: 10px; font-size: 18px;">⏳ 加载中...</div>
+    </div>
+
+    <div class="test-section">
+        <h2>测试 4: JavaScript 动态创建</h2>
+        <div class="info">
+            <strong>图片URL:</strong><br>
+            <code>http://localhost:3000/uploads/images/3e778a74-5c69-43fd-8b92-49b206613bf7.png</code>
+        </div>
+        <div id="test4-container"></div>
+        <div id="result4" style="margin-top: 10px; font-size: 18px;">⏳ 加载中...</div>
+    </div>
+
+    <div class="test-section">
+        <h2>测试 5: 检查图片文件是否真实存在</h2>
+        <div id="result5" style="margin-top: 10px; font-size: 18px;">⏳ 检查中...</div>
+        <pre id="fetch-details" style="background: #f5f5f5; padding: 10px; border-radius: 4px;"></pre>
+    </div>
+
+    <script>
+        console.log('=== 图片加载测试开始 ===');
+        
+        // 测试 4: JavaScript 动态创建
+        const img4 = document.createElement('img');
+        img4.src = 'http://localhost:3000/uploads/images/3e778a74-5c69-43fd-8b92-49b206613bf7.png';
+        img4.alt = '测试图片4';
+        img4.style.maxWidth = '100%';
+        img4.style.border = '3px solid #4CAF50';
+        img4.onload = () => {
+            console.log('Test4 加载成功');
+            document.getElementById('result4').innerHTML = '✅ <span class="success">加载成功!</span>';
+        };
+        img4.onerror = (e) => {
+            console.error('Test4 加载失败:', e);
+            document.getElementById('result4').innerHTML = '❌ <span class="error">加载失败!</span>';
+        };
+        document.getElementById('test4-container').appendChild(img4);
+
+        // 测试 5: Fetch API 检查
+        fetch('http://localhost:3000/uploads/images/3e778a74-5c69-43fd-8b92-49b206613bf7.png', {
+            method: 'HEAD',
+            mode: 'cors'
+        })
+        .then(response => {
+            console.log('Fetch HEAD 响应:', response);
+            const details = `状态码: ${response.status} ${response.statusText}
+Content-Type: ${response.headers.get('content-type')}
+Content-Length: ${response.headers.get('content-length')}
+CORS Origin: ${response.headers.get('access-control-allow-origin')}
+CORS Credentials: ${response.headers.get('access-control-allow-credentials')}`;
+            
+            document.getElementById('fetch-details').textContent = details;
+            
+            if (response.ok) {
+                document.getElementById('result5').innerHTML = '✅ <span class="success">图片文件存在,可访问!</span>';
+            } else {
+                document.getElementById('result5').innerHTML = '❌ <span class="error">图片不存在: ' + response.status + '</span>';
+            }
+        })
+        .catch(error => {
+            console.error('Fetch 错误:', error);
+            document.getElementById('result5').innerHTML = '❌ <span class="error">Fetch 失败: ' + error.message + '</span>';
+            document.getElementById('fetch-details').textContent = '错误: ' + error.toString();
+        });
+
+        // 全局错误监听
+        window.addEventListener('error', (e) => {
+            if (e.target.tagName === 'IMG') {
+                console.error('🔴 全局图片加载错误:', {
+                    src: e.target.src,
+                    alt: e.target.alt,
+                    crossOrigin: e.target.crossOrigin,
+                    error: e
+                });
+            }
+        }, true);
+
+        console.log('=== 测试页面加载完成 ===');
+    </script>
+</body>
+</html>

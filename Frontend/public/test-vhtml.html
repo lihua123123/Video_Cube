@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>v-html 图片渲染测试</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            padding: 20px;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        .test-box {
+            border: 2px solid #ddd;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 8px;
+            background: #f9f9f9;
+        }
+        .content-image {
+            max-width: 100%;
+            height: auto;
+            border: 3px solid #4CAF50;
+            margin: 10px 0;
+        }
+        h2 {
+            color: #333;
+            border-bottom: 2px solid #4CAF50;
+            padding-bottom: 10px;
+        }
+    </style>
+</head>
+<body>
+    <h1>🧪 模拟 v-html 图片渲染测试</h1>
+    
+    <div class="test-box">
+        <h2>测试 1: 直接 innerHTML (模拟 v-html)</h2>
+        <div id="test1"></div>
+    </div>
+
+    <div class="test-box">
+        <h2>测试 2: 包含文本的完整内容</h2>
+        <div id="test2"></div>
+    </div>
+
+    <div class="test-box">
+        <h2>测试 3: 多张图片</h2>
+        <div id="test3"></div>
+    </div>
+
+    <script>
+        console.log('=== v-html 模拟测试开始 ===');
+        
+        // 测试 1: 单张图片
+        const html1 = '<img src="http://localhost:3000/uploads/images/3e778a74-5c69-43fd-8b92-49b206613bf7.png" alt="图片" title="图片" class="content-image" loading="lazy">';
+        document.getElementById('test1').innerHTML = html1;
+        console.log('Test1 HTML:', html1);
+        
+        // 测试 2: 图片 + 文本
+        const html2 = '<h3>智能问答使用指南</h3><br><img src="http://localhost:3000/uploads/images/3e778a74-5c69-43fd-8b92-49b206613bf7.png" alt="search-history.png" title="search-history.png" class="content-image" loading="lazy"><br><p>这是测试文本</p>';
+        document.getElementById('test2').innerHTML = html2;
+        console.log('Test2 HTML:', html2);
+        
+        // 测试 3: 多张图片
+        const html3 = `
+            <p>第一张图片:</p>
+            <img src="http://localhost:3000/uploads/images/3e778a74-5c69-43fd-8b92-49b206613bf7.png" alt="图片1" title="图片1" class="content-image" loading="lazy">
+            <br>
+            <p>第二张图片:</p>
+            <img src="http://localhost:3000/uploads/images/950e79b5-f089-4789-828a-fcae9956ef89.png" alt="图片2" title="图片2" class="content-image" loading="lazy">
+        `;
+        document.getElementById('test3').innerHTML = html3;
+        console.log('Test3 HTML:', html3);
+        
+        // 监听图片加载事件
+        document.querySelectorAll('.content-image').forEach((img, index) => {
+            img.addEventListener('load', () => {
+                console.log(`✅ 图片${index + 1}加载成功:`, img.src);
+            });
+            img.addEventListener('error', (e) => {
+                console.error(`❌ 图片${index + 1}加载失败:`, img.src, e);
+            });
+        });
+        
+        console.log('=== 测试页面加载完成 ===');
+    </script>
+</body>
+</html>

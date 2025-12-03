@@ -197,7 +197,17 @@ const processCardContent = (content: string): string => {
   // 处理图片
   processed = processed.replace(
     /!\[([^\]]*)\]\(([^)]+)\)/g, 
-    '<img src="$2" alt="$1" class="card-image">'
+    (match, alt, url) => {
+      // 处理图片URL: Vite代理会自动处理 /uploads 路径
+      let imageUrl = url;
+      
+      // 如果URL不是以 http 开头，且不是以 / 开头，则添加 /
+      if (!url.startsWith('http') && !url.startsWith('/')) {
+        imageUrl = '/' + url;
+      }
+      
+      return `<img src="${imageUrl}" alt="${alt || '图片'}" class="card-image">`;
+    }
   );
   
   // 处理代码块

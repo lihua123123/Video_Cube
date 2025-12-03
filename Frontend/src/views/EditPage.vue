@@ -334,25 +334,27 @@
             </div>
           </div>
 
-          <!-- 富文本工具栏 -->
-          <div class="rich-text-toolbar">
-            <button @click="formatText('bold')" class="tool-btn" title="加粗">
-              <img src="@/assets/images/fa5-bold-fas.png" alt="加粗" class="tool-icon">
+          <!-- 编辑器模式切换 -->
+          <div class="editor-mode-toggle">
+            <button 
+              @click="editorMode = 'markdown'" 
+              :class="['mode-btn', { active: editorMode === 'markdown' }]"
+              title="Markdown 编辑器"
+            >
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M3 3h18a1 1 0 0 1 1 1v16a1 1 0 0 1-1 1H3a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1zm16.05 13L15 12l-4.05 4L7 12l-4.05 4H19.05zM3 5v12h18V5H3z"/>
+              </svg>
+              Markdown 编辑器
             </button>
-            <button @click="formatText('italic')" class="tool-btn" title="斜体">
-              <img src="@/assets/images/if-italic-alt.png" alt="斜体" class="tool-icon">
-            </button>
-            <button @click="formatText('link')" class="tool-btn" title="链接">
-              <img src="@/assets/images/semiDesign-semi-icons-link.png" alt="链接" class="tool-icon">
-            </button>
-            <button @click="insertImage" class="tool-btn" title="插入图片">
-              <img src="@/assets/images/riLine-image-line.png" alt="图片" class="tool-icon">
-            </button>
-            <button @click="insertFormula" class="tool-btn" title="插入公式">
-              <img src="@/assets/images/iconPark-formula.png" alt="公式" class="tool-icon">
-            </button>
-            <button @click="openColorPicker" class="tool-btn" title="颜色">
-              <img src="@/assets/images/md-palette.png" alt="颜色" class="tool-icon">
+            <button 
+              @click="editorMode = 'simple'" 
+              :class="['mode-btn', { active: editorMode === 'simple' }]"
+              title="简单编辑器"
+            >
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04c.39-.39.39-1.02 0-1.41l-2.34-2.34c-.39-.39-1.02-.39-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"/>
+              </svg>
+              简单编辑器
             </button>
           </div>
 
@@ -362,8 +364,40 @@
             <input type="text" v-model="cardTitle" placeholder="输入卡片标题" class="title-input" />
           </div>
 
-          <!-- 卡片内容编辑 -->
-          <div class="card-content-editor">
+          <!-- Markdown 编辑器模式 -->
+          <div v-if="editorMode === 'markdown'" class="card-content-editor markdown-mode">
+            <label>卡片内容 (Markdown)</label>
+            <MarkdownEditor 
+              v-model="cardContent" 
+              height="450px"
+              placeholder="使用 Markdown 语法编辑内容，支持图片拖拽上传..."
+            />
+          </div>
+
+          <!-- 简单编辑器模式 -->
+          <div v-else class="card-content-editor simple-mode">
+            <!-- 富文本工具栏 -->
+            <div class="rich-text-toolbar">
+              <button @click="formatText('bold')" class="tool-btn" title="加粗">
+                <img src="@/assets/images/fa5-bold-fas.png" alt="加粗" class="tool-icon">
+              </button>
+              <button @click="formatText('italic')" class="tool-btn" title="斜体">
+                <img src="@/assets/images/if-italic-alt.png" alt="斜体" class="tool-icon">
+              </button>
+              <button @click="formatText('link')" class="tool-btn" title="链接">
+                <img src="@/assets/images/semiDesign-semi-icons-link.png" alt="链接" class="tool-icon">
+              </button>
+              <button @click="insertImage" class="tool-btn" title="插入图片">
+                <img src="@/assets/images/riLine-image-line.png" alt="图片" class="tool-icon">
+              </button>
+              <button @click="insertFormula" class="tool-btn" title="插入公式">
+                <img src="@/assets/images/iconPark-formula.png" alt="公式" class="tool-icon">
+              </button>
+              <button @click="openColorPicker" class="tool-btn" title="颜色">
+                <img src="@/assets/images/md-palette.png" alt="颜色" class="tool-icon">
+              </button>
+            </div>
+            
             <label>卡片内容</label>
             <textarea
               v-model="cardContent"
@@ -371,6 +405,43 @@
               placeholder="输入卡片内容..."
               class="content-textarea"
             ></textarea>
+          </div>
+
+          <!-- 卡片预览 - 模拟视频中的展示效果 -->
+          <div class="card-preview-section">
+            <label class="preview-label">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" style="vertical-align: middle; margin-right: 6px;">
+                <path d="M12 4.5C7 4.5 2.73 7.61 1 12c1.73 4.39 6 7.5 11 7.5s9.27-3.11 11-7.5c-1.73-4.39-6-7.5-11-7.5zM12 17c-2.76 0-5-2.24-5-5s2.24-5 5-5 5 2.24 5 5-2.24 5-5 5zm0-8c-1.66 0-3 1.34-3 3s1.34 3 3 3 3-1.34 3-3-1.34-3-3-3z"/>
+              </svg>
+              卡片预览
+            </label>
+            <div class="knowledge-card-preview">
+              <!-- 卡片头部 -->
+              <div class="preview-header">
+                <div class="preview-header-icon">
+                  <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
+                  </svg>
+                </div>
+                <div class="preview-header-content">
+                  <h3 class="preview-card-title">{{ cardTitle || '卡片标题' }}</h3>
+                  <div class="preview-meta">
+                    <span class="preview-time-badge">
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M11.99 2C6.47 2 2 6.48 2 12s4.47 10 9.99 10C17.52 22 22 17.52 22 12S17.52 2 11.99 2zM12 20c-4.42 0-8-3.58-8-8s3.59-8 8-8 8 3.58 8 8-3.58 8-8 8z"/>
+                        <path d="M12.5 7H11v6l5.25 3.15.75-1.23-4.5-2.67z"/>
+                      </svg>
+                      {{ formatTimeRange(cardStartTime, cardEndTime) }}
+                    </span>
+                    <span class="preview-type-badge">富文本</span>
+                  </div>
+                </div>
+              </div>
+              <!-- 卡片内容 -->
+              <div class="preview-body">
+                <div class="preview-content-wrapper" ref="previewWrapper" v-html="formatContent(cardContent)"></div>
+              </div>
+            </div>
           </div>
         </div>
 
@@ -381,13 +452,180 @@
       </div>
     </div>
   </div>
+
+  <!-- 插入链接对话框 -->
+  <div v-if="showLinkDialog" class="dialog-overlay" @click="showLinkDialog = false">
+    <div class="dialog-box" @click.stop>
+      <h3>插入链接</h3>
+      <div class="dialog-input-group">
+        <label>链接文字:</label>
+        <input v-model="linkText" type="text" placeholder="请输入链接文字" />
+      </div>
+      <div class="dialog-input-group">
+        <label>链接地址:</label>
+        <input v-model="linkUrl" type="text" placeholder="请输入链接地址 (http://...)" />
+      </div>
+      <div class="dialog-buttons">
+        <button @click="confirmInsertLink" class="dialog-btn confirm-btn">确定</button>
+        <button @click="showLinkDialog = false" class="dialog-btn cancel-btn">取消</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 插入图片对话框 -->
+  <div v-if="showImageDialog" class="dialog-overlay" @click="showImageDialog = false">
+    <div class="dialog-box image-upload-dialog" @click.stop>
+      <h3>插入图片</h3>
+      
+      <!-- 上传方式选择 -->
+      <div class="upload-tabs">
+        <button 
+          @click="imageUploadTab = 'url'" 
+          :class="['tab-btn', { active: imageUploadTab === 'url' }]"
+        >
+          网络图片
+        </button>
+        <button 
+          @click="imageUploadTab = 'upload'" 
+          :class="['tab-btn', { active: imageUploadTab === 'upload' }]"
+        >
+          本地上传
+        </button>
+      </div>
+
+      <!-- 网络图片输入 -->
+      <div v-if="imageUploadTab === 'url'" class="tab-content">
+        <div class="dialog-input-group">
+          <label>图片地址:</label>
+          <input v-model="imageUrl" type="text" placeholder="请输入图片URL (http://...)" />
+        </div>
+        <div class="dialog-input-group">
+          <label>图片描述:</label>
+          <input v-model="imageAlt" type="text" placeholder="请输入图片描述 (可选)" />
+        </div>
+      </div>
+
+      <!-- 本地上传 -->
+      <div v-if="imageUploadTab === 'upload'" class="tab-content">
+        <!-- 拖拽上传区域 -->
+        <div 
+          class="upload-area"
+          :class="{ 'dragging': isDraggingImage }"
+          @dragover.prevent="handleImageDragOver"
+          @dragleave.prevent="handleImageDragLeave"
+          @drop.prevent="handleImageDrop"
+          @click="triggerImageFileInput"
+        >
+          <input 
+            ref="imageFileInput" 
+            type="file" 
+            accept="image/*" 
+            @change="handleImageFileSelect"
+            style="display: none;"
+          />
+          
+          <div v-if="!uploadingImage && !uploadedImageUrl" class="upload-placeholder">
+            <svg width="48" height="48" viewBox="0 0 24 24" fill="currentColor">
+              <path d="M21 19V5c0-1.1-.9-2-2-2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2zM8.5 13.5l2.5 3.01L14.5 12l4.5 6H5l3.5-4.5z"/>
+            </svg>
+            <p>点击或拖拽图片到这里</p>
+            <span class="upload-hint">支持 JPG、PNG、GIF、WebP、SVG，最大 5MB</span>
+          </div>
+
+          <div v-if="uploadingImage" class="uploading-status">
+            <div class="spinner"></div>
+            <p>上传中...</p>
+          </div>
+
+          <div v-if="uploadedImageUrl && !uploadingImage" class="uploaded-preview">
+            <img :src="uploadedImageUrl" :alt="imageAlt" />
+            <button @click.stop="clearUploadedImage" class="clear-btn" title="重新上传">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/>
+              </svg>
+            </button>
+          </div>
+        </div>
+
+        <div class="dialog-input-group" style="margin-top: 16px;">
+          <label>图片描述:</label>
+          <input v-model="imageAlt" type="text" placeholder="请输入图片描述 (可选)" />
+        </div>
+      </div>
+
+      <div class="dialog-buttons">
+        <button @click="confirmInsertImage" class="dialog-btn confirm-btn" :disabled="uploadingImage">确定</button>
+        <button @click="closeImageDialog" class="dialog-btn cancel-btn">取消</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 插入公式对话框 -->
+  <div v-if="showFormulaDialog" class="dialog-overlay" @click="showFormulaDialog = false">
+    <div class="dialog-box" @click.stop>
+      <h3>插入公式</h3>
+      <div class="dialog-input-group">
+        <label>LaTeX 公式:</label>
+        <input v-model="formulaText" type="text" placeholder="请输入 LaTeX 公式，如: E = mc^2" />
+      </div>
+      <div class="dialog-help">
+        <p>常用语法示例：</p>
+        <ul>
+          <li>上标: x^2 → x²</li>
+          <li>下标: x_1 → x₁</li>
+          <li>分数: \frac{a}{b} → a/b</li>
+          <li>根号: \sqrt{x} → √x</li>
+        </ul>
+      </div>
+      <div class="dialog-buttons">
+        <button @click="confirmInsertFormula" class="dialog-btn confirm-btn">确定</button>
+        <button @click="showFormulaDialog = false" class="dialog-btn cancel-btn">取消</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 颜色选择对话框 -->
+  <div v-if="showColorDialog" class="dialog-overlay" @click="showColorDialog = false">
+    <div class="dialog-box" @click.stop>
+      <h3>选择颜色</h3>
+      <div class="dialog-input-group">
+        <label>颜色:</label>
+        <input v-model="selectedColor" type="color" />
+      </div>
+      <div class="color-presets">
+        <button 
+          v-for="color in ['#000000', '#FF0000', '#00FF00', '#0000FF', '#FFFF00', '#FF00FF', '#00FFFF']" 
+          :key="color"
+          @click="selectedColor = color"
+          class="color-preset-btn"
+          :style="{ backgroundColor: color }"
+        ></button>
+      </div>
+      <div class="dialog-buttons">
+        <button @click="applyColor" class="dialog-btn confirm-btn">确定</button>
+        <button @click="showColorDialog = false" class="dialog-btn cancel-btn">取消</button>
+      </div>
+    </div>
+  </div>
 </template>
 
 <script setup lang="ts">
 import { ref, computed, onMounted, watch, nextTick } from 'vue'
 import { useRouter } from 'vue-router'
+import MarkdownEditor from '@/components/MarkdownEditor.vue'
+import { marked } from 'marked'
+import DOMPurify from 'dompurify'
 
 const router = useRouter()
+
+// 配置 marked 选项
+marked.setOptions({
+  breaks: true, // 支持 GitHub 风格的换行
+  gfm: true // 启用 GitHub Flavored Markdown
+})
+
+// 编辑器模式：markdown 或 simple
+const editorMode = ref<'markdown' | 'simple'>('markdown')
 
 // 定义卡片类型
 interface Card {
@@ -591,16 +829,51 @@ const formatTime = (seconds: number): string => {
 // 监听视频时长变化，自动调整时间格式
 watch(videoDuration, (newDuration) => {
   if (newDuration > 0) {
-    const newFormat = autoDetectTimeFormat(newDuration)
-    if (newFormat !== timeFormatMode.value) {
-      timeFormatMode.value = newFormat
-      
-      // 更新显示的时间格式
-      cardStartTimeDisplay.value = formatTimeForInput(cardStartTime.value, newFormat)
-      cardEndTimeDisplay.value = formatTimeForInput(cardEndTime.value, newFormat)
-      
-      console.log(`🕒 视频时长 ${newDuration}秒，自动切换到 ${newFormat} 格式`)
-    }
+    timeFormatMode.value = autoDetectTimeFormat(newDuration)
+  }
+})
+
+// 监听卡片内容变化,检查图片渲染
+watch([cardContent, showCardModal], () => {
+  if (showCardModal.value && cardContent.value) {
+    nextTick(() => {
+      if (previewWrapper.value) {
+        console.log('🔍 检查预览容器:', previewWrapper.value);
+        const imgs = previewWrapper.value.querySelectorAll('img');
+        console.log('📊 找到图片数量:', imgs.length);
+        
+        imgs.forEach((img, index) => {
+          console.log(`🖼️ 图片${index + 1}:`, {
+            src: img.src,
+            alt: img.alt,
+            className: img.className,
+            display: window.getComputedStyle(img).display,
+            visibility: window.getComputedStyle(img).visibility,
+            opacity: window.getComputedStyle(img).opacity,
+            width: img.offsetWidth,
+            height: img.offsetHeight,
+            naturalWidth: img.naturalWidth,
+            naturalHeight: img.naturalHeight
+          });
+          
+          if (img.complete) {
+            if (img.naturalWidth === 0) {
+              console.error(`❌ 图片${index + 1}加载失败 (已complete但naturalWidth=0)`);
+            } else {
+              console.log(`✅ 图片${index + 1}已加载: ${img.naturalWidth}x${img.naturalHeight}`);
+            }
+          } else {
+            img.addEventListener('load', () => {
+              console.log(`✅ 图片${index + 1}延迟加载成功: ${img.naturalWidth}x${img.naturalHeight}`);
+            });
+            img.addEventListener('error', (e) => {
+              console.error(`❌ 图片${index + 1}加载失败:`, e);
+              console.error('   src:', img.src);
+            });
+          }
+        });
+      }
+    });
   }
 })
 
@@ -1055,22 +1328,373 @@ const aiAnalyze = () => {
   console.log('AI分析视频内容')
 }
 
+// 富文本编辑状态
+const showLinkDialog = ref(false)
+const showImageDialog = ref(false)
+const showFormulaDialog = ref(false)
+const showColorDialog = ref(false)
+const linkUrl = ref('')
+const linkText = ref('')
+const imageUrl = ref('')
+const imageAlt = ref('')
+const formulaText = ref('')
+const selectedColor = ref('#000000')
+const textareaRef = ref<HTMLTextAreaElement>()
+const previewWrapper = ref<HTMLDivElement>()
+
+// 图片上传状态
+const imageUploadTab = ref<'url' | 'upload'>('url')
+const imageFileInput = ref<HTMLInputElement>()
+const isDraggingImage = ref(false)
+const uploadingImage = ref(false)
+const uploadedImageUrl = ref('')
+
 // 富文本编辑方法
 const formatText = (type: string) => {
   console.log('格式化文本:', type)
-  // 后续实现富文本编辑逻辑
+  
+  const textarea = document.querySelector('.content-textarea') as HTMLTextAreaElement
+  if (!textarea) return
+  
+  const start = textarea.selectionStart
+  const end = textarea.selectionEnd
+  const selectedText = cardContent.value.substring(start, end)
+  
+  let newText = ''
+  
+  switch (type) {
+    case 'bold':
+      newText = `**${selectedText || '加粗文字'}**`
+      break
+    case 'italic':
+      newText = `*${selectedText || '斜体文字'}*`
+      break
+    case 'link':
+      showLinkDialog.value = true
+      linkText.value = selectedText
+      return
+    default:
+      return
+  }
+  
+  cardContent.value = cardContent.value.substring(0, start) + newText + cardContent.value.substring(end)
+  
+  // 设置光标位置
+  nextTick(() => {
+    textarea.focus()
+    const newPos = start + newText.length
+    textarea.setSelectionRange(newPos, newPos)
+  })
 }
 
 const insertImage = () => {
   console.log('插入图片')
+  imageUploadTab.value = 'url'
+  imageUrl.value = ''
+  imageAlt.value = ''
+  uploadedImageUrl.value = ''
+  showImageDialog.value = true
 }
 
 const insertFormula = () => {
   console.log('插入公式')
+  showFormulaDialog.value = true
 }
 
 const openColorPicker = () => {
   console.log('打开颜色选择器')
+  showColorDialog.value = true
+}
+
+// 确认插入链接
+const confirmInsertLink = () => {
+  if (!linkUrl.value) return
+  
+  const textarea = document.querySelector('.content-textarea') as HTMLTextAreaElement
+  if (!textarea) return
+  
+  const start = textarea.selectionStart
+  const linkMarkdown = `[${linkText.value || linkUrl.value}](${linkUrl.value})`
+  
+  cardContent.value = cardContent.value.substring(0, start) + linkMarkdown + cardContent.value.substring(start)
+  
+  showLinkDialog.value = false
+  linkUrl.value = ''
+  linkText.value = ''
+  
+  nextTick(() => {
+    textarea.focus()
+  })
+}
+
+// 确认插入图片
+const confirmInsertImage = () => {
+  const finalImageUrl = imageUploadTab.value === 'upload' ? uploadedImageUrl.value : imageUrl.value
+  
+  if (!finalImageUrl) {
+    alert('请先输入图片URL或上传图片')
+    return
+  }
+  
+  const textarea = document.querySelector('.content-textarea') as HTMLTextAreaElement
+  if (!textarea) return
+  
+  const start = textarea.selectionStart
+  const imageMarkdown = `![${imageAlt.value || '图片'}](${finalImageUrl})`
+  
+  cardContent.value = cardContent.value.substring(0, start) + imageMarkdown + cardContent.value.substring(start)
+  
+  closeImageDialog()
+  
+  nextTick(() => {
+    textarea.focus()
+  })
+}
+
+// 关闭图片对话框
+const closeImageDialog = () => {
+  showImageDialog.value = false
+  imageUrl.value = ''
+  imageAlt.value = ''
+  uploadedImageUrl.value = ''
+}
+
+// 触发文件选择
+const triggerImageFileInput = () => {
+  imageFileInput.value?.click()
+}
+
+// 处理图片文件选择
+const handleImageFileSelect = async (event: Event) => {
+  const target = event.target as HTMLInputElement
+  const file = target.files?.[0]
+  
+  if (file) {
+    await uploadImageFile(file)
+  }
+}
+
+// 处理拖拽悬停
+const handleImageDragOver = () => {
+  isDraggingImage.value = true
+}
+
+// 处理拖拽离开
+const handleImageDragLeave = () => {
+  isDraggingImage.value = false
+}
+
+// 处理拖拽放下
+const handleImageDrop = async (event: DragEvent) => {
+  isDraggingImage.value = false
+  
+  const file = event.dataTransfer?.files[0]
+  
+  if (file && file.type.startsWith('image/')) {
+    await uploadImageFile(file)
+  } else {
+    alert('请拖拽图片文件')
+  }
+}
+
+// 上传图片文件
+const uploadImageFile = async (file: File) => {
+  // 验证文件大小 (5MB)
+  if (file.size > 5 * 1024 * 1024) {
+    alert('图片大小不能超过 5MB')
+    return
+  }
+
+  // 验证文件类型
+  const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp', 'image/svg+xml']
+  if (!allowedTypes.includes(file.type)) {
+    alert('只支持 JPG、PNG、GIF、WebP、SVG 格式的图片')
+    return
+  }
+
+  uploadingImage.value = true
+  
+  try {
+    const formData = new FormData()
+    formData.append('image', file)
+    
+    const response = await fetch('/api/admin/videos/upload-image', {
+      method: 'POST',
+      body: formData
+    })
+    
+    const result = await response.json()
+    
+    if (result.status) {
+      uploadedImageUrl.value = result.data.url
+      
+      // 如果没有填写描述，使用原文件名
+      if (!imageAlt.value) {
+        imageAlt.value = file.name.replace(/\.[^/.]+$/, '')
+      }
+    } else {
+      alert('上传失败: ' + result.message)
+    }
+  } catch (error) {
+    console.error('上传图片失败:', error)
+    alert('上传图片失败，请重试')
+  } finally {
+    uploadingImage.value = false
+  }
+}
+
+// 清除已上传的图片
+const clearUploadedImage = () => {
+  uploadedImageUrl.value = ''
+  if (imageFileInput.value) {
+    imageFileInput.value.value = ''
+  }
+}
+
+// 确认插入公式
+const confirmInsertFormula = () => {
+  if (!formulaText.value) return
+  
+  const textarea = document.querySelector('.content-textarea') as HTMLTextAreaElement
+  if (!textarea) return
+  
+  const start = textarea.selectionStart
+  const formulaMarkdown = `$$${formulaText.value}$$`
+  
+  cardContent.value = cardContent.value.substring(0, start) + formulaMarkdown + cardContent.value.substring(start)
+  
+  showFormulaDialog.value = false
+  formulaText.value = ''
+  
+  nextTick(() => {
+    textarea.focus()
+  })
+}
+
+// 应用颜色
+const applyColor = () => {
+  const textarea = document.querySelector('.content-textarea') as HTMLTextAreaElement
+  if (!textarea) return
+  
+  const start = textarea.selectionStart
+  const end = textarea.selectionEnd
+  const selectedText = cardContent.value.substring(start, end)
+  
+  const coloredText = `<span style="color: ${selectedColor.value}">${selectedText || '彩色文字'}</span>`
+  
+  cardContent.value = cardContent.value.substring(0, start) + coloredText + cardContent.value.substring(end)
+  
+  showColorDialog.value = false
+  
+  nextTick(() => {
+    textarea.focus()
+  })
+}
+
+// 格式化时间范围
+const formatTimeRange = (start: number, end: number): string => {
+  const formatTime = (seconds: number): string => {
+    const mins = Math.floor(seconds / 60)
+    const secs = Math.floor(seconds % 60)
+    return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`
+  }
+  
+  return `${formatTime(start)} - ${formatTime(end)}`
+}
+
+// 格式化内容 - 使用 Markdown 渲染
+const formatContent = (content: string): string => {
+  if (!content) return '<p style="color: #999; font-style: italic;">暂无内容</p>'
+  
+  try {
+    // 1. 使用 marked 解析 Markdown
+    let html = marked.parse(content) as string
+    
+    // 2. 修复图片 URL (marked 已经将 Markdown 图片转换为 HTML img 标签)
+    html = html.replace(/<img([^>]*)src="([^"]+)"([^>]*)>/gi, (match, before, url, after) => {
+      console.log('🖼️ 原始图片URL:', url)
+      
+      let imageUrl = url
+      
+      // 🔧 修复旧的 localhost:5173 URL
+      if (url.includes('localhost:5173/uploads/')) {
+        imageUrl = url.replace('http://localhost:5173/uploads/', 'http://localhost:3000/uploads/')
+        console.log('⚠️ 修正旧URL:', url, '→', imageUrl)
+      }
+      // 处理完整URL
+      else if (url.startsWith('http://') || url.startsWith('https://')) {
+        imageUrl = url
+      }
+      // 处理 /uploads/ 开头的相对路径
+      else if (url.startsWith('/uploads/')) {
+        imageUrl = 'http://localhost:3000' + url
+        console.log('🔄 转换相对路径:', url, '→', imageUrl)
+      }
+      // 处理没有 / 开头的相对路径
+      else if (!url.startsWith('/')) {
+        imageUrl = 'http://localhost:3000/' + url
+        console.log('🔄 添加前缀:', url, '→', imageUrl)
+      }
+      
+      console.log('✅ 最终图片URL:', imageUrl)
+      
+      // 添加必要的类名和属性
+      return `<img${before}src="${imageUrl}"${after} class="content-image" loading="lazy">`
+    })
+    
+    // 3. 为链接添加类名和目标属性
+    html = html.replace(/<a(?![^>]*class=)/g, '<a class="card-link"')
+    html = html.replace(/<a(?![^>]*target=)/g, '<a target="_blank" rel="noopener noreferrer"')
+    
+    // 4. 自动识别纯文本 URL 链接 - 使用安全的保护-替换-恢复策略
+    const protectedTags: { [key: string]: string } = {}
+    let tagCounter = 0
+    
+    // 保护 img 和 a 标签
+    html = html.replace(/<(img|a)[^>]*>/gi, (match) => {
+      const key = `__PROTECTED_TAG_${tagCounter++}__`
+      protectedTags[key] = match
+      return key
+    })
+    
+    // 现在安全地转换URL为链接
+    html = html.replace(/(https?:\/\/[^\s<>"]+)/gi, '<a href="$1" class="card-link" target="_blank" rel="noopener noreferrer">$1</a>')
+    
+    // 恢复被保护的标签
+    Object.keys(protectedTags).forEach(key => {
+      const tag = protectedTags[key]
+      if (tag) {
+        html = html.replace(key, tag)
+      }
+    })
+    
+    // 5. 使用 DOMPurify 清理 HTML (防止 XSS 攻击)
+    html = DOMPurify.sanitize(html, {
+      ALLOWED_TAGS: ['p', 'br', 'strong', 'em', 'u', 'del', 's', 'strike', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 
+                     'ul', 'ol', 'li', 'blockquote', 'code', 'pre', 'a', 'img', 'hr', 'mark', 'table', 'thead', 
+                     'tbody', 'tr', 'th', 'td', 'div', 'span'],
+      ALLOWED_ATTR: ['href', 'src', 'alt', 'title', 'class', 'target', 'rel', 'loading']
+    })
+    
+    console.log('🎨 formatContent最终输出:', html)
+    return html
+  } catch (error) {
+    console.error('❌ Markdown 渲染失败:', error)
+    // 如果解析失败,返回纯文本(转义HTML)
+    return escapeHtml(content)
+  }
+}
+
+// HTML转义函数
+const escapeHtml = (text: string): string => {
+  const map: Record<string, string> = {
+    '&': '&amp;',
+    '<': '&lt;',
+    '>': '&gt;',
+    '"': '&quot;',
+    "'": '&#039;'
+  }
+  return text.replace(/[&<>"']/g, (m) => map[m] || m)
 }
 
 const saveCurrentCard = async () => {
@@ -2151,6 +2775,72 @@ onMounted(async () => {
   font-weight: 500;
 }
 
+/* 编辑器模式切换 */
+.editor-mode-toggle {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 20px;
+  padding: 4px;
+  background: #f8f9fa;
+  border-radius: 8px;
+}
+
+.mode-btn {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 10px 16px;
+  border: 2px solid transparent;
+  background: white;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 500;
+  color: #666;
+  transition: all 0.2s;
+}
+
+.mode-btn svg {
+  flex-shrink: 0;
+}
+
+.mode-btn:hover {
+  background: #f0f7ff;
+  color: #1890ff;
+  border-color: #d6e4ff;
+}
+
+.mode-btn.active {
+  background: #1890ff;
+  color: white;
+  border-color: #1890ff;
+  box-shadow: 0 2px 8px rgba(24, 144, 255, 0.3);
+}
+
+/* Markdown 编辑器模式 */
+.card-content-editor.markdown-mode {
+  margin-bottom: 20px;
+}
+
+.card-content-editor.markdown-mode label {
+  display: block;
+  margin-bottom: 12px;
+  font-weight: 500;
+  color: #333;
+  font-size: 14px;
+}
+
+/* 简单编辑器模式 */
+.card-content-editor.simple-mode label {
+  display: block;
+  margin-bottom: 12px;
+  font-weight: 500;
+  color: #333;
+  font-size: 14px;
+}
+
 /* 富文本工具栏 */
 .rich-text-toolbar {
   display: grid;
@@ -2202,6 +2892,553 @@ onMounted(async () => {
   resize: vertical;
   min-height: 120px;
   line-height: 1.5;
+}
+
+/* 对话框样式 */
+.dialog-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 10000;
+}
+
+.dialog-box {
+  background: white;
+  border-radius: 8px;
+  padding: 24px;
+  min-width: 400px;
+  max-width: 90%;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.dialog-box h3 {
+  margin: 0 0 20px 0;
+  font-size: 18px;
+  font-weight: 600;
+  color: #333;
+}
+
+.dialog-input-group {
+  margin-bottom: 16px;
+}
+
+.dialog-input-group label {
+  display: block;
+  margin-bottom: 8px;
+  font-size: 14px;
+  font-weight: 500;
+  color: #666;
+}
+
+.dialog-input-group input {
+  width: 100%;
+  padding: 8px 12px;
+  border: 1px solid #d9d9d9;
+  border-radius: 4px;
+  font-size: 14px;
+  box-sizing: border-box;
+}
+
+.dialog-input-group input[type="color"] {
+  height: 40px;
+  cursor: pointer;
+}
+
+.dialog-help {
+  margin-bottom: 16px;
+  padding: 12px;
+  background: #f5f5f5;
+  border-radius: 4px;
+  font-size: 13px;
+}
+
+.dialog-help p {
+  margin: 0 0 8px 0;
+  font-weight: 500;
+  color: #666;
+}
+
+.dialog-help ul {
+  margin: 0;
+  padding-left: 20px;
+}
+
+.dialog-help li {
+  color: #888;
+  margin-bottom: 4px;
+}
+
+.color-presets {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 16px;
+}
+
+.color-preset-btn {
+  width: 40px;
+  height: 40px;
+  border: 2px solid #d9d9d9;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.color-preset-btn:hover {
+  transform: scale(1.1);
+  border-color: #1890ff;
+}
+
+.dialog-buttons {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+  margin-top: 20px;
+}
+
+.dialog-btn {
+  padding: 8px 20px;
+  border: none;
+  border-radius: 4px;
+  font-size: 14px;
+  cursor: pointer;
+  transition: all 0.3s;
+}
+
+.dialog-btn.confirm-btn {
+  background: #1890ff;
+  color: white;
+}
+
+.dialog-btn.confirm-btn:hover {
+  background: #40a9ff;
+}
+
+.dialog-btn.cancel-btn {
+  background: #f0f0f0;
+  color: #666;
+}
+
+.dialog-btn.cancel-btn:hover {
+  background: #e0e0e0;
+}
+
+/* 图片上传对话框样式 */
+.image-upload-dialog {
+  max-width: 500px;
+}
+
+.upload-tabs {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 20px;
+  border-bottom: 2px solid #f0f0f0;
+}
+
+.tab-btn {
+  padding: 10px 20px;
+  background: transparent;
+  border: none;
+  border-bottom: 2px solid transparent;
+  color: #666;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.3s;
+  margin-bottom: -2px;
+}
+
+.tab-btn:hover {
+  color: #1890ff;
+}
+
+.tab-btn.active {
+  color: #1890ff;
+  border-bottom-color: #1890ff;
+}
+
+.tab-content {
+  animation: fadeIn 0.3s ease;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-5px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.upload-area {
+  border: 2px dashed #d9d9d9;
+  border-radius: 8px;
+  padding: 40px 20px;
+  text-align: center;
+  cursor: pointer;
+  transition: all 0.3s;
+  background: #fafafa;
+  position: relative;
+  min-height: 200px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.upload-area:hover {
+  border-color: #1890ff;
+  background: #f0f7ff;
+}
+
+.upload-area.dragging {
+  border-color: #1890ff;
+  background: #e6f7ff;
+  border-style: solid;
+}
+
+.upload-placeholder {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  color: #666;
+}
+
+.upload-placeholder svg {
+  color: #1890ff;
+}
+
+.upload-placeholder p {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 500;
+  color: #333;
+}
+
+.upload-hint {
+  font-size: 12px;
+  color: #999;
+}
+
+.uploading-status {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+}
+
+.spinner {
+  width: 40px;
+  height: 40px;
+  border: 4px solid #f0f0f0;
+  border-top-color: #1890ff;
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.uploading-status p {
+  margin: 0;
+  color: #1890ff;
+  font-size: 14px;
+}
+
+.uploaded-preview {
+  position: relative;
+  width: 100%;
+  max-height: 300px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.uploaded-preview img {
+  max-width: 100%;
+  max-height: 300px;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.clear-btn {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: rgba(0, 0, 0, 0.6);
+  color: white;
+  border: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.3s;
+}
+
+.clear-btn:hover {
+  background: rgba(0, 0, 0, 0.8);
+  transform: scale(1.1);
+}
+
+/* 卡片预览样式 - 模拟视频中的卡片展示 */
+.card-preview-section {
+  margin-top: 20px;
+}
+
+.preview-label {
+  display: flex;
+  align-items: center;
+  margin-bottom: 12px;
+  font-size: 14px;
+  font-weight: 600;
+  color: #333;
+}
+
+.knowledge-card-preview {
+  background: white;
+  border-radius: 16px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+  overflow: hidden;
+  max-width: 100%;
+  animation: slideIn 0.3s ease-out;
+}
+
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* 预览卡片头部 */
+.preview-header {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 20px;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+}
+
+.preview-header-icon {
+  flex-shrink: 0;
+  width: 36px;
+  height: 36px;
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.preview-header-icon svg {
+  width: 20px;
+  height: 20px;
+}
+
+.preview-header-content {
+  flex: 1;
+  min-width: 0;
+}
+
+.preview-card-title {
+  font-size: 16px;
+  font-weight: 600;
+  margin: 0 0 8px 0;
+  line-height: 1.3;
+  color: white;
+}
+
+.preview-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+  font-size: 12px;
+}
+
+.preview-time-badge,
+.preview-type-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 10px;
+  border-radius: 12px;
+  font-weight: 500;
+}
+
+.preview-time-badge {
+  background: rgba(255, 255, 255, 0.25);
+  color: white;
+}
+
+.preview-time-badge svg {
+  width: 14px;
+  height: 14px;
+}
+
+.preview-type-badge {
+  background: rgba(255, 255, 255, 0.2);
+  color: white;
+}
+
+/* 预览卡片内容 */
+.preview-body {
+  padding: 20px;
+  background: #fafafa;
+  max-height: 400px;
+  overflow-y: auto;
+}
+
+.preview-content-wrapper {
+  font-size: 14px;
+  line-height: 1.8;
+  color: #333;
+  word-break: break-word;
+}
+
+.preview-content-wrapper h1,
+.preview-content-wrapper h2,
+.preview-content-wrapper h3 {
+  margin-top: 16px;
+  margin-bottom: 8px;
+  color: #222;
+  font-weight: 600;
+}
+
+.preview-content-wrapper h1 {
+  font-size: 20px;
+}
+
+.preview-content-wrapper h2 {
+  font-size: 18px;
+}
+
+.preview-content-wrapper h3 {
+  font-size: 16px;
+}
+
+.preview-content-wrapper p {
+  margin: 8px 0;
+}
+
+.preview-content-wrapper a {
+  color: #667eea;
+  text-decoration: none;
+  border-bottom: 1px dotted #667eea;
+  transition: all 0.2s;
+}
+
+.preview-content-wrapper a:hover {
+  color: #764ba2;
+  border-bottom-style: solid;
+}
+
+.preview-content-wrapper strong {
+  font-weight: 600;
+  color: #222;
+}
+
+.preview-content-wrapper em {
+  font-style: italic;
+  color: #555;
+}
+
+.preview-content-wrapper code {
+  background: rgba(102, 126, 234, 0.1);
+  color: #667eea;
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-family: 'Courier New', Courier, monospace;
+  font-size: 0.9em;
+}
+
+.preview-content-wrapper pre {
+  background: #2d2d2d;
+  color: #f8f8f2;
+  padding: 16px;
+  border-radius: 8px;
+  overflow-x: auto;
+  margin: 16px 0;
+}
+
+.preview-content-wrapper pre code {
+  background: none;
+  color: inherit;
+  padding: 0;
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.preview-content-wrapper blockquote {
+  border-left: 4px solid #667eea;
+  padding-left: 16px;
+  margin: 16px 0;
+  color: #666;
+  font-style: italic;
+  background: rgba(102, 126, 234, 0.05);
+  padding: 12px 16px;
+  border-radius: 4px;
+}
+
+.preview-content-wrapper ul,
+.preview-content-wrapper ol {
+  margin: 12px 0;
+  padding-left: 24px;
+}
+
+.preview-content-wrapper li {
+  margin: 6px 0;
+  line-height: 1.6;
+}
+
+.preview-content-wrapper img,
+.preview-content-wrapper .content-image {
+  max-width: 100%;
+  width: auto;
+  height: auto;
+  border-radius: 8px;
+  margin: 16px auto;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  display: block;
+  max-height: 400px;
+  object-fit: contain;
+  cursor: zoom-in;
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.preview-content-wrapper img:hover,
+.preview-content-wrapper .content-image:hover {
+  transform: scale(1.02);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.preview-content-wrapper hr {
+  border: none;
+  border-top: 2px solid #e0e0e0;
+  margin: 24px 0;
+}
+
+.preview-content-wrapper del {
+  color: #999;
+  text-decoration: line-through;
 }
 
 /* 响应式设计 */

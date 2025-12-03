@@ -60,9 +60,12 @@ router.get("/", async function (req, res) {
       ((Math.max(1, Math.abs(Number(query.currentPage)) || 1) - 1) * limit);
     
     const conditions = {
+      // 暂时不指定 attributes，让 Sequelize 自动获取所有字段
+      // 如果某些字段不存在会导致 SQL 错误
       order: [["id", "DESC"]],
       limit: limit,
-      offset: offset
+      offset: offset,
+      raw: true  // 返回纯 JSON 对象，避免 Sequelize 实例序列化问题
     };
     
     // 支持 keyword 和 title 两种搜索参数
@@ -77,16 +80,39 @@ router.get("/", async function (req, res) {
     // 使用 findAndCountAll 同时获取数据和总数
     const { count, rows } = await Video.findAndCountAll(conditions);
     
+    // 转换字段名为前端期望的格式（只转换确定存在的字段）
+    const videos = rows.map(video => ({
+      id: video.id,
+      title: video.title,
+      description: video.description,
+      video_url: video.video_url,
+      thumbnail_url: video.thumbnail_url,
+      duration: video.duration || 0,
+      status: video.status,
+      file_name: video.file_name || null,
+      thumbnail_name: video.thumbnail_name || null,
+      file_size: video.file_size || null,
+      resolution: video.resolution || null,
+      created_at: video.createdAt || video.created_at,
+      updated_at: video.updatedAt || video.updated_at
+    }));
+    
     // 返回视频列表
     res.json({
       status: true,
       message: "查询视频列表成功",
       data: {
-        videos: rows,
+        videos: videos,
         total: count
       },
     });
   } catch (error) {
+    console.error('❌ 查询视频列表失败:', error);
+    console.error('错误详情:', {
+      message: error.message,
+      stack: error.stack,
+      sql: error.sql
+    });
     res.status(500).json({
       status: false,
       message: "查询视频列表失败",
@@ -366,6 +392,47 @@ router.put("/:id", async function (req, res) {
       status: false,
       message: "更新视频失败",
       error: error.message,
+    });
+  }
+});
+
+/**
+ * 上传图片
+ * POST /admin/videos/upload-image
+ */
+const imageUploadMiddleware = uploadService.createImageUploadMiddleware();
+
+router.post("/upload-image", imageUploadMiddleware, function (req, res, next) {
+  // 图片上传错误处理
+  if (!req.file) {
+    return res.status(400).json({
+      status: false,
+      message: '请选择要上传的图片'
+    });
+  }
+
+  try {
+    // 返回完整的图片URL（包含后端地址）
+    // 这样前端可以直接访问，不需要通过 Vite 代理
+    const imageUrl = `http://localhost:3000/uploads/images/${req.file.filename}`;
+    
+    res.json({
+      status: true,
+      message: '图片上传成功',
+      data: {
+        url: imageUrl,
+        filename: req.file.filename,
+        originalName: req.file.originalname,
+        size: req.file.size,
+        mimetype: req.file.mimetype
+      }
+    });
+  } catch (error) {
+    console.error('图片上传处理失败:', error);
+    res.status(500).json({
+      status: false,
+      message: '图片上传失败',
+      error: error.message
     });
   }
 });

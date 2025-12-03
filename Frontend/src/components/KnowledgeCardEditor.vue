@@ -91,7 +91,68 @@
               <path d="M9.4 16.6L4.8 12l4.6-4.6L8 6l-6 6 6 6 1.4-1.4zm5.2 0l4.6-4.6-4.6-4.6L16 6l6 6-6 6-1.4-1.4z"/>
             </svg>
           </button>
+          <button type="button" class="toolbar-btn" @click="insertFormula" title="插入公式">
+            <span style="font-weight: bold; font-size: 16px;">Σ</span>
+          </button>
+          <button type="button" class="toolbar-btn" @click="toggleColorPicker" title="文字颜色" ref="colorBtnRef">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+              <path d="M12 22C6.49 22 2 17.51 2 12S6.49 2 12 2s10 4.04 10 9c0 3.31-2.69 6-6 6h-1.77c-.28 0-.5.22-.5.5 0 .12.05.23.13.33.41.47.64 1.06.64 1.67A2.5 2.5 0 0 1 12 22zm0-18c-4.41 0-8 3.59-8 8s3.59 8 8 8c.28 0 .5-.22.5-.5a.54.54 0 0 0-.14-.35c-.41-.46-.63-1.05-.63-1.65a2.5 2.5 0 0 1 2.5-2.5H16c2.21 0 4-1.79 4-4 0-3.86-3.59-7-8-7z"/>
+              <circle cx="6.5" cy="11.5" r="1.5"/>
+              <circle cx="9.5" cy="7.5" r="1.5"/>
+              <circle cx="14.5" cy="7.5" r="1.5"/>
+              <circle cx="17.5" cy="11.5" r="1.5"/>
+            </svg>
+          </button>
         </div>
+        
+        <!-- 颜色选择器面板 -->
+        <transition name="fade">
+          <div v-show="showColorPicker" class="color-picker-panel" :style="colorPickerPosition">
+            <div class="color-picker-section">
+              <label>文字颜色</label>
+              <div class="color-grid">
+                <div 
+                  v-for="color in textColors" 
+                  :key="color"
+                  class="color-item"
+                  :style="{ backgroundColor: color }"
+                  @click="applyTextColor(color)"
+                  :title="color"
+                ></div>
+              </div>
+            </div>
+            <div class="color-picker-section">
+              <label>背景颜色</label>
+              <div class="color-grid">
+                <div 
+                  v-for="color in bgColors" 
+                  :key="color"
+                  class="color-item"
+                  :style="{ backgroundColor: color }"
+                  @click="applyBackgroundColor(color)"
+                  :title="color"
+                ></div>
+              </div>
+            </div>
+            <div class="color-picker-section">
+              <label>自定义颜色</label>
+              <div class="custom-color-section">
+                <input 
+                  type="color" 
+                  v-model="customColor" 
+                  class="color-input"
+                  @change="applyTextColor(customColor)"
+                />
+                <button type="button" class="color-apply-btn" @click="applyTextColor(customColor)">
+                  应用文字颜色
+                </button>
+                <button type="button" class="color-apply-btn" @click="applyBackgroundColor(customColor)">
+                  应用背景色
+                </button>
+              </div>
+            </div>
+          </div>
+        </transition>
 
         <!-- 编辑区域 -->
         <div 
@@ -182,6 +243,49 @@
         </div>
       </div>
     </div>
+
+    <!-- 公式插入弹窗 -->
+    <div v-if="showFormulaModal" class="modal-overlay" @click.self="closeFormulaModal">
+      <div class="modal-content formula-modal">
+        <h3>插入数学公式</h3>
+        <div class="form-group">
+          <label>LaTeX 公式</label>
+          <textarea 
+            v-model="formulaText" 
+            @input="updateFormulaPreview"
+            class="form-input formula-input" 
+            placeholder="例如: E = mc^2 或 \frac{a}{b} 或 \sum_{i=1}^{n} x_i"
+            rows="4"
+          ></textarea>
+          <div class="formula-hints">
+            <p><strong>常用语法提示：</strong></p>
+            <ul>
+              <li>上标: x^2 下标: x_i</li>
+              <li>分数: \frac{分子}{分母}</li>
+              <li>求和: \sum_{下标}^{上标}</li>
+              <li>积分: \int_{下限}^{上限}</li>
+              <li>根号: \sqrt{内容} 或 \sqrt[n]{内容}</li>
+              <li>希腊字母: \alpha \beta \gamma \pi \theta</li>
+            </ul>
+          </div>
+        </div>
+        <div class="form-group">
+          <label>预览</label>
+          <div class="formula-preview">
+            <div v-if="formulaText" class="formula-display">
+              $${{ formulaText }}$$
+            </div>
+            <div v-else class="formula-placeholder">
+              在上方输入 LaTeX 公式，这里会显示预览
+            </div>
+          </div>
+        </div>
+        <div class="modal-actions">
+          <button class="secondary-button" @click="closeFormulaModal">取消</button>
+          <button class="primary-button" @click="confirmFormula" :disabled="!formulaText">确认</button>
+        </div>
+      </div>
+    </div>
   </div>
 </template>
 
@@ -232,10 +336,30 @@ const cardData = ref<Card>({
 // 弹窗状态
 const showLinkModal = ref(false);
 const showImageModal = ref(false);
+const showFormulaModal = ref(false);
+const showColorPicker = ref(false);
 const linkText = ref('');
 const linkUrl = ref('');
 const imageUrl = ref('');
 const imageAlt = ref('');
+const formulaText = ref('');
+const formulaPreview = ref('');
+const customColor = ref('#000000');
+const colorBtnRef = ref<HTMLElement>();
+const colorPickerPosition = ref<Record<string, string>>({});
+
+// 预定义颜色
+const textColors = [
+  '#000000', '#FF0000', '#00FF00', '#0000FF', '#FFFF00', '#FF00FF', '#00FFFF',
+  '#800000', '#008000', '#000080', '#808000', '#800080', '#008080', '#808080',
+  '#C00000', '#00C000', '#0000C0', '#C0C000', '#C000C0', '#00C0C0', '#C0C0C0'
+];
+
+const bgColors = [
+  '#FFFFFF', '#FFEBEE', '#E8F5E9', '#E3F2FD', '#FFFDE7', '#F3E5F5', '#E0F7FA',
+  '#FFF3E0', '#EFEBE9', '#ECEFF1', '#FCE4EC', '#F1F8E9', '#E1F5FE', '#FFF8E1',
+  '#F9FBE7', '#EDE7F6', '#E0F2F1', '#FBE9E7', '#FAFAFA', '#EEEEEE', '#E0E0E0'
+];
 
 // 预览内容
 const previewContent = computed(() => {
@@ -316,6 +440,13 @@ const handlePaste = (event: ClipboardEvent) => {
 
 // 格式化文本
 const formatText = (command: string) => {
+  // 确保编辑器获得焦点
+  if (editorRef.value) {
+    editorRef.value.focus();
+  }
+  
+  console.log('格式化命令:', command);
+  
   switch (command) {
     case 'bold':
       document.execCommand('bold', false);
@@ -345,9 +476,11 @@ const formatText = (command: string) => {
 
 // 插入链接
 const insertLink = () => {
+  console.log('插入链接被点击');
   const selection = window.getSelection();
   if (selection && selection.toString()) {
     linkText.value = selection.toString();
+    console.log('选中的文本:', linkText.value);
   }
   showLinkModal.value = true;
 };
@@ -372,6 +505,7 @@ const closeLinkModal = () => {
 
 // 插入图片
 const insertImage = () => {
+  console.log('插入图片被点击');
   showImageModal.value = true;
 };
 
@@ -391,6 +525,88 @@ const closeImageModal = () => {
   showImageModal.value = false;
   imageUrl.value = '';
   imageAlt.value = '';
+};
+
+// 插入公式
+const insertFormula = () => {
+  console.log('插入公式被点击');
+  showFormulaModal.value = true;
+  formulaText.value = '';
+  formulaPreview.value = '';
+};
+
+// 确认公式
+const confirmFormula = () => {
+  if (formulaText.value) {
+    // 使用LaTeX语法标记
+    const formulaMarkdown = `$$${formulaText.value}$$`;
+    document.execCommand('insertText', false, formulaMarkdown);
+    updateContent();
+  }
+  closeFormulaModal();
+};
+
+// 更新公式预览
+const updateFormulaPreview = () => {
+  if (formulaText.value) {
+    // 这里可以集成KaTeX或MathJax进行实时预览
+    formulaPreview.value = `公式预览: ${formulaText.value}`;
+  } else {
+    formulaPreview.value = '';
+  }
+};
+
+// 关闭公式弹窗
+const closeFormulaModal = () => {
+  showFormulaModal.value = false;
+  formulaText.value = '';
+  formulaPreview.value = '';
+};
+
+// 切换颜色选择器
+const toggleColorPicker = () => {
+  console.log('颜色选择器被点击, 当前状态:', showColorPicker.value);
+  showColorPicker.value = !showColorPicker.value;
+  console.log('新状态:', showColorPicker.value);
+  if (showColorPicker.value && colorBtnRef.value) {
+    // 计算颜色选择器位置
+    const rect = colorBtnRef.value.getBoundingClientRect();
+    colorPickerPosition.value = {
+      top: `${rect.bottom + 5}px`,
+      left: `${rect.left}px`
+    };
+    console.log('颜色选择器位置:', colorPickerPosition.value);
+  }
+};
+
+// 应用文字颜色
+const applyTextColor = (color: string) => {
+  const selection = window.getSelection();
+  if (selection && selection.toString()) {
+    const selectedText = selection.toString();
+    document.execCommand('insertHTML', false, `<span style="color: ${color}">${selectedText}</span>`);
+    updateContent();
+  } else {
+    // 如果没有选中文字，插入颜色标记
+    document.execCommand('insertHTML', false, `<span style="color: ${color}">文字</span>`);
+    updateContent();
+  }
+  showColorPicker.value = false;
+};
+
+// 应用背景颜色
+const applyBackgroundColor = (color: string) => {
+  const selection = window.getSelection();
+  if (selection && selection.toString()) {
+    const selectedText = selection.toString();
+    document.execCommand('insertHTML', false, `<span style="background-color: ${color}">${selectedText}</span>`);
+    updateContent();
+  } else {
+    // 如果没有选中文字，插入颜色标记
+    document.execCommand('insertHTML', false, `<span style="background-color: ${color}">文字</span>`);
+    updateContent();
+  }
+  showColorPicker.value = false;
 };
 
 // 保存卡片
@@ -695,6 +911,157 @@ label {
   gap: 12px;
   justify-content: flex-end;
   margin-top: 24px;
+}
+
+/* 颜色选择器面板 */
+.color-picker-panel {
+  position: fixed;
+  background: white;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  padding: 16px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  z-index: 1000;
+  min-width: 280px;
+  max-width: 320px;
+}
+
+.color-picker-section {
+  margin-bottom: 16px;
+}
+
+.color-picker-section:last-child {
+  margin-bottom: 0;
+}
+
+.color-picker-section label {
+  display: block;
+  font-size: 13px;
+  font-weight: 500;
+  color: #333;
+  margin-bottom: 8px;
+}
+
+.color-grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 6px;
+}
+
+.color-item {
+  width: 32px;
+  height: 32px;
+  border-radius: 4px;
+  border: 2px solid #e0e0e0;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.color-item:hover {
+  transform: scale(1.1);
+  border-color: #667eea;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+}
+
+.custom-color-section {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.color-input {
+  width: 100%;
+  height: 40px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.color-apply-btn {
+  padding: 6px 12px;
+  background: #667eea;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  font-size: 12px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.color-apply-btn:hover {
+  background: #764ba2;
+}
+
+/* 公式弹窗样式 */
+.formula-modal {
+  max-width: 600px;
+  width: 90%;
+}
+
+.formula-input {
+  font-family: 'Courier New', Courier, monospace;
+  resize: vertical;
+  min-height: 80px;
+}
+
+.formula-hints {
+  background: #f8f9fa;
+  border: 1px solid #e0e0e0;
+  border-radius: 4px;
+  padding: 12px;
+  margin-top: 8px;
+  font-size: 12px;
+}
+
+.formula-hints p {
+  margin: 0 0 8px 0;
+  color: #333;
+}
+
+.formula-hints ul {
+  margin: 0;
+  padding-left: 20px;
+}
+
+.formula-hints li {
+  margin-bottom: 4px;
+  color: #555;
+  font-family: 'Courier New', Courier, monospace;
+}
+
+.formula-preview {
+  min-height: 80px;
+  padding: 16px;
+  background: #f8f9fa;
+  border: 1px solid #e0e0e0;
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.formula-display {
+  font-size: 18px;
+  color: #333;
+  text-align: center;
+}
+
+.formula-placeholder {
+  color: #999;
+  font-style: italic;
+  font-size: 13px;
+  text-align: center;
+}
+
+/* fade动画 */
+.fade-enter-active,
+.fade-leave-active {
+  transition: opacity 0.3s;
+}
+
+.fade-enter-from,
+.fade-leave-to {
+  opacity: 0;
 }
 
 /* 响应式设计 */

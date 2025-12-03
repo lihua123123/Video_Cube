@@ -65,6 +65,14 @@
 
 <script setup lang="ts">
 import { ref, computed, watch } from 'vue';
+import { marked } from 'marked';
+import DOMPurify from 'dompurify';
+
+// 配置 marked 选项
+marked.setOptions({
+  breaks: true, // 支持 GitHub 风格的换行
+  gfm: true // 启用 GitHub Flavored Markdown
+});
 
 // 定义卡片接口
 interface KnowledgeCard {
@@ -144,92 +152,123 @@ const needsExpansion = (content: string): boolean => {
 };
 
 const generatePreview = (content: string): string => {
-  // 生成内容预览，支持富文本格式，但限制长度
-  let preview = content;
-  
-  // 确保链接标签被正确保留，不被移除
-  // 首先，将链接标签临时替换为特殊标记，避免在后续处理中被移除
-  const linkMap: Record<string, { href: string; text: string }> = {};
-  let linkCounter = 0;
-  
-  // 保存原始链接到映射中
-  preview = preview.replace(/<a[^>]*href=["']([^"']*)["'][^>]*>(.*?)<\/a>/gi, (match, href, text) => {
-    const linkId = `__link_${linkCounter++}__`;
-    linkMap[linkId] = { href, text };
-    return linkId;
-  });
-  
-  // 保留基本格式但简化复杂结构
-  preview = preview.replace(/<h1[^>]*>|<\/h1>/g, '**');
-  preview = preview.replace(/<h2[^>]*>|<\/h2>/g, '**');
-  preview = preview.replace(/<h3[^>]*>|<\/h3>/g, '*');
-  preview = preview.replace(/<strong[^>]*>|<\/strong>/g, '**');
-  preview = preview.replace(/<em[^>]*>|<\/em>/g, '*');
-  
-  // 移除复杂标签
-  preview = preview.replace(/<img[^>]*>/g, '[图片]');
-  preview = preview.replace(/<pre[^>]*>[\s\S]*?<\/pre>/g, '[代码块]');
-  preview = preview.replace(/<blockquote[^>]*>/g, '> ');
-  preview = preview.replace(/<\/blockquote>/g, '');
-  
-  // 移除其他HTML标签，但保留我们的特殊标记
-  preview = preview.replace(/<[^>]*>/g, '');
-  
-  // 恢复链接，但使用简单的可点击格式，添加特定类名便于样式和点击识别
-  Object.entries(linkMap).forEach(([linkId, { href, text }]) => {
-    // 确保链接文本不为空
-    const displayText = text || href;
-    // 替换回带有href的链接标签，这样handleContentClick可以获取到正确的URL
-    // 添加class="card-link"以便于样式和点击识别
-    preview = preview.replace(linkId, `<a href="${href}" class="card-link">${displayText}</a>`);
-  });
-  
-  // 同时处理纯文本URL，将其转换为可点击链接，同样添加class="card-link"
-  preview = preview.replace(/(https?:\/\/[^\s]+)/g, '<a href="$1" class="card-link">$1</a>');
-  
-  // 限制长度，但确保不会截断链接
-  const plainText = preview.replace(/<[^>]*>/g, '');
-  if (plainText.length > 150) {
-    // 先截取纯文本
-    let truncatedText = plainText.substring(0, 150);
-    // 找到对应的HTML位置
-    let htmlLength = 0;
-    let result = '';
-    let inTag = false;
-    let inLink = false;
-    let linkStart = -1;
+  try {
+    // 1. 使用 marked 解析 Markdown
+    let html = marked.parse(content) as string;
     
-    for (let i = 0; i < preview.length && htmlLength < 150; i++) {
-      const char = preview[i];
-      if (char === '<') inTag = true;
-      if (char === '>') {
-        inTag = false;
-        // 检查是否是链接标签的开始或结束
-        const tag = preview.substring(linkStart !== -1 ? linkStart : i - 30, i + 1);
-        if (tag.includes('<a ') || tag.includes('<a>')) {
-          inLink = true;
-        } else if (tag.includes('</a>')) {
-          inLink = false;
+    // 2. 修复图片 URL (marked 已经将 Markdown 图片转换为 HTML img 标签)
+    html = html.replace(/<img([^>]*)src="([^"]+)"([^>]*)>/gi, (match, before, url, after) => {
+      let imageUrl = url;
+      
+      // 🔧 修复旧的 localhost:5173 URL
+      if (url.includes('localhost:5173/uploads/')) {
+        imageUrl = url.replace('http://localhost:5173/uploads/', 'http://localhost:3000/uploads/');
+      }
+      // 处理完整URL
+      else if (url.startsWith('http://') || url.startsWith('https://')) {
+        imageUrl = url;
+      }
+      // 处理 /uploads/ 开头的相对路径
+      else if (url.startsWith('/uploads/')) {
+        imageUrl = 'http://localhost:3000' + url;
+      }
+      // 处理没有 / 开头的相对路径
+      else if (!url.startsWith('/')) {
+        imageUrl = 'http://localhost:3000/' + url;
+      }
+      
+      // 添加必要的类名和属性
+      return `<img${before}src="${imageUrl}"${after} class="content-image preview-image" loading="lazy">`;
+    });
+    
+    // 3. 为链接添加类名和目标属性
+    html = html.replace(/<a(?![^>]*class=)/g, '<a class="card-link"');
+    html = html.replace(/<a(?![^>]*target=)/g, '<a target="_blank" rel="noopener noreferrer"');
+    
+    // 4. 自动识别纯文本 URL 链接 - 使用安全的保护-替换-恢复策略
+    const protectedTags: { [key: string]: string } = {};
+    let tagCounter = 0;
+    
+    // 保护 img 和 a 标签
+    html = html.replace(/<(img|a)[^>]*>/gi, (match) => {
+      const key = `__PROTECTED_TAG_${tagCounter++}__`;
+      protectedTags[key] = match;
+      return key;
+    });
+    
+    // 现在安全地转换URL为链接
+    html = html.replace(/(https?:\/\/[^\s<>"]+)/gi, '<a href="$1" class="card-link" target="_blank" rel="noopener noreferrer">$1</a>');
+    
+    // 恢复被保护的标签
+    Object.keys(protectedTags).forEach(key => {
+      const tag = protectedTags[key];
+      if (tag) {
+        html = html.replace(key, tag);
+      }
+    });
+    
+    // 5. 使用 DOMPurify 清理 HTML
+    html = DOMPurify.sanitize(html, {
+      ALLOWED_TAGS: ['p', 'br', 'strong', 'em', 'u', 'del', 's', 'strike', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 
+                     'ul', 'ol', 'li', 'blockquote', 'code', 'pre', 'a', 'img', 'hr', 'mark', 'table', 'thead', 
+                     'tbody', 'tr', 'th', 'td', 'div', 'span'],
+      ALLOWED_ATTR: ['href', 'src', 'alt', 'title', 'class', 'target', 'rel', 'loading']
+    });
+    
+    // 6. 限制长度（只在展开状态时显示完整内容）
+    const plainText = html.replace(/<[^>]*>/g, '');
+    if (plainText.length > 150) {
+      // 简单截断，保留HTML标签完整性
+      let truncated = '';
+      let charCount = 0;
+      let inTag = false;
+      
+      for (let i = 0; i < html.length && charCount < 150; i++) {
+        const char = html[i];
+        truncated += char;
+        
+        if (char === '<') {
+          inTag = true;
+        } else if (char === '>') {
+          inTag = false;
+        } else if (!inTag) {
+          charCount++;
         }
       }
       
-      if (inTag && char === '<') {
-        linkStart = i;
+      // 确保标签完整闭合
+      const openTags: string[] = [];
+      const tagRegex = /<\/?([a-z][a-z0-9]*)/gi;
+      let match;
+      
+      while ((match = tagRegex.exec(truncated)) !== null) {
+        if (match[1]) {
+          const tag = match[1].toLowerCase();
+          if (match[0][1] !== '/') {
+            openTags.push(tag);
+          } else {
+            const index = openTags.lastIndexOf(tag);
+            if (index !== -1) {
+              openTags.splice(index, 1);
+            }
+          }
+        }
       }
       
-      result += char;
-      if (!inTag) htmlLength++;
+      // 关闭所有未闭合的标签
+      for (let i = openTags.length - 1; i >= 0; i--) {
+        truncated += `</${openTags[i]}>`;
+      }
+      
+      return truncated;
     }
     
-    // 确保如果截断在链接中间，要关闭链接标签
-    if (inLink) {
-      result += '</a>';
-    }
-    
-    return result + '...';
+    return html;
+  } catch (error) {
+    console.error('❌ Markdown 渲染失败:', error);
+    // 如果解析失败,返回纯文本
+    return content.substring(0, 150) + (content.length > 150 ? '...' : '');
   }
-  
-  return preview;
 };
 
 const formatTimeRange = (start: number, end: number): string => {
@@ -562,6 +601,35 @@ const jumpToCardTime = (card: KnowledgeCard) => {
   text-decoration: none;
   transform: translateY(-0.5px);
   box-shadow: 0 1px 3px rgba(102, 126, 234, 0.3);
+}
+
+/* 预览图片样式 - 自适应大小 */
+.content-preview img,
+.content-preview img.preview-image,
+.content-preview img.content-image {
+  max-width: 100%;
+  width: auto;
+  height: auto;
+  border-radius: 6px;
+  margin: 8px auto;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  display: block;
+  max-height: 150px;
+  object-fit: contain;
+  cursor: pointer;
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+
+/* 展开状态下的图片 - 允许更大尺寸 */
+.knowledge-card.expanded .content-preview img,
+.knowledge-card.expanded .content-preview img.preview-image {
+  max-height: 300px;
+}
+
+.content-preview img:hover,
+.content-preview img.preview-image:hover {
+  transform: scale(1.02);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
 }
 
 .expand-hint {

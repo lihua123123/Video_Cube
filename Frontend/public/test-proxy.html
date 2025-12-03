@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>图片代理测试</title>
+    <meta charset="UTF-8">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            padding: 40px;
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        h1 {
+            color: #333;
+        }
+        .test-section {
+            margin: 30px 0;
+            padding: 20px;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            background: #f9f9f9;
+        }
+        img {
+            max-width: 400px;
+            border: 2px solid #667eea;
+            border-radius: 8px;
+            margin: 10px 0;
+        }
+        .error {
+            color: red;
+            font-weight: bold;
+        }
+        .success {
+            color: green;
+            font-weight: bold;
+        }
+        code {
+            background: #e0e0e0;
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-family: monospace;
+        }
+    </style>
+</head>
+<body>
+    <h1>🔍 图片代理调试页面</h1>
+    
+    <div class="test-section">
+        <h2>测试1: 直接访问后端 (绕过Vite代理)</h2>
+        <p>URL: <code>http://localhost:3000/uploads/images/ed3e8a84-bacf-4cac-a8f7-8753c98abcc7.png</code></p>
+        <img 
+            id="direct-backend" 
+            src="http://localhost:3000/uploads/images/ed3e8a84-bacf-4cac-a8f7-8753c98abcc7.png"
+            alt="直接访问后端"
+        />
+        <div id="direct-status"></div>
+    </div>
+
+    <div class="test-section">
+        <h2>测试2: 通过Vite代理访问</h2>
+        <p>URL: <code>/uploads/images/ed3e8a84-bacf-4cac-a8f7-8753c98abcc7.png</code></p>
+        <img 
+            id="proxy-access" 
+            src="/uploads/images/ed3e8a84-bacf-4cac-a8f7-8753c98abcc7.png"
+            alt="通过代理访问"
+        />
+        <div id="proxy-status"></div>
+    </div>
+
+    <div class="test-section">
+        <h2>测试3: Fetch API测试代理</h2>
+        <button onclick="testFetch()" style="padding: 10px 20px; font-size: 16px; cursor: pointer;">
+            测试 Fetch 请求
+        </button>
+        <div id="fetch-result" style="margin-top: 10px;"></div>
+    </div>
+
+    <script>
+        const directImg = document.getElementById('direct-backend');
+        const proxyImg = document.getElementById('proxy-access');
+
+        directImg.onload = function() {
+            document.getElementById('direct-status').innerHTML = 
+                `<p class="success">✓ 直接访问后端成功! (${this.naturalWidth}x${this.naturalHeight})</p>`;
+        };
+
+        directImg.onerror = function() {
+            document.getElementById('direct-status').innerHTML = 
+                '<p class="error">✗ 直接访问后端失败! 后端服务器可能没有运行</p>';
+        };
+
+        proxyImg.onload = function() {
+            document.getElementById('proxy-status').innerHTML = 
+                `<p class="success">✓ Vite代理工作正常! (${this.naturalWidth}x${this.naturalHeight})</p>`;
+        };
+
+        proxyImg.onerror = function() {
+            document.getElementById('proxy-status').innerHTML = 
+                '<p class="error">✗ Vite代理失败! 请检查vite.config.ts配置</p>';
+        };
+
+        async function testFetch() {
+            const resultDiv = document.getElementById('fetch-result');
+            resultDiv.innerHTML = '<p>测试中...</p>';
+
+            try {
+                const response = await fetch('/uploads/images/ed3e8a84-bacf-4cac-a8f7-8753c98abcc7.png');
+                
+                if (response.ok) {
+                    const blob = await response.blob();
+                    resultDiv.innerHTML = `
+                        <p class="success">✓ Fetch成功!</p>
+                        <p>状态码: ${response.status}</p>
+                        <p>Content-Type: ${response.headers.get('content-type')}</p>
+                        <p>文件大小: ${blob.size} bytes</p>
+                    `;
+                } else {
+                    resultDiv.innerHTML = `
+                        <p class="error">✗ Fetch失败!</p>
+                        <p>状态码: ${response.status}</p>
+                        <p>状态文本: ${response.statusText}</p>
+                    `;
+                }
+            } catch (error) {
+                resultDiv.innerHTML = `
+                    <p class="error">✗ Fetch错误!</p>
+                    <p>错误信息: ${error.message}</p>
+                `;
+            }
+        }
+    </script>
+</body>
+</html>

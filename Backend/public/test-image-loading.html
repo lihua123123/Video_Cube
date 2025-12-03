@@ -1,0 +1,257 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>图片加载测试</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            padding: 20px;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        .test-section {
+            margin: 20px 0;
+            padding: 20px;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+        }
+        .test-section h2 {
+            margin-top: 0;
+            color: #333;
+        }
+        img {
+            max-width: 300px;
+            border: 2px solid #4CAF50;
+            margin: 10px;
+        }
+        .error {
+            color: red;
+            font-weight: bold;
+        }
+        .success {
+            color: green;
+            font-weight: bold;
+        }
+        .log {
+            background: #f5f5f5;
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 4px;
+            font-family: monospace;
+            white-space: pre-wrap;
+        }
+        button {
+            padding: 10px 20px;
+            margin: 5px;
+            cursor: pointer;
+            background: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 4px;
+        }
+        button:hover {
+            background: #45a049;
+        }
+    </style>
+</head>
+<body>
+    <h1>🔍 图片加载诊断工具</h1>
+    
+    <div class="test-section">
+        <h2>测试 1: 直接加载图片</h2>
+        <p>测试图片: <code id="imageUrl"></code></p>
+        <img id="testImage" alt="测试图片">
+        <div id="imageStatus"></div>
+    </div>
+    
+    <div class="test-section">
+        <h2>测试 2: Fetch API 测试</h2>
+        <button onclick="testFetch()">测试 Fetch</button>
+        <div id="fetchLog" class="log"></div>
+    </div>
+    
+    <div class="test-section">
+        <h2>测试 3: 后端直接访问</h2>
+        <button onclick="testBackend()">测试后端</button>
+        <div id="backendLog" class="log"></div>
+    </div>
+    
+    <div class="test-section">
+        <h2>测试 4: 动态创建图片</h2>
+        <button onclick="testDynamic()">动态创建</button>
+        <div id="dynamicContainer"></div>
+        <div id="dynamicLog" class="log"></div>
+    </div>
+    
+    <div class="test-section">
+        <h2>测试 5: Network 信息</h2>
+        <button onclick="checkNetwork()">检查网络</button>
+        <div id="networkLog" class="log"></div>
+    </div>
+
+    <script>
+        // 测试图片列表
+        const testImages = [
+            '67b3a86f-ab76-4cc3-8d4f-4e98a7ee8e0c.png',
+            '6e44f78f-8509-4bcd-b26c-8342e0d44bd2.png',
+            '5393ccb6-ab5c-4fe5-ab3d-2373e4705cc3.png'
+        ];
+        
+        let currentImageIndex = 0;
+        const currentImage = testImages[currentImageIndex];
+        const imageUrl = `/uploads/images/${currentImage}`;
+        
+        document.getElementById('imageUrl').textContent = imageUrl;
+        
+        // 测试 1: 直接加载
+        const img = document.getElementById('testImage');
+        const statusDiv = document.getElementById('imageStatus');
+        
+        img.src = imageUrl;
+        
+        img.onload = function() {
+            statusDiv.innerHTML = '<span class="success">✅ 图片加载成功!</span><br>';
+            statusDiv.innerHTML += `尺寸: ${img.naturalWidth} x ${img.naturalHeight}`;
+        };
+        
+        img.onerror = function() {
+            statusDiv.innerHTML = '<span class="error">❌ 图片加载失败!</span><br>';
+            statusDiv.innerHTML += `URL: ${img.src}<br>`;
+            statusDiv.innerHTML += '请检查 Network 标签查看详细错误';
+        };
+        
+        // 测试 2: Fetch API
+        async function testFetch() {
+            const log = document.getElementById('fetchLog');
+            log.textContent = '正在测试...\n';
+            
+            try {
+                log.textContent += `请求 URL: ${imageUrl}\n`;
+                
+                const response = await fetch(imageUrl);
+                log.textContent += `状态码: ${response.status} ${response.statusText}\n`;
+                log.textContent += `Content-Type: ${response.headers.get('content-type')}\n`;
+                log.textContent += `Content-Length: ${response.headers.get('content-length')} bytes\n`;
+                
+                if (response.ok) {
+                    const blob = await response.blob();
+                    log.textContent += `实际大小: ${blob.size} bytes\n`;
+                    log.textContent += `Blob类型: ${blob.type}\n`;
+                    
+                    // 显示图片
+                    const url = URL.createObjectURL(blob);
+                    const img = document.createElement('img');
+                    img.src = url;
+                    img.style.maxWidth = '200px';
+                    log.parentElement.appendChild(img);
+                    
+                    log.textContent += '✅ Fetch 成功!\n';
+                } else {
+                    log.textContent += `❌ HTTP ${response.status} 错误\n`;
+                }
+            } catch (error) {
+                log.textContent += `❌ 错误: ${error.message}\n`;
+                log.textContent += `错误类型: ${error.name}\n`;
+            }
+        }
+        
+        // 测试 3: 后端直接访问
+        async function testBackend() {
+            const log = document.getElementById('backendLog');
+            log.textContent = '正在测试后端...\n';
+            
+            const backendUrl = `http://localhost:3000/uploads/images/${currentImage}`;
+            log.textContent += `后端 URL: ${backendUrl}\n`;
+            
+            try {
+                const response = await fetch(backendUrl);
+                log.textContent += `状态码: ${response.status} ${response.statusText}\n`;
+                
+                if (response.ok) {
+                    const blob = await response.blob();
+                    log.textContent += `大小: ${blob.size} bytes\n`;
+                    log.textContent += '✅ 后端访问成功!\n';
+                } else {
+                    log.textContent += '❌ 后端访问失败\n';
+                }
+            } catch (error) {
+                log.textContent += `❌ 错误: ${error.message}\n`;
+                log.textContent += '可能存在 CORS 限制（这是正常的）\n';
+            }
+        }
+        
+        // 测试 4: 动态创建图片
+        function testDynamic() {
+            const container = document.getElementById('dynamicContainer');
+            const log = document.getElementById('dynamicLog');
+            container.innerHTML = '';
+            log.textContent = '正在动态创建图片...\n';
+            
+            testImages.forEach((imageName, index) => {
+                const url = `/uploads/images/${imageName}`;
+                const img = document.createElement('img');
+                img.src = url;
+                img.alt = `测试图片 ${index + 1}`;
+                img.style.maxWidth = '150px';
+                img.style.margin = '5px';
+                img.style.border = '2px solid #ddd';
+                
+                img.onload = function() {
+                    log.textContent += `✅ 图片 ${index + 1} 加载成功: ${imageName}\n`;
+                    img.style.border = '2px solid green';
+                };
+                
+                img.onerror = function() {
+                    log.textContent += `❌ 图片 ${index + 1} 加载失败: ${imageName}\n`;
+                    img.style.border = '2px solid red';
+                };
+                
+                container.appendChild(img);
+            });
+        }
+        
+        // 测试 5: 网络信息
+        function checkNetwork() {
+            const log = document.getElementById('networkLog');
+            log.textContent = '网络信息:\n';
+            log.textContent += `当前页面: ${location.href}\n`;
+            log.textContent += `Origin: ${location.origin}\n`;
+            log.textContent += `协议: ${location.protocol}\n`;
+            log.textContent += `主机: ${location.host}\n`;
+            log.textContent += `\n图片资源检查:\n`;
+            
+            // 检查 Performance API
+            const resources = performance.getEntriesByType('resource');
+            const imageResources = resources.filter(r => 
+                r.name.includes('/uploads/images/')
+            );
+            
+            if (imageResources.length > 0) {
+                log.textContent += `\n找到 ${imageResources.length} 个图片请求:\n`;
+                imageResources.forEach((r, i) => {
+                    log.textContent += `\n图片 ${i + 1}:\n`;
+                    log.textContent += `  URL: ${r.name}\n`;
+                    log.textContent += `  持续时间: ${r.duration.toFixed(2)}ms\n`;
+                    log.textContent += `  传输大小: ${r.transferSize} bytes\n`;
+                });
+            } else {
+                log.textContent += '\n没有找到图片请求记录\n';
+            }
+            
+            // 检查浏览器支持
+            log.textContent += `\n浏览器信息:\n`;
+            log.textContent += `User Agent: ${navigator.userAgent}\n`;
+            log.textContent += `在线状态: ${navigator.onLine ? '在线' : '离线'}\n`;
+        }
+        
+        // 页面加载完成后自动运行测试
+        window.addEventListener('load', () => {
+            console.log('=== 图片加载诊断工具已就绪 ===');
+            console.log('测试图片:', testImages);
+            console.log('当前测试:', imageUrl);
+        });
+    </script>
+</body>
+</html>

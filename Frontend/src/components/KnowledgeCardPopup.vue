@@ -72,6 +72,14 @@
 
 <script setup lang="ts">
 import { ref, computed, watch, onUnmounted, onMounted } from 'vue';
+import { marked } from 'marked';
+import DOMPurify from 'dompurify';
+
+// 配置 marked 选项
+marked.setOptions({
+  breaks: true, // 支持 GitHub 风格的换行
+  gfm: true // 启用 GitHub Flavored Markdown
+});
 
 // 定义卡片接口
 interface KnowledgeCard {
@@ -233,95 +241,86 @@ const getContentTypeLabel = (type?: string): string => {
   return typeMap[type] || type;
 };
 
-// 格式化内容 - 增强版支持Markdown和富文本
+// 格式化内容 - 使用 Markdown 渲染
 const formatContent = (content?: string): string => {
   if (!content) return '';
   
-  let formatted = content;
-  
-  // 1. Markdown语法转换
-  // 代码块 (必须在其他转换之前处理)
-  formatted = formatted.replace(/```(\w+)?\n([\s\S]+?)```/g, (match, lang, code) => {
-    return `<pre><code class="language-${lang || 'text'}">${escapeHtml(code.trim())}</code></pre>`;
-  });
-  
-  // 行内代码
-  formatted = formatted.replace(/`([^`]+)`/g, '<code>$1</code>');
-  
-  // 标题
-  formatted = formatted.replace(/^### (.*$)/gm, '<h3>$1</h3>');
-  formatted = formatted.replace(/^## (.*$)/gm, '<h2>$1</h2>');
-  formatted = formatted.replace(/^# (.*$)/gm, '<h1>$1</h1>');
-  
-  // 粗体和斜体
-  formatted = formatted.replace(/\*\*\*(.+?)\*\*\*/g, '<strong><em>$1</em></strong>');
-  formatted = formatted.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
-  formatted = formatted.replace(/\*(.+?)\*/g, '<em>$1</em>');
-  formatted = formatted.replace(/___(.+?)___/g, '<strong><em>$1</em></strong>');
-  formatted = formatted.replace(/__(.+?)__/g, '<strong>$1</strong>');
-  formatted = formatted.replace(/_(.+?)_/g, '<em>$1</em>');
-  
-  // 删除线
-  formatted = formatted.replace(/~~(.+?)~~/g, '<del>$1</del>');
-  
-  // 引用块
-  formatted = formatted.replace(/^> (.+)$/gm, '<blockquote>$1</blockquote>');
-  
-  // 无序列表
-  formatted = formatted.replace(/^\* (.+)$/gm, '<li>$1</li>');
-  formatted = formatted.replace(/^- (.+)$/gm, '<li>$1</li>');
-  formatted = formatted.replace(/(<li>.*<\/li>\n?)+/g, '<ul>$&</ul>');
-  
-  // 有序列表
-  formatted = formatted.replace(/^\d+\. (.+)$/gm, '<li>$1</li>');
-  
-  // 分隔线
-  formatted = formatted.replace(/^---$/gm, '<hr>');
-  formatted = formatted.replace(/^\*\*\*$/gm, '<hr>');
-  
-  // 图片 ![alt](url) 或 ![alt](url "title")
-  formatted = formatted.replace(/!\[([^\]]*)\]\(([^)"\s]+)(?:\s+"([^"]*)")?\)/g, (match, alt, url, title) => {
-    return `<img src="${url}" alt="${alt}" title="${title || alt}" class="content-image" loading="lazy">`;
-  });
-  
-  // 链接 [text](url) 或 [text](url "title")
-  formatted = formatted.replace(/\[([^\]]+)\]\(([^)"\s]+)(?:\s+"([^"]*)")?\)/g, (match, text, url, title) => {
-    return `<a href="${url}" title="${title || text}" class="card-link" target="_blank" rel="noopener noreferrer">${text}</a>`;
-  });
-  
-  // 自动识别并转换纯URL链接 (必须在Markdown链接之后处理，避免重复转换)
-  // 匹配 http:// 或 https:// 开头的URL，但排除已经在 <a> 标签中的
-  formatted = formatted.replace(/(?<!href=["'])(https?:\/\/[^\s<>"]+)/gi, (url) => {
-    return `<a href="${url}" class="card-link" target="_blank" rel="noopener noreferrer">${url}</a>`;
-  });
-  
-  // 2. HTML标签增强
-  // 处理现有的img标签
-  formatted = formatted.replace(/<img(?![^>]*class=)/g, '<img class="content-image"');
-  formatted = formatted.replace(/<img(?![^>]*loading=)/g, '<img loading="lazy"');
-  
-  // 处理现有的a标签
-  formatted = formatted.replace(/<a(?![^>]*class=)/g, '<a class="card-link"');
-  formatted = formatted.replace(/<a(?![^>]*target=)/g, '<a target="_blank" rel="noopener noreferrer"');
-  
-  // 3. 高亮标记
-  formatted = formatted.replace(/==(.+?)==/g, '<mark>$1</mark>');
-  
-  // 4. 换行和段落处理
-  // 将连续的换行转换为段落
-  formatted = formatted.replace(/\n\n+/g, '</p><p>');
-  // 单个换行转换为<br>
-  formatted = formatted.replace(/([^>])\n([^<])/g, '$1<br>$2');
-  // 包裹在段落中
-  if (!formatted.startsWith('<h') && !formatted.startsWith('<ul') && !formatted.startsWith('<ol') && !formatted.startsWith('<pre')) {
-    formatted = '<p>' + formatted + '</p>';
+  try {
+    // 1. 使用 marked 解析 Markdown
+    let html = marked.parse(content) as string;
+    
+    // 2. 修复图片 URL (marked 已经将 Markdown 图片转换为 HTML img 标签)
+    html = html.replace(/<img([^>]*)src="([^"]+)"([^>]*)>/gi, (match, before, url, after) => {
+      console.log('🖼️ 原始图片URL:', url);
+      
+      let imageUrl = url;
+      
+      // 🔧 修复旧的 localhost:5173 URL
+      if (url.includes('localhost:5173/uploads/')) {
+        imageUrl = url.replace('http://localhost:5173/uploads/', 'http://localhost:3000/uploads/');
+        console.log('⚠️ 修正旧URL:', url, '→', imageUrl);
+      }
+      // 处理完整URL
+      else if (url.startsWith('http://') || url.startsWith('https://')) {
+        imageUrl = url;
+      }
+      // 处理 /uploads/ 开头的相对路径
+      else if (url.startsWith('/uploads/')) {
+        imageUrl = 'http://localhost:3000' + url;
+        console.log('🔄 转换相对路径:', url, '→', imageUrl);
+      }
+      // 处理没有 / 开头的相对路径
+      else if (!url.startsWith('/')) {
+        imageUrl = 'http://localhost:3000/' + url;
+        console.log('🔄 添加前缀:', url, '→', imageUrl);
+      }
+      
+      console.log('✅ 最终图片URL:', imageUrl);
+      
+      // 添加必要的类名和属性
+      return `<img${before}src="${imageUrl}"${after} class="content-image popup-image" loading="lazy">`;
+    });
+    
+    // 3. 为链接添加类名和目标属性
+    html = html.replace(/<a(?![^>]*class=)/g, '<a class="card-link"');
+    html = html.replace(/<a(?![^>]*target=)/g, '<a target="_blank" rel="noopener noreferrer"');
+    
+    // 4. 自动识别纯文本 URL 链接 - 使用安全的保护-替换-恢复策略
+    const protectedTags: { [key: string]: string } = {};
+    let tagCounter = 0;
+    
+    // 保护 img 和 a 标签
+    html = html.replace(/<(img|a)[^>]*>/gi, (match) => {
+      const key = `__PROTECTED_TAG_${tagCounter++}__`;
+      protectedTags[key] = match;
+      return key;
+    });
+    
+    // 现在安全地转换URL为链接
+    html = html.replace(/(https?:\/\/[^\s<>"]+)/gi, '<a href="$1" class="card-link" target="_blank" rel="noopener noreferrer">$1</a>');
+    
+    // 恢复被保护的标签
+    Object.keys(protectedTags).forEach(key => {
+      const tag = protectedTags[key];
+      if (tag) {
+        html = html.replace(key, tag);
+      }
+    });
+    
+    // 5. 使用 DOMPurify 清理 HTML (防止 XSS 攻击)
+    html = DOMPurify.sanitize(html, {
+      ALLOWED_TAGS: ['p', 'br', 'strong', 'em', 'u', 'del', 's', 'strike', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 
+                     'ul', 'ol', 'li', 'blockquote', 'code', 'pre', 'a', 'img', 'hr', 'mark', 'table', 'thead', 
+                     'tbody', 'tr', 'th', 'td', 'div', 'span'],
+      ALLOWED_ATTR: ['href', 'src', 'alt', 'title', 'class', 'target', 'rel', 'loading']
+    });
+    
+    return html;
+  } catch (error) {
+    console.error('❌ Markdown 渲染失败:', error);
+    // 如果解析失败,返回纯文本(转义HTML)
+    return escapeHtml(content);
   }
-  
-  // 5. 清理多余的空段落
-  formatted = formatted.replace(/<p><\/p>/g, '');
-  formatted = formatted.replace(/<p>\s*<\/p>/g, '');
-  
-  return formatted;
 };
 
 // HTML转义辅助函数
@@ -945,19 +944,43 @@ onUnmounted(() => {
 }
 
 .content-wrapper :deep(img),
-.content-wrapper :deep(.content-image) {
+.content-wrapper :deep(.content-image),
+.content-wrapper :deep(.popup-image) {
   max-width: 100%;
+  width: auto;
   height: auto;
   display: block;
+  margin: calc(12px * var(--scale-ratio, 1)) auto;
   border-radius: calc(8px * var(--scale-ratio, 1));
-  margin: calc(12px * var(--scale-ratio, 1)) 0;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
   cursor: zoom-in;
   transition: transform 0.2s, box-shadow 0.2s;
+  object-fit: contain;
+  /* 确保大图片能够缩小 */
+  max-height: 400px;
+}
+
+/* 小尺寸弹窗的图片限制 */
+.knowledge-card-popup.size-small .content-wrapper :deep(img),
+.knowledge-card-popup.size-small .content-wrapper :deep(.content-image) {
+  max-height: 200px;
+}
+
+/* 中尺寸弹窗的图片限制 */
+.knowledge-card-popup.size-medium .content-wrapper :deep(img),
+.knowledge-card-popup.size-medium .content-wrapper :deep(.content-image) {
+  max-height: 300px;
+}
+
+/* 大尺寸弹窗的图片限制 */
+.knowledge-card-popup.size-large .content-wrapper :deep(img),
+.knowledge-card-popup.size-large .content-wrapper :deep(.content-image) {
+  max-height: 500px;
 }
 
 .content-wrapper :deep(img:hover),
-.content-wrapper :deep(.content-image:hover) {
+.content-wrapper :deep(.content-image:hover),
+.content-wrapper :deep(.popup-image:hover) {
   transform: scale(1.02);
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
 }

@@ -9,6 +9,7 @@ class UploadService {
     this.uploadDir = path.join(__dirname, '../public/uploads');
     this.videoDir = path.join(this.uploadDir, 'videos');
     this.thumbnailDir = path.join(this.uploadDir, 'thumbnails');
+    this.imageDir = path.join(this.uploadDir, 'images');
     
     // 确保目录存在
     this.ensureDirectoriesExist();
@@ -18,7 +19,7 @@ class UploadService {
    * 确保上传目录存在
    */
   ensureDirectoriesExist() {
-    const directories = [this.uploadDir, this.videoDir, this.thumbnailDir];
+    const directories = [this.uploadDir, this.videoDir, this.thumbnailDir, this.imageDir];
     
     directories.forEach(dir => {
       if (!fs.existsSync(dir)) {
@@ -239,6 +240,73 @@ class UploadService {
         console.error(`清理临时文件失败: ${filePath}`, error);
       }
     }
+  }
+
+  /**
+   * 图片文件存储配置
+   */
+  getImageStorage() {
+    return multer.diskStorage({
+      destination: (req, file, cb) => {
+        cb(null, this.imageDir);
+      },
+      filename: (req, file, cb) => {
+        const uniqueFileName = this.generateUniqueFileName(file.originalname);
+        cb(null, uniqueFileName);
+      }
+    });
+  }
+
+  /**
+   * 图片文件过滤器
+   * @param {Object} req - Express请求对象
+   * @param {Object} file - 文件对象
+   * @param {Function} cb - 回调函数
+   */
+  imageFileFilter(req, file, cb) {
+    // 允许的图片MIME类型
+    const allowedMimeTypes = [
+      'image/jpeg',
+      'image/jpg',
+      'image/png',
+      'image/gif',
+      'image/webp',
+      'image/svg+xml'
+    ];
+
+    // 允许的文件扩展名
+    const allowedExtensions = ['.jpg', '.jpeg', '.png', '.gif', '.webp', '.svg'];
+    const extension = path.extname(file.originalname).toLowerCase();
+
+    // 检查MIME类型和文件扩展名
+    if (allowedMimeTypes.includes(file.mimetype) && allowedExtensions.includes(extension)) {
+      cb(null, true);
+    } else {
+      cb(new Error('不支持的图片格式。支持的格式: JPG, PNG, GIF, WebP, SVG'));
+    }
+  }
+
+  /**
+   * 创建图片上传中间件
+   * @param {Object} options - 上传选项
+   * @returns {Function} multer中间件
+   */
+  createImageUploadMiddleware(options = {}) {
+    const {
+      fieldName = 'image',
+      limits = {
+        fileSize: 5 * 1024 * 1024, // 5MB
+        files: 1
+      }
+    } = options;
+
+    const upload = multer({
+      storage: this.getImageStorage(),
+      fileFilter: this.imageFileFilter,
+      limits: limits
+    });
+
+    return upload.single(fieldName);
   }
 }
 
