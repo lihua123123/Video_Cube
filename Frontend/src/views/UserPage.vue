@@ -1,8 +1,13 @@
 <template>
   <div class="user-container">
-    <!-- 顶部标题栏保持不变 -->
-    <header class="header">
-      <h1>视频魔方</h1>
+    <!-- 顶部标题栏 - 应用玻璃态效果 -->
+    <header class="premium-header glass-card">
+      <div class="header-content">
+        <div class="logo-section">
+          <h1 class="app-title">视频魔方</h1>
+          <p class="subtitle">Premium Learning Platform</p>
+        </div>
+      </div>
     </header>
 
     <!-- 主内容区域 - 左右分栏布局 -->
@@ -15,24 +20,52 @@
         {{ uploadStatus }}
       </div>
       
-      <!-- 视频URL输入区（保留，兼容原有功能） -->
-      <div class="video-url-section">
-        <div class="url-input-group">
-          <label>视频链接</label>
-          <div class="input-wrapper">
-            <input type="text" v-model="videoUrl" placeholder="输入视频URL" class="url-input" />
-            <button @click="loadVideo" class="load-btn">加载视频</button>
+      <!-- 视频URL输入区 - 应用现代设计 -->
+      <div class="video-url-section premium-input-section">
+        <div class="url-input-group glass-card">
+          <div class="input-header">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" class="input-icon">
+              <path d="M23 7l-7 5 7 5V7z"/>
+              <rect x="1" y="5" width="15" height="14" rx="2" ry="2"/>
+            </svg>
+            <h3 class="input-title">视频链接</h3>
           </div>
+          <div class="input-wrapper premium-input-group">
+            <input 
+              type="text" 
+              v-model="videoUrl" 
+              placeholder="请输入视频URL链接..." 
+              class="premium-url-input" 
+            />
+            <button @click="loadVideo" class="premium-load-btn">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                <polyline points="7 10 12 15 17 10"/>
+                <line x1="12" y1="15" x2="12" y2="3"/>
+              </svg>
+              加载视频
+            </button>
+          </div>
+          <p class="input-hint">支持 YouTube、Bilibili 等主流视频平台链接</p>
         </div>
       </div>
 
-      <!-- 视频播放区域（16:9横屏比例） -->
-      <div class="video-player-container">
-        <div v-if="!currentVideo" class="video-placeholder">
+      <!-- 视频播放区域 - 应用现代设计 -->
+      <div class="video-player-container premium-video-container">
+        <div v-if="!currentVideo" class="video-placeholder glass-card">
           <div class="placeholder-content">
-            <div class="placeholder-icon">🎬</div>
-            <p>视频预览区域</p>
-            <div v-if="isEncoding" class="encoding-status">正在编码中请稍候...</div>
+            <div class="placeholder-icon premium-icon">
+              <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                <path d="M23 7l-7 5 7 5V7z"/>
+                <rect x="1" y="5" width="15" height="14" rx="2" ry="2"/>
+              </svg>
+            </div>
+            <h3 class="placeholder-title">视频预览区域</h3>
+            <p class="placeholder-description">加载视频后开始播放和编辑</p>
+            <div v-if="isEncoding" class="encoding-status premium-status">
+              <div class="loading-spinner"></div>
+              <span>正在编码中请稍候...</span>
+            </div>
           </div>
         </div>
         <div v-else class="video-wrapper" ref="videoWrapperRef" @click="handleVideoClick" @mousemove="handleMouseMove" @mouseleave="handleMouseLeave">
@@ -49,28 +82,39 @@
             @dblclick="toggleFullscreen"
           ></video>
           
-          <!-- 自定义视频控制UI -->
+          <!-- 自定义视频控制UI - 应用现代设计 -->
           <transition name="fade-controls">
-            <div v-show="showControls" class="custom-controls">
+            <div v-show="showControls" class="custom-controls premium-controls">
               <!-- 顶部信息栏 -->
-              <div class="controls-top">
-                <div class="video-title">{{ uploadVideoTitle || '视频播放中' }}</div>
+              <div class="controls-top glass-card">
+                <div class="video-title premium-title">
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" class="title-icon">
+                    <path d="M23 7l-7 5 7 5V7z"/>
+                    <rect x="1" y="5" width="15" height="14" rx="2" ry="2"/>
+                  </svg>
+                  {{ uploadVideoTitle || '视频播放中' }}
+                </div>
               </div>
               
               <!-- 底部控制栏 -->
-              <div class="controls-bottom">
+              <div class="controls-bottom glass-card">
                 <!-- 进度条 -->
                 <div 
-                  class="progress-bar-container" 
+                  class="progress-bar-container premium-progress" 
                   @click="handleProgressClick" 
                   @mousemove="handleProgressHover"
                   @mouseleave="handleProgressLeave"
                   ref="progressBarRef"
                 >
+                  <!-- 分段信息显示 -->
+                  <div v-if="currentActiveSegment" class="segment-info-display">
+                    <span class="segment-time-range">{{ formatTime(currentActiveSegment.start_time) }} - {{ formatTime(currentActiveSegment.end_time) }}</span>
+                    <span class="segment-title-info">{{ currentActiveSegment.title }}</span>
+                  </div>
                   <div class="progress-bar-bg">
                     <div class="progress-bar-buffered" :style="{ width: bufferedPercent + '%' }"></div>
-                    <div class="progress-bar-played" :style="{ width: playedPercent + '%' }">
-                      <div class="progress-handle"></div>
+                    <div class="progress-bar-played premium-played" :style="{ width: playedPercent + '%' }">
+                      <div class="progress-handle premium-handle"></div>
                     </div>
                     
                     <!-- 视频分段标记 -->
@@ -410,12 +454,12 @@
 
     
     <!-- 底部操作按钮 -->
-    <div class="video-action-buttons">
-        <button @click="openVideoLibrary" class="action-btn library-btn">📚 视频库</button>
-        <button @click="saveProject" class="action-btn save-btn">保存项目</button>
-        <button @click="exportProject" class="action-btn export-btn">导出为可分享链接</button>
-        <button @click="openUploadModal" class="action-btn upload-btn">上传视频</button>
-        <button @click="goToEditPage" class="action-btn edit-cards-btn" :disabled="!currentVideo">编辑知识卡片</button>
+    <div class="video-action-buttons premium-actions">
+        <button @click="openVideoLibrary" class="premium-action-btn library-btn">📚 视频库</button>
+        <button @click="saveProject" class="premium-action-btn save-btn">保存项目</button>
+        <button @click="exportProject" class="premium-action-btn export-btn">导出为可分享链接</button>
+        <button @click="openUploadModal" class="premium-action-btn upload-btn">上传视频</button>
+        <button @click="goToEditPage" class="premium-action-btn edit-cards-btn" :disabled="!currentVideo">编辑知识卡片</button>
       </div>
       </main>
       
@@ -568,6 +612,133 @@
     opacity: 1;
   }
 }
+
+/* 分段信息显示样式 */
+.progress-bar-container {
+  position: relative;
+}
+
+.segment-info-display {
+  position: absolute;
+  top: -30px;
+  left: 0;
+  right: auto;
+  transform: translateX(0);
+  background: rgba(0, 0, 0, 0.8);
+  color: white;
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-size: 12px;
+  z-index: 10010;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  opacity: 0.9;
+  transition: all 0.3s ease;
+  min-width: 100px;
+  box-sizing: border-box;
+}
+
+.segment-info-display:hover {
+  opacity: 1;
+  background: rgba(0, 0, 0, 0.9);
+}
+
+/* 底部操作按钮样式 - 与EditPage保持一致 */
+.premium-actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.premium-action-btn {
+  background: rgba(255, 255, 255, 0.2);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  border-radius: 12px;
+  padding: 10px 20px;
+  color: #333;
+  font-weight: 600;
+  font-size: 14px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+}
+
+.premium-action-btn:hover {
+  transform: translateY(-1px);
+  transition: all 0.3s ease;
+}
+
+/* 保持原有按钮颜色 */
+.library-btn {
+  background: #4ecdc4;
+  color: white;
+}
+
+.save-btn {
+  background: #52c41a;
+  color: white;
+}
+
+.export-btn {
+  background: #1890ff;
+  color: white;
+}
+
+.upload-btn {
+  background: #fa8c16;
+  color: white;
+}
+
+.edit-cards-btn {
+  background: #722ed1;
+  color: white;
+}
+
+/* 按钮hover效果 */
+.library-btn:hover {
+  box-shadow: 0 6px 20px rgba(78, 205, 196, 0.4);
+}
+
+.save-btn:hover {
+  box-shadow: 0 6px 20px rgba(82, 196, 26, 0.4);
+}
+
+.export-btn:hover {
+  box-shadow: 0 6px 20px rgba(24, 144, 255, 0.4);
+}
+
+.upload-btn:hover {
+  box-shadow: 0 6px 20px rgba(250, 140, 22, 0.4);
+}
+
+.edit-cards-btn:hover {
+  box-shadow: 0 6px 20px rgba(114, 46, 209, 0.4);
+}
+
+.premium-action-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
+}
+
+.segment-time-range {
+  font-weight: 600;
+  color: #4ecdc4;
+}
+
+.segment-title-info {
+  color: #fff;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 300px;
+}
 </style>
 
 <script setup lang="ts">
@@ -717,6 +888,15 @@ const durationDisplay = computed(() => {
   const minutes = Math.floor(duration.value / 60)
   const seconds = Math.floor(duration.value % 60)
   return `${minutes}:${seconds.toString().padStart(2, '0')}`
+})
+
+// 获取当前活跃的分段
+const currentActiveSegment = computed(() => {
+  if (!videoSegments.value.length || !duration.value) return null
+  
+  return videoSegments.value.find(segment => 
+    currentTime.value >= segment.start_time && currentTime.value <= segment.end_time
+  ) || null
 })
 
 // 检查URL参数，处理分享链接和恢复保存的视频状态
@@ -1108,7 +1288,7 @@ const generateSegmentsFromCards = () => {
         end_time: card.endTime,
         title: card.title,
         description: card.content,
-        segment_type: 'knowledge_card',
+        segment_type: 'custom',
         color: getSegmentColorByIndex(index)
       })
     }
@@ -1122,7 +1302,8 @@ const generateSegmentsFromCards = () => {
 const generateTestSegments = () => {
   if (!duration.value || duration.value <= 0) return
   
-  const testSegments: VideoSegment[] = [
+  const testSegments = [
+    // 使用类型断言确保TypeScript正确识别segment_type
     {
       id: 1,
       video_id: videoId.value || 0,
@@ -1130,7 +1311,7 @@ const generateTestSegments = () => {
       end_time: Math.min(60, duration.value),
       title: '视频开场介绍',
       description: '视频的开头部分，介绍主题和内容概要',
-      segment_type: 'introduction',
+      segment_type: 'chapter',
       color: '#4CAF50'
     },
     {
@@ -1140,7 +1321,7 @@ const generateTestSegments = () => {
       end_time: Math.min(180, duration.value),
       title: '核心概念讲解',
       description: '详细讲解视频的核心概念和重点内容',
-      segment_type: 'key-point',
+      segment_type: 'highlight',
       color: '#2196F3'
     },
     {
@@ -1150,7 +1331,7 @@ const generateTestSegments = () => {
       end_time: Math.min(300, duration.value),
       title: '实例演示',
       description: '通过具体实例演示概念的应用',
-      segment_type: 'example',
+      segment_type: 'custom',
       color: '#FF9800'
     },
     {
@@ -1160,7 +1341,7 @@ const generateTestSegments = () => {
       end_time: Math.min(420, duration.value),
       title: '深入分析',
       description: '对关键内容进行深入分析和讨论',
-      segment_type: 'analysis',
+      segment_type: 'custom',
       color: '#9C27B0'
     },
     {
@@ -1173,21 +1354,22 @@ const generateTestSegments = () => {
       segment_type: 'summary',
       color: '#F44336'
     }
-  ].filter(segment => segment.start_time < segment.end_time)
+  ].filter(segment => segment.start_time < segment.end_time) as VideoSegment[]
   
   videoSegments.value = testSegments
   console.log(`🧪 生成了 ${testSegments.length} 个测试分段，视频时长: ${duration.value}秒`)
 }
 
 // 根据索引获取分段颜色 - 为不同知识卡片提供丰富的颜色选择
-const getSegmentColorByIndex = (index: number): string => {
+const getSegmentColorByIndex = (index: number | undefined): string => {
   const colors = [
     '#ff6b6b', '#4ecdc4', '#45b7d1', '#96ceb4', '#feca57', '#ff9ff3', '#54a0ff', '#5f27cd',
     '#ff9f43', '#10ac84', '#2e86de', '#a55eea', '#fd79a8', '#00d2d3', '#ff9ff3', '#54a0ff',
     '#5f27cd', '#c8d6e5', '#ff9ff3', '#54a0ff', '#5f27cd', '#ff9f43', '#10ac84', '#2e86de',
     '#a55eea', '#fd79a8', '#00d2d3', '#ff9ff3', '#54a0ff', '#5f27cd', '#c8d6e5', '#ff9ff3'
   ]
-  return colors[index % colors.length]
+  const safeIndex = (index || 0) % colors.length
+  return colors[safeIndex] as string
 }
 
 // 更新活跃分段
@@ -4018,8 +4200,11 @@ const handleVideoError = (event: Event) => {
   z-index: 8; /* 文字进度条在视频进度条之下 */
   transition: all 0.3s ease;
   display: flex;
-  align-items: center;
+  align-items: flex-end;
   justify-content: center;
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
 }
 
 .fullscreen-text-progress-bar:hover {
@@ -4033,14 +4218,17 @@ const handleVideoError = (event: Event) => {
   height: 40px;
   background: rgba(128, 128, 128, 0.3);
   border-radius: 8px;
-  border: 1px solid rgba(255, 255, 255, 0.3);
+  border: none;
   overflow: visible;
   backdrop-filter: blur(10px);
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
 }
 
 .fullscreen-text-progress-bar:hover .text-progress-bg {
   background: rgba(128, 128, 128, 0.4);
-  border: 1px solid rgba(255, 255, 255, 0.5);
+  border: none;
 }
 
 /* 文字进度条播放进度 */
@@ -4118,19 +4306,19 @@ const handleVideoError = (event: Event) => {
   transition: all 0.3s ease;
   z-index: 10003;
   opacity: 0.3;
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  border: none;
 }
 
 .text-segment-fill:hover {
   opacity: 0.5;
   transform: scaleY(1.05);
-  border: 1px solid rgba(255, 255, 255, 0.3);
+  border: none;
 }
 
 .text-segment-fill.active {
   opacity: 0.4;
   box-shadow: 0 0 0 2px var(--segment-color, rgba(102, 126, 234, 0.4));
-  border: 1px solid rgba(255, 255, 255, 0.4);
+  border: none;
 }
 
 /* 文字分段标记 - 使用 | 符号 */
@@ -4275,13 +4463,279 @@ const handleVideoError = (event: Event) => {
 
 .detail-type {
   font-size: 12px;
-  color: rgba(255, 255, 255, 0.7);
-  font-weight: 500;
+}
+
+/* ===== 现代UI设计样式 - 基于video-cube-ui设计元素 ===== */
+
+/* 玻璃态效果基础样式 */
+.glass-card {
   background: rgba(255, 255, 255, 0.1);
-  padding: 2px 8px;
-  border-radius: 4px;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
+  backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 16px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+}
+
+/* 顶部标题栏样式 */
+.premium-header {
+  padding: 16px 24px;
+  margin-bottom: 24px;
+  background: linear-gradient(135deg, rgba(102, 126, 234, 0.15) 0%, rgba(118, 75, 162, 0.1) 100%);
+}
+
+.header-content {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.logo-section .app-title {
+  font-size: 28px;
+  font-weight: 700;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  margin: 0;
+}
+
+.logo-section .subtitle {
+  font-size: 14px;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  margin: 4px 0 0 0;
+}
+
+.header-actions {
+  display: flex;
+  gap: 12px;
+}
+
+.header-btn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 20px;
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 12px;
+  color: white;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.header-btn:hover {
+  background: rgba(255, 255, 255, 0.2);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
+}
+
+/* 现代输入区域样式 */
+.premium-input-section {
+  margin-bottom: 24px;
+}
+
+.url-input-group.glass-card {
+  padding: 24px;
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.08) 0%, rgba(255, 255, 255, 0.05) 100%);
+}
+
+.input-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.input-icon {
+  color: #667eea;
+}
+
+.input-title {
+  font-size: 18px;
+  font-weight: 600;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  margin: 0;
+}
+
+.premium-input-group {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+}
+
+.premium-url-input {
+  flex: 1;
+  padding: 14px 20px;
+  background-color: rgba(0, 0, 0, 0.3);
+  border: 1px solid rgba(102, 126, 234, 0.5);
+  border-radius: 12px;
+  background-image: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  font-size: 14px;
+  transition: all 0.3s ease;
+}
+
+.premium-url-input::placeholder {
+  color: rgba(255, 255, 255, 0.5);
+}
+
+.premium-url-input:focus {
+  outline: none;
+  border-color: #667eea;
+  box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+}
+
+.premium-load-btn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 14px 24px;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  border: none;
+  border-radius: 12px;
+  color: white;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.premium-load-btn:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
+}
+
+.input-hint {
+  font-size: 12px;
+  color: rgba(255, 255, 255, 0.6);
+  margin-top: 12px;
+  margin-bottom: 0;
+}
+
+/* 现代视频播放器样式 */
+.premium-video-container {
+  border-radius: 16px;
+  overflow: hidden;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+}
+
+.video-placeholder.glass-card {
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.05) 0%, rgba(255, 255, 255, 0.02) 100%);
+  border: 2px dashed rgba(255, 255, 255, 0.1);
+  min-height: 400px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.placeholder-content {
+  text-align: center;
+  color: rgba(255, 255, 255, 0.7);
+}
+
+.premium-icon {
+  color: #667eea;
+  margin-bottom: 16px;
+}
+
+.placeholder-title {
+  font-size: 20px;
+  font-weight: 600;
+  margin-bottom: 8px;
+  color: white;
+}
+
+.placeholder-description {
+  font-size: 14px;
+  color: rgba(255, 255, 255, 0.6);
+}
+
+.encoding-status.premium-status {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-top: 16px;
+  padding: 12px 20px;
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 8px;
+}
+
+.loading-spinner {
+  width: 20px;
+  height: 20px;
+  border: 2px solid rgba(102, 126, 234, 0.3);
+  border-top: 2px solid #667eea;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+/* 现代视频控制UI样式 */
+.premium-controls .controls-top.glass-card {
+  background: linear-gradient(135deg, rgba(0, 0, 0, 0.8) 0%, rgba(0, 0, 0, 0.6) 100%);
+  border: none;
+  border-radius: 0;
+  padding: 16px 24px;
+}
+
+.premium-title {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-size: 16px;
+  font-weight: 600;
+  color: white;
+}
+
+.title-icon {
+  color: #667eea;
+}
+
+.premium-controls .controls-bottom.glass-card {
+  background: linear-gradient(135deg, rgba(0, 0, 0, 0.9) 0%, rgba(0, 0, 0, 0.7) 100%);
+  border: none;
+  border-radius: 0;
+  padding: 20px 24px;
+}
+
+.premium-progress .progress-bar-bg {
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 8px;
+  height: 6px;
+}
+
+.premium-played {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  border-radius: 8px;
+  height: 6px;
+}
+
+.premium-handle {
+  width: 16px;
+  height: 16px;
+  background: white;
+  border-radius: 50%;
+  box-shadow: 0 0 0 4px #667eea;
+  position: absolute;
+  right: -8px;
+  top: 50%;
+  transform: translateY(-50%);
 }
 
 .detail-time {
@@ -4306,6 +4760,5 @@ const handleVideoError = (event: Event) => {
   width: 10px;
   height: 10px;
 }
-
 
 </style>
