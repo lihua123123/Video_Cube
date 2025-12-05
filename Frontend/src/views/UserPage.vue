@@ -256,15 +256,15 @@
                       </transition>
                     </div>
                     
-                    <!-- 分段模式切换 -->
+                    <!-- 知识卡片显示/隐藏切换 -->
                     <button 
-                      @click="isSegmentMode = !isSegmentMode" 
-                      class="control-btn segment-mode-btn"
-                      :class="{ active: isSegmentMode }"
-                      :title="isSegmentMode ? '关闭分段模式：隐藏视频进度条上的分段标记点' : '开启分段模式：在视频进度条上显示分段标记点'"
+                      @click="showKnowledgeCards = !showKnowledgeCards" 
+                      class="control-btn knowledge-cards-btn"
+                      :class="{ active: showKnowledgeCards }"
+                      :title="showKnowledgeCards ? '隐藏知识卡片' : '显示知识卡片'"
                     >
                       <svg width="20" height="20" viewBox="0 0 24 24" fill="white">
-                        <path d="M3 9h14V7H3v2zm0 4h14v-2H3v2zm0 4h14v-2H3v2zm16 0h2v-2h-2v2zm0-10v2h2V7h-2zm0 6h2v-2h-2v2z"/>
+                        <path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-5 14H7v-2h7v2zm3-4H7v-2h10v2zm0-4H7V7h10v2z"/>
                       </svg>
                     </button>
                     
@@ -310,14 +310,18 @@
           
           <!-- 知识卡片弹窗 - 在video-wrapper内部,支持全屏显示 -->
           <KnowledgeCardPopup
-            :card="currentPopupCard"
-            :visible="showCardPopup"
-            position="top-right"
-            size="medium"
+            v-for="(popupCard, index) in visiblePopupCards"
+            :key="popupCard.id"
+            v-if="showKnowledgeCards"
+            :card="popupCard"
+            :visible="true"
+            :position="'top-right'"
+            :size="'medium'"
             :auto-close="true"
             :auto-close-delay="10"
             :draggable="true"
-            @close="handlePopupClose"
+            :style="getPopupStyle(index)"
+            @close="handlePopupClose(popupCard.id)"
             @card-link-click="handleCardLinkClick"
           />
           
@@ -464,7 +468,7 @@
       </main>
       
       <!-- 右侧：知识卡片侧边栏 -->
-      <aside class="knowledge-cards-sidebar">
+      <aside v-if="showKnowledgeCards" class="knowledge-cards-sidebar">
         <div class="sidebar-header">
           <h2>📚 相关知识 ({{ knowledgeCards.length }})</h2>
           <!-- 调试信息 -->
@@ -809,6 +813,9 @@ const isSegmentMode = ref(true) // 是否启用分段模式
 const activeSegmentId = ref<number | null>(null)
 const hoverSegment = ref<VideoSegment | null>(null)
 
+// 知识卡片显示控制
+const showKnowledgeCards = ref(true) // 是否显示知识卡片
+
 // 通知提示相关状态
 const notification = ref<{ show: boolean; message: string; type: 'success' | 'error' | 'info' }>({ show: false, message: '', type: 'info' })
 
@@ -830,8 +837,7 @@ const showCardModal = ref(false)
 const currentModalCard = ref<Card | null>(null)
 
 // 知识卡片弹窗相关状态
-const showCardPopup = ref(false)
-const currentPopupCard = ref<Card | null>(null)
+const visiblePopupCards = ref<Card[]>([])
 const displayedCardIds = ref<Set<string | number>>(new Set())
 let popupTimer: number | null = null
 
@@ -1016,8 +1022,9 @@ const handleFullscreenChange = () => {
   console.log('   全屏元素:', fullscreenElement)
   console.log('   是否video-wrapper全屏:', isVideoWrapperFullscreen, '✅ (正确)')
   console.log('   是否video元素全屏:', isVideoFullscreen, isVideoFullscreen ? '⚠️ (知识卡片不会显示!)' : '')
-  console.log('   当前弹窗状态:', showCardPopup.value)
-  console.log('   当前卡片:', currentPopupCard.value?.title)
+  console.log('   当前弹窗状态:', visiblePopupCards.value.length > 0)
+  console.log('   当前卡片数:', visiblePopupCards.value.length)
+  console.log('   当前卡片:', visiblePopupCards.value.map(card => card.title))
   console.log('   当前时间范围内的卡片数:', currentCards.value.length)
   console.log('   已显示的卡片ID集合:', Array.from(displayedCardIds.value))
   
@@ -1064,7 +1071,7 @@ const handleFullscreenChange = () => {
   }
   
   // 全屏时如果有卡片应该显示,确保它显示
-  if (isFullscreen.value && currentCards.value.length > 0 && !showCardPopup.value) {
+  if (isFullscreen.value && currentCards.value.length > 0) {
     console.log('   🔔 全屏模式下重新检查是否需要显示卡片')
     checkAndShowPopup([])
   }
@@ -1895,8 +1902,7 @@ const handleLibraryVideoPlay = (video: LibraryVideo) => {
   knowledgeCards.value = []
   currentCards.value = []
   displayedCardIds.value.clear()
-  showCardPopup.value = false
-  currentPopupCard.value = null
+  visiblePopupCards.value = []
   
   // 播放选中的视频
   // video_url 格式: /uploads/videos/xxx.mp4
@@ -2000,11 +2006,10 @@ const handleSeeked = (event: Event) => {
   displayedCardIds.value.clear()
   console.log(`   ✅ 已清空 displayedCardIds`)
   
-  // 关闭当前弹窗(如果有)
-  if (showCardPopup.value) {
-    console.log(`   关闭弹窗: ${currentPopupCard.value?.title}`)
-    showCardPopup.value = false
-    currentPopupCard.value = null
+  // 关闭所有弹窗
+  if (visiblePopupCards.value.length > 0) {
+    console.log(`   关闭所有弹窗: ${visiblePopupCards.value.map(card => card.title).join(', ')}`)
+    visiblePopupCards.value = []
   }
   
   // 立即更新当前时间
@@ -2036,16 +2041,14 @@ const updateCurrentCards = () => {
     currentTime.value >= card.startTime && currentTime.value <= card.endTime
   )
   
-  // 🔧 修复:如果当前显示的弹窗卡片已经过期,自动关闭弹窗
-  if (showCardPopup.value && currentPopupCard.value) {
-    const isCardStillActive = currentTime.value >= currentPopupCard.value.startTime && 
-                              currentTime.value <= currentPopupCard.value.endTime
-    if (!isCardStillActive) {
-      console.log(`⏰ 知识卡片 "${currentPopupCard.value.title}" 已过期,自动关闭弹窗`)
-      showCardPopup.value = false
-      currentPopupCard.value = null
+  // 移除已经不在当前时间范围内的卡片
+  visiblePopupCards.value = visiblePopupCards.value.filter(card => {
+    const isStillActive = currentTime.value >= card.startTime && currentTime.value <= card.endTime
+    if (!isStillActive) {
+      console.log(`⏰ 知识卡片 "${card.title}" 已过期,自动关闭弹窗`)
     }
-  }
+    return isStillActive
+  })
   
   // 检查是否有新卡片需要显示弹窗
   checkAndShowPopup(previousCards)
@@ -2057,7 +2060,7 @@ const checkAndShowPopup = (previousCards: Card[]) => {
   console.log('   previousCards:', previousCards.map(c => c.title))
   console.log('   currentCards:', currentCards.value.map(c => c.title))
   console.log('   displayedCardIds:', Array.from(displayedCardIds.value))
-  console.log('   showCardPopup:', showCardPopup.value)
+  console.log('   visiblePopupCards:', visiblePopupCards.value.map(c => c.title))
   console.log('   当前是否全屏:', isFullscreen.value)
   
   // 找到新出现的卡片（在当前时间范围内但之前没有显示的）
@@ -2073,16 +2076,25 @@ const checkAndShowPopup = (previousCards: Card[]) => {
   
   console.log('   newCards:', newCards.map(c => c.title))
   
-  // 如果有新卡片且当前没有显示弹窗，显示第一个新卡片
-  if (newCards.length > 0 && !showCardPopup.value) {
-    const cardToShow = newCards[0]
-    if (cardToShow) {
-      console.log('✅ 准备显示卡片:', cardToShow.title, '(全屏模式:', isFullscreen.value, ')')
-      showPopup(cardToShow)
+  // 如果有新卡片，添加到显示队列中
+  if (newCards.length > 0) {
+    // 按开始时间排序新卡片
+    const sortedNewCards = [...newCards].sort((a, b) => a.startTime - b.startTime)
+    
+    // 添加到可见弹窗卡片列表
+    for (const card of sortedNewCards) {
+      if (!visiblePopupCards.value.some(pc => pc.id === card.id)) {
+        console.log('✅ 准备显示卡片:', card.title, '(全屏模式:', isFullscreen.value, ')')
+        visiblePopupCards.value.push(card)
+        displayedCardIds.value.add(card.id)
+      }
     }
-  } else {
-    console.log('❌ 不满足弹出条件: newCards.length=', newCards.length, ', showCardPopup=', showCardPopup.value)
   }
+  
+  // 移除已经不在当前时间范围内的卡片
+  visiblePopupCards.value = visiblePopupCards.value.filter(card => {
+    return currentCards.value.some(cc => cc.id === card.id)
+  })
 }
 
 
@@ -2152,19 +2164,32 @@ const showPopup = (card: Card) => {
 }
 
 // 关闭弹窗
-const handlePopupClose = () => {
-  showCardPopup.value = false
-  currentPopupCard.value = null
+const handlePopupClose = (cardId: string | number) => {
+  console.log('🚪 处理弹窗关闭:', cardId)
   
-  // 延迟一段时间后检查是否有其他卡片需要显示
-  popupTimer = window.setTimeout(() => {
-    const unshownCards = currentCards.value.filter(card => 
-      !displayedCardIds.value.has(card.id)
-    )
-    if (unshownCards.length > 0) {
-      showPopup(unshownCards[0]!)
-    }
-  }, 2000) // 2秒后检查
+  // 从可见弹窗列表中移除指定卡片
+  const cardIndex = visiblePopupCards.value.findIndex(card => card.id === cardId)
+  if (cardIndex > -1) {
+    visiblePopupCards.value.splice(cardIndex, 1)
+    console.log('✅ 弹窗已关闭,剩余可见卡片:', visiblePopupCards.value.map(c => c.title))
+  }
+  
+  if (popupTimer !== null) {
+    clearTimeout(popupTimer)
+    popupTimer = null
+  }
+}
+
+// 获取弹窗样式，实现连接显示效果
+const getPopupStyle = (index: number) => {
+  // 每个卡片垂直偏移量，实现底部接头部的连接显示效果
+  // 卡片高度约为250px，确保卡片之间没有重叠
+  const cardHeight = 250 // 估计的卡片高度
+  const verticalOffset = index * cardHeight // 每张卡片向下偏移一个卡片高度
+  return {
+    transform: `translateY(${verticalOffset}px)`,
+    zIndex: 10000 - index // 前面的卡片z-index更高，显示在上面
+  }
 }
 
 // 知识卡片点击事件 - 已禁用详情查看功能
@@ -2394,7 +2419,7 @@ const showDebugInfo = async () => {
   • 当前时间段卡片数: ${currentCards.value.length}
   • 是否正在加载: ${isLoadingCards.value ? '是' : '否'}
   • 已显示卡片ID: ${Array.from(displayedCardIds.value).join(', ') || '无'}
-  • 弹窗显示状态: ${showCardPopup.value ? '显示中' : '隐藏'}
+  • 弹窗显示状态: ${visiblePopupCards.value.length > 0 ? '显示中' : '隐藏'}
 
 ${knowledgeCards.value.length > 0 ? `\n📋 卡片列表:\n${knowledgeCards.value.map(card => 
   `  • [${card.id}] ${card.title} (${card.startTime}s - ${card.endTime}s)`

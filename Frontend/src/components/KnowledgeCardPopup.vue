@@ -1151,12 +1151,21 @@ onUnmounted(() => {
 /* 过渡动画 */
 .popup-fade-enter-active,
 .popup-fade-leave-active {
-  transition: opacity 0.3s ease;
+  transition: all 0.6s cubic-bezier(0.25, 1, 0.5, 1);
 }
 
 .popup-fade-enter-from,
 .popup-fade-leave-to {
   opacity: 0;
+  transform: translateY(-40px) scale(0.9);
+  box-shadow: 0 0 0 rgba(0, 0, 0, 0.1);
+}
+
+/* 卡片位置变化过渡 */
+.knowledge-card-popup {
+  transition: transform 0.6s cubic-bezier(0.25, 1, 0.5, 1);
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2), 0 0 0 1px rgba(0, 0, 0, 0.05);
+  transition: transform 0.6s cubic-bezier(0.25, 1, 0.5, 1), box-shadow 0.6s cubic-bezier(0.25, 1, 0.5, 1);
 }
 
 /* 响应式设计 */

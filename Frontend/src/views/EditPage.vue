@@ -77,7 +77,7 @@
               <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor">
                 <path d="M12 5v14M5 12h14"/>
               </svg>
-              + 新增卡
+              新增卡
             </button>
             <div class="batch-actions">
               <button @click="selectAllCards" class="premium-action-btn select-all-btn" :disabled="isLoading">
@@ -120,7 +120,7 @@
               :class="['card-item', 'example-card']"
             >
               <div class="card-header">
-                <span class="card-time">{{ card.startTime }}s - {{ card.endTime }}s</span>
+                <span class="card-time">{{ formatTimeRange(card.startTime, card.endTime) }}</span>
                 <span class="card-title">{{ card.title }}</span>
                 <div class="card-actions">
                   <div class="example-badge">示例</div>
@@ -153,7 +153,7 @@
                   @click.stop="jumpToCardTimeByIndex(index)"
                   title="点击跳转到视频时间"
                 >
-                  {{ card.startTime }}s - {{ card.endTime }}s
+                  {{ formatTimeRange(card.startTime, card.endTime) }}
                 </span>
                 <span class="card-title">{{ card.title }}</span>
                 <div class="card-actions">
@@ -870,11 +870,17 @@ const formattedVideoDuration = computed(() => {
   return formatTime(videoDuration.value)
 })
 
-// 格式化时间为 MM:SS 格式
+// 格式化时间，智能显示时分秒
 const formatTime = (seconds: number): string => {
-  const mins = Math.floor(seconds / 60)
+  const hours = Math.floor(seconds / 3600)
+  const mins = Math.floor((seconds % 3600) / 60)
   const secs = Math.floor(seconds % 60)
-  return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`
+  
+  if (hours > 0) {
+    return `${hours.toString().padStart(2, '0')}:${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`
+  } else {
+    return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`
+  }
 }
 
 // 监听视频时长变化，自动调整时间格式
@@ -2097,6 +2103,52 @@ onMounted(async () => {
   overflow-y: auto;
 }
 
+/* 侧边栏标题样式 */
+.sidebar-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 20px;
+  padding-bottom: 16px;
+  border-bottom: 1px solid #e8e8e8;
+}
+
+.sidebar-icon {
+  width: 24px;
+  height: 24px;
+  color: #1890ff;
+}
+
+.sidebar-title {
+  margin: 0;
+  font-size: 16px;
+  color: #333;
+  font-weight: 600;
+}
+
+/* 视频预览标题样式 */
+.preview-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 20px;
+  padding-bottom: 16px;
+  border-bottom: 1px solid #e8e8e8;
+}
+
+.preview-icon {
+  width: 24px;
+  height: 24px;
+  color: #1890ff;
+}
+
+.preview-title {
+  margin: 0;
+  font-size: 16px;
+  color: #333;
+  font-weight: 600;
+}
+
 /* 主内容区域样式 */
 .premium-main-content {
   background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
@@ -2120,10 +2172,10 @@ onMounted(async () => {
 }
 
 .project-sidebar h3 {
-  margin: 0 0 16px 0;
-  font-size: 16px;
-  color: #333;
+  margin: 0;
+  font-size: 18px;
   font-weight: 600;
+  color: #333;
 }
 
 .project-list {
@@ -2433,10 +2485,10 @@ onMounted(async () => {
 }
 
 .video-preview-section h3 {
-  margin: 0 0 16px 0;
-  font-size: 16px;
-  color: #333;
+  margin: 0;
+  font-size: 18px;
   font-weight: 600;
+  color: #333;
 }
 
 .video-preview-container {
@@ -3315,7 +3367,7 @@ onMounted(async () => {
 }
 
 /* 预览卡片头部 */
-.preview-header {
+.knowledge-card-preview .preview-header {
   display: flex;
   align-items: flex-start;
   gap: 12px;
