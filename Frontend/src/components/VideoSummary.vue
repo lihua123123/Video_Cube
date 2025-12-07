@@ -1,12 +1,15 @@
 <template>
   <div class="video-summary-container">
+    <!-- Premium gradient header with smooth tab transitions -->
     <div class="summary-header">
-      <h3 class="summary-title">
-        <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/>
-        </svg>
-        视频总结
-      </h3>
+      <div class="header-content">
+        <h3 class="summary-title">
+          <svg class="icon" viewBox="0 0 24 24" fill="currentColor">
+            <path d="M19 12a7 7 0 1 1-7-7 7 7 0 0 1 7 7z"/>
+          </svg>
+          视频总结分析
+        </h3>
+      </div>
       <div class="summary-tabs">
         <button 
           v-for="level in summaryLevels" 
@@ -19,8 +22,9 @@
       </div>
     </div>
 
+    <!-- Smooth content transitions with colorful sections -->
     <div class="summary-content">
-      <transition name="fade" mode="out-in">
+      <transition name="summary-fade" mode="out-in">
         <div :key="activeLevel" class="summary-section">
           <!-- 简单总结 -->
           <div v-if="activeLevel === 'simple'" class="summary-simple">
@@ -37,11 +41,7 @@
 
           <!-- 一般总结 -->
           <div v-else-if="activeLevel === 'normal'" class="summary-normal">
-            <div class="summary-icon normal">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <path d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
-              </svg>
-            </div>
+            <div class="summary-icon normal">📋</div>
             <div class="summary-text">
               <div v-if="summaries.normal">
                 <h4>内容概述</h4>
@@ -59,12 +59,7 @@
 
           <!-- 详细总结 -->
           <div v-else-if="activeLevel === 'detailed'" class="summary-detailed">
-            <div class="summary-icon detailed">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <path d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
-                <path d="M12 6v6m0 0v6m0-6h6m-6 0H6"/>
-              </svg>
-            </div>
+            <div class="summary-icon detailed">📊</div>
             <div class="summary-text">
               <div v-if="summaries.detailed">
                 <h4>完整描述</h4>
@@ -89,13 +84,14 @@
       </transition>
     </div>
 
+    <!-- Premium action buttons with gradient effects -->
     <div class="summary-actions">
       <button 
         class="action-button generate"
         :disabled="isGenerating"
         @click="generateSummary"
       >
-        <svg v-if="!isGenerating" class="button-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <svg v-if="!isGenerating" class="button-icon" viewBox="0 0 24 24" fill="currentColor">
           <path d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
         </svg>
         <svg v-else class="button-icon spinning" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -109,7 +105,7 @@
         :disabled="!hasSummary"
         @click="exportSummary"
       >
-        <svg class="button-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <svg class="button-icon" viewBox="0 0 24 24" fill="currentColor">
           <path d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
         </svg>
         导出总结
@@ -173,8 +169,8 @@ const activeLevel = ref<'simple' | 'normal' | 'detailed'>('simple')
 const isGenerating = ref(false)
 
 const summaryLevels = [
-  { key: 'simple' as const, label: '简单总结' },
-  { key: 'normal' as const, label: '一般总结' },
+  { key: 'simple' as const, label: '简洁总结' },
+  { key: 'normal' as const, label: '标准总结' },
   { key: 'detailed' as const, label: '详细总结' }
 ]
 
@@ -294,94 +290,78 @@ defineExpose({
 
 <style scoped>
 .video-summary-container {
-  background: white;
-  border-radius: 12px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  background: linear-gradient(135deg, #ffffff 0%, #f8f7f5 100%);
+  border-radius: 16px;
+  box-shadow: 0 4px 12px rgba(31, 58, 82, 0.12);
   overflow: hidden;
   margin-top: 20px;
+  border: 1px solid rgba(212, 165, 116, 0.2);
 }
 
 .summary-header {
-  padding: 20px 24px;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  padding: 24px;
+  background: linear-gradient(135deg, #1F3A52 0%, #4A9FB8 100%);
   color: white;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 20px;
+}
+
+.header-content {
+  flex: 1;
 }
 
 .summary-title {
-  margin: 0 0 16px 0;
-  font-size: 20px;
-  font-weight: 600;
+  margin: 0;
+  font-size: 22px;
+  font-weight: 700;
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 12px;
 }
 
 .summary-title .icon {
-  width: 24px;
-  height: 24px;
+  width: 28px;
+  height: 28px;
 }
 
 .summary-tabs {
   display: flex;
-  gap: 8px;
+  gap: 12px;
 }
 
 .tab-button {
-  padding: 8px 16px;
-  background: rgba(255, 255, 255, 0.2);
-  border: 1px solid rgba(255, 255, 255, 0.3);
-  border-radius: 6px;
+  padding: 10px 18px;
+  background: rgba(255, 255, 255, 0.15);
+  border: 2px solid rgba(255, 255, 255, 0.2);
+  border-radius: 8px;
   color: white;
   cursor: pointer;
   font-size: 14px;
-  font-weight: 500;
-  transition: all 0.3s ease;
+  font-weight: 600;
+  transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
 }
 
 .tab-button:hover {
-  background: rgba(255, 255, 255, 0.3);
-  transform: translateY(-1px);
+  background: rgba(255, 255, 255, 0.25);
+  border-color: rgba(255, 255, 255, 0.4);
+  transform: translateY(-2px);
 }
 
 .tab-button.active {
-  background: white;
-  color: #667eea;
-  border-color: white;
+  background: #D4A574;
+  border-color: #D4A574;
+  box-shadow: 0 8px 24px rgba(212, 165, 116, 0.3);
 }
 
 .summary-content {
-  padding: 24px;
+  padding: 28px;
   min-height: 300px;
 }
 
 .summary-section {
-  animation: fadeIn 0.3s ease;
-}
-
-@keyframes fadeIn {
-  from {
-    opacity: 0;
-    transform: translateY(10px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-.fade-enter-active,
-.fade-leave-active {
-  transition: all 0.3s ease;
-}
-
-.fade-enter-from {
-  opacity: 0;
-  transform: translateX(-20px);
-}
-
-.fade-leave-to {
-  opacity: 0;
-  transform: translateX(20px);
+  animation: fadeInDown 0.5s ease-out;
 }
 
 .summary-simple,
@@ -393,17 +373,18 @@ defineExpose({
 
 .summary-icon {
   flex-shrink: 0;
-  width: 48px;
-  height: 48px;
-  border-radius: 12px;
+  width: 56px;
+  height: 56px;
+  border-radius: 14px;
   display: flex;
   align-items: center;
   justify-content: center;
+  font-size: 28px;
 }
 
 .summary-icon svg {
-  width: 28px;
-  height: 28px;
+  width: 32px;
+  height: 32px;
 }
 
 .summary-icon.simple {
@@ -424,41 +405,24 @@ defineExpose({
 .summary-text {
   flex: 1;
   line-height: 1.8;
-  color: #333;
+  color: #2D2D2D;
 }
 
 .summary-text h4 {
-  margin: 20px 0 12px 0;
+  margin: 16px 0 12px 0;
   font-size: 16px;
-  font-weight: 600;
-  color: #1a1a1a;
-  display: flex;
-  align-items: center;
-}
-
-.summary-text h4:first-child {
-  margin-top: 0;
+  font-weight: 700;
+  color: #1F3A52;
 }
 
 .summary-text p {
   margin: 0 0 12px 0;
   color: #555;
-  font-size: 14px;
-}
-
-.summary-text ul {
-  margin: 0;
-  padding-left: 20px;
-}
-
-.summary-text li {
-  margin: 8px 0;
-  color: #555;
-  font-size: 14px;
+  font-size: 15px;
 }
 
 .empty-state {
-  color: #999 !important;
+  color: #8B8680 !important;
   font-style: italic;
   text-align: center;
   padding: 40px 20px;
@@ -499,24 +463,26 @@ defineExpose({
 }
 
 .summary-actions {
-  padding: 16px 24px;
-  background: #f8f9fa;
+  padding: 20px 28px;
+  background: linear-gradient(135deg, rgba(248, 247, 245, 0.8) 0%, rgba(212, 165, 116, 0.05) 100%);
   display: flex;
   gap: 12px;
-  border-top: 1px solid #e9ecef;
+  border-top: 1px solid rgba(212, 165, 116, 0.15);
 }
 
 .action-button {
-  padding: 10px 20px;
+  padding: 12px 20px;
   border: none;
-  border-radius: 8px;
+  border-radius: 10px;
   font-size: 14px;
-  font-weight: 500;
+  font-weight: 600;
   cursor: pointer;
   display: flex;
   align-items: center;
   gap: 8px;
-  transition: all 0.3s ease;
+  transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+  flex: 1;
+  justify-content: center;
 }
 
 .button-icon {
@@ -525,34 +491,38 @@ defineExpose({
 }
 
 .action-button.generate {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(135deg, #1F3A52 0%, #4A9FB8 100%);
   color: white;
-  flex: 1;
+  box-shadow: 0 4px 12px rgba(31, 58, 82, 0.2);
 }
 
 .action-button.generate:hover:not(:disabled) {
   transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+  box-shadow: 0 8px 24px rgba(74, 159, 184, 0.4);
 }
 
 .action-button.export {
-  background: #28a745;
+  background: linear-gradient(135deg, #52c41a 0%, #43a507 100%);
   color: white;
+  box-shadow: 0 4px 12px rgba(82, 196, 26, 0.2);
 }
 
 .action-button.export:hover:not(:disabled) {
-  background: #218838;
+  background: #43a507;
   transform: translateY(-2px);
+  box-shadow: 0 8px 24px rgba(82, 196, 26, 0.3);
 }
 
 .action-button.clear {
-  background: #dc3545;
+  background: linear-gradient(135deg, #D4A574 0%, #C89564 100%);
   color: white;
+  box-shadow: 0 4px 12px rgba(212, 165, 116, 0.2);
 }
 
 .action-button.clear:hover:not(:disabled) {
-  background: #c82333;
+  background: #C89564;
   transform: translateY(-2px);
+  box-shadow: 0 8px 24px rgba(212, 165, 116, 0.3);
 }
 
 .action-button:disabled {
@@ -571,6 +541,32 @@ defineExpose({
   to {
     transform: rotate(360deg);
   }
+}
+
+@keyframes fadeInDown {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.summary-fade-enter-active,
+.summary-fade-leave-active {
+  transition: all 0.3s ease;
+}
+
+.summary-fade-enter-from {
+  opacity: 0;
+  transform: translateX(-20px);
+}
+
+.summary-fade-leave-to {
+  opacity: 0;
+  transform: translateX(20px);
 }
 
 /* 响应式设计 */

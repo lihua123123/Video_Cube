@@ -6,84 +6,237 @@
         :class="['mode-btn', { active: uploadMode === 'file' }]"
         @click="uploadMode = 'file'"
       >
-        📁 本地文件
+        <svg class="mode-icon" viewBox="0 0 24 24" fill="currentColor">
+          <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>
+        </svg>
+        本地上传
       </button>
       <button 
         :class="['mode-btn', { active: uploadMode === 'url' }]"
         @click="uploadMode = 'url'"
       >
-        🔗 URL 链接
+        <svg class="mode-icon" viewBox="0 0 24 24" fill="currentColor">
+          <path d="M3.9 12c0-1.71 1.39-3.1 3.1-3.1h4V7H7c-2.76 0-5 2.24-5 5s2.24 5 5 5h4v-1.9H7c-1.71 0-3.1-1.39-3.1-3.1zM8 13h8v-2H8v2zm9-6h-4v1.9h4c1.71 0 3.1 1.39 3.1 3.1s-1.39 3.1-3.1 3.1h-4V17h4c2.76 0 5-2.24 5-5s-2.24-5-5-5z"/>
+        </svg>
+        链接输入
       </button>
     </div>
 
     <!-- 文件上传模式 -->
-    <div v-if="uploadMode === 'file'" 
-      class="drag-drop-area"
-      :class="{ 
-        dragging: isDragging,
-        'has-file': hasFile()
-      }"
-      @dragover.prevent="onDragOver"
-      @dragleave.prevent="onDragLeave"
-      @drop.prevent="onDrop"
-      @click="hasFile() ? null : triggerFileSelection"
-    >
-      <!-- 已上传文件显示 -->
-      <div v-if="hasFile()" class="file-info-content">
-        <div class="file-icon">📁</div>
-        <div class="file-name">{{ fileName }}</div>
-        <button class="remove-button" @click.stop="reset">移除文件</button>
+    <transition name="fade" mode="out-in">
+      <div v-if="uploadMode === 'file' " 
+        class="drag-drop-area"
+        :class="{ 
+          dragging: isDragging,
+          'has-file': hasFile()
+        }"
+        @dragover.prevent="onDragOver"
+        @dragleave.prevent="onDragLeave"
+        @drop.prevent="onDrop"
+        @click="hasFile() ? null : triggerFileSelection"
+        key="file-mode"
+      >
+        <!-- 已上传文件显示 -->
+        <div v-if="hasFile()" class="file-info-content">
+          <div class="file-icon-large">
+            <svg viewBox="0 0 24 24" fill="currentColor">
+              <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>
+            </svg>
+          </div>
+          
+          <!-- 上传进度缓冲圈 -->
+          <div class="progress-container" v-if="uploadProgress > 0">
+            <svg class="progress-circle" width="60" height="60" viewBox="0 0 60 60">
+              <!-- 背景圆 -->
+              <circle 
+                class="progress-circle-bg" 
+                cx="30" 
+                cy="30" 
+                r="25" 
+              />
+              <!-- 进度圆 -->
+              <circle 
+                class="progress-circle-fill" 
+                cx="30" 
+                cy="30" 
+                r="25" 
+                :stroke-dasharray="157" 
+                :stroke-dashoffset="157 - (157 * uploadProgress) / 100" 
+              />
+              <!-- 进度文字 -->
+              <text 
+                class="progress-text" 
+                x="30" 
+                y="30" 
+                text-anchor="middle" 
+                dominant-baseline="middle"
+              >
+                {{ uploadProgress }}%
+              </text>
+            </svg>
+          </div>
+          
+          <div class="file-name">{{ fileName }}</div>
+          <button class="remove-button" @click.stop="reset">移除文件</button>
+        </div>
+        
+        <!-- 拖拽上传提示 -->
+        <div v-else class="drag-drop-content">
+          <div class="upload-icon-large">
+            <svg viewBox="0 0 24 24" fill="currentColor">
+              <path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/>
+            </svg>
+          </div>
+          <div class="upload-text">拖拽视频到此处</div>
+          <div class="upload-hint">或点击选择文件</div>
+        </div>
       </div>
-      
-      <!-- 拖拽上传提示 -->
-      <div v-else class="drag-drop-content">
-        <div class="upload-icon">+</div>
-        <div class="upload-text">拖拽视频文件到此处</div>
-        <div class="upload-hint">或点击选择文件</div>
-      </div>
-    </div>
 
-    <!-- URL 输入模式 -->
-    <div v-else class="url-input-area">
-      <div class="url-input-wrapper">
-        <label class="url-label">视频 URL</label>
-        <input 
-          v-model="videoUrl"
-          type="text"
-          class="url-input"
-          placeholder="输入视频 URL (例如: http://example.com/video.mp4)"
-          @input="errorMessage = ''"
-        />
-      </div>
-      
-      <div class="url-input-wrapper">
-        <label class="url-label">视频标题</label>
-        <input 
-          v-model="videoTitle"
-          type="text"
-          class="url-input"
-          placeholder="输入视频标题"
-        />
-      </div>
-      
-      <div class="url-input-wrapper">
-        <label class="url-label">视频描述 (可选)</label>
-        <textarea 
-          v-model="videoDescription"
-          class="url-textarea"
-          placeholder="输入视频描述"
-          rows="3"
-        ></textarea>
-      </div>
+      <!-- URL 输入模式 -->
+      <div v-else class="url-input-area" key="url-mode">
+        <div class="form-group">
+          <label class="url-label">视频 URL</label>
+          <div class="glowing-input-container">
+            <!-- Glow effect -->
+            <div 
+              class="glow-overlay"
+              :class="{ 'active': isUrlFocused }"
+              :style="{
+                background: `radial-gradient(circle 200px at ${cursorPosition + 48}px 50%, rgba(180, 255, 120, 0.15), transparent 70%)`
+              }"
+            ></div>
+            <div class="input-wrapper">
+              <!-- Spotlight glow overlay -->
+              <div 
+                class="spotlight-overlay"
+                :class="{ 'active': isUrlFocused }"
+                :style="{
+                  background: `radial-gradient(circle 180px at ${cursorPosition + 48}px 50%, rgba(200, 255, 140, 0.12), transparent 60%)`
+                }"
+              ></div>
+              <input 
+                v-model="videoUrl"
+                type="text"
+                class="url-input"
+                placeholder="输入视频 URL"
+                @input="errorMessage = ''"
+                @focus="handleUrlFocus"
+                @blur="handleUrlBlur"
+                @click="handleUrlClick"
+                @keyup="handleUrlKeyUp"
+                ref="urlInputRef"
+              />
+              <!-- Measurement span for cursor position -->
+              <span 
+                ref="measureRef"
+                class="measure-span"
+                aria-hidden="true"
+              >
+                {{ videoUrl.slice(0, cursorIndex) || '输入视频 URL' }}
+              </span>
+            </div>
+          </div>
+        </div>
+        
+        <div class="form-group">
+          <label class="url-label">视频标题</label>
+          <div class="glowing-input-container">
+            <!-- Glow effect -->
+            <div 
+              class="glow-overlay"
+              :class="{ 'active': isTitleFocused }"
+              :style="{
+                background: `radial-gradient(circle 200px at ${titleCursorPosition + 48}px 50%, rgba(180, 255, 120, 0.15), transparent 70%)`
+              }"
+            ></div>
+            <div class="input-wrapper">
+              <!-- Spotlight glow overlay -->
+              <div 
+                class="spotlight-overlay"
+                :class="{ 'active': isTitleFocused }"
+                :style="{
+                  background: `radial-gradient(circle 180px at ${titleCursorPosition + 48}px 50%, rgba(200, 255, 140, 0.12), transparent 60%)`
+                }"
+              ></div>
+              <input 
+                v-model="videoTitle"
+                type="text"
+                class="url-input"
+                placeholder="输入视频标题"
+                @focus="handleTitleFocus"
+                @blur="handleTitleBlur"
+                @click="handleTitleClick"
+                @keyup="handleTitleKeyUp"
+                ref="titleInputRef"
+              />
+              <!-- Measurement span for cursor position -->
+              <span 
+                ref="titleMeasureRef"
+                class="measure-span"
+                aria-hidden="true"
+              >
+                {{ videoTitle.slice(0, titleCursorIndex) || '输入视频标题' }}
+              </span>
+            </div>
+          </div>
+        </div>
+        
+        <div class="form-group">
+          <label class="url-label">视频描述</label>
+          <div class="glowing-input-container">
+            <!-- Glow effect -->
+            <div 
+              class="glow-overlay"
+              :class="{ 'active': isDescFocused }"
+              :style="{
+                background: `radial-gradient(circle 200px at ${descCursorPosition + 48}px 50%, rgba(180, 255, 120, 0.15), transparent 70%)`
+              }"
+            ></div>
+            <div class="input-wrapper">
+              <!-- Spotlight glow overlay -->
+              <div 
+                class="spotlight-overlay"
+                :class="{ 'active': isDescFocused }"
+                :style="{
+                  background: `radial-gradient(circle 180px at ${descCursorPosition + 48}px 50%, rgba(200, 255, 140, 0.12), transparent 60%)`
+                }"
+              ></div>
+              <textarea 
+                v-model="videoDescription"
+                class="url-textarea"
+                placeholder="输入视频描述"
+                rows="3"
+                @focus="handleDescFocus"
+                @blur="handleDescBlur"
+                @click="handleDescClick"
+                @keyup="handleDescKeyUp"
+                ref="descInputRef"
+              ></textarea>
+              <!-- Measurement span for cursor position -->
+              <span 
+                ref="descMeasureRef"
+                class="measure-span"
+                aria-hidden="true"
+              >
+                {{ videoDescription.slice(0, descCursorIndex) || '输入视频描述' }}
+              </span>
+            </div>
+          </div>
+        </div>
 
-      <div v-if="errorMessage" class="error-message">{{ errorMessage }}</div>
-      <div v-if="successMessage" class="success-message">{{ successMessage }}</div>
-    </div>
+        <transition name="fade">
+          <div v-if="errorMessage || successMessage">
+            <div v-if="errorMessage" class="error-message">{{ errorMessage }}</div>
+            <div v-if="successMessage" class="success-message">{{ successMessage }}</div>
+          </div>
+        </transition>
+      </div>
+    </transition>
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue'
+import { ref, watch } from 'vue'
 import axios from 'axios'
 
 // Props
@@ -116,6 +269,28 @@ const successMessage = ref('')
 const videoUrl = ref('')
 const videoTitle = ref('')
 const videoDescription = ref('')
+
+// Glowing input effect refs and state
+// Video URL input
+const urlInputRef = ref<HTMLInputElement>()
+const measureRef = ref<HTMLSpanElement>()
+const isUrlFocused = ref(false)
+const cursorPosition = ref(0)
+const cursorIndex = ref(0)
+
+// Video Title input
+const titleInputRef = ref<HTMLInputElement>()
+const titleMeasureRef = ref<HTMLSpanElement>()
+const isTitleFocused = ref(false)
+const titleCursorPosition = ref(0)
+const titleCursorIndex = ref(0)
+
+// Video Description input
+const descInputRef = ref<HTMLTextAreaElement>()
+const descMeasureRef = ref<HTMLSpanElement>()
+const isDescFocused = ref(false)
+const descCursorPosition = ref(0)
+const descCursorIndex = ref(0)
 
 // Computed
 const hasFile = () => selectedFile.value !== null
@@ -318,6 +493,119 @@ const setVideoFile = (file: File) => {
   emit('fileSelected', file)
 }
 
+// Glowing input effect methods
+// Video URL input
+const updateCursorPosition = () => {
+  if (measureRef.value && urlInputRef.value) {
+    const textBeforeCursor = videoUrl.value.slice(0, urlInputRef.value.selectionStart || 0)
+    cursorIndex.value = urlInputRef.value.selectionStart || 0
+    measureRef.value.textContent = textBeforeCursor || '输入视频 URL'
+    const width = measureRef.value.offsetWidth
+    cursorPosition.value = width
+  }
+}
+
+const handleUrlFocus = () => {
+  isUrlFocused.value = true
+  updateCursorPosition()
+}
+
+const handleUrlBlur = () => {
+  isUrlFocused.value = false
+}
+
+const handleUrlClick = () => {
+  setTimeout(() => {
+    updateCursorPosition()
+  }, 0)
+}
+
+const handleUrlKeyUp = () => {
+  updateCursorPosition()
+}
+
+// Video Title input
+const updateTitleCursorPosition = () => {
+  if (titleMeasureRef.value && titleInputRef.value) {
+    const textBeforeCursor = videoTitle.value.slice(0, titleInputRef.value.selectionStart || 0)
+    titleCursorIndex.value = titleInputRef.value.selectionStart || 0
+    titleMeasureRef.value.textContent = textBeforeCursor || '输入视频标题'
+    const width = titleMeasureRef.value.offsetWidth
+    titleCursorPosition.value = width
+  }
+}
+
+const handleTitleFocus = () => {
+  isTitleFocused.value = true
+  updateTitleCursorPosition()
+}
+
+const handleTitleBlur = () => {
+  isTitleFocused.value = false
+}
+
+const handleTitleClick = () => {
+  setTimeout(() => {
+    updateTitleCursorPosition()
+  }, 0)
+}
+
+const handleTitleKeyUp = () => {
+  updateTitleCursorPosition()
+}
+
+// Video Description input
+const updateDescCursorPosition = () => {
+  if (descMeasureRef.value && descInputRef.value) {
+    const textBeforeCursor = videoDescription.value.slice(0, descInputRef.value.selectionStart || 0)
+    descCursorIndex.value = descInputRef.value.selectionStart || 0
+    descMeasureRef.value.textContent = textBeforeCursor || '输入视频描述'
+    const width = descMeasureRef.value.offsetWidth
+    descCursorPosition.value = width
+  }
+}
+
+const handleDescFocus = () => {
+  isDescFocused.value = true
+  updateDescCursorPosition()
+}
+
+const handleDescBlur = () => {
+  isDescFocused.value = false
+}
+
+const handleDescClick = () => {
+  setTimeout(() => {
+    updateDescCursorPosition()
+  }, 0)
+}
+
+const handleDescKeyUp = () => {
+  updateDescCursorPosition()
+}
+
+// Watchers for input changes
+// Watch for videoUrl changes to update cursor position
+watch(videoUrl, () => {
+  if (isUrlFocused.value) {
+    updateCursorPosition()
+  }
+})
+
+// Watch for videoTitle changes to update cursor position
+watch(videoTitle, () => {
+  if (isTitleFocused.value) {
+    updateTitleCursorPosition()
+  }
+})
+
+// Watch for videoDescription changes to update cursor position
+watch(videoDescription, () => {
+  if (isDescFocused.value) {
+    updateDescCursorPosition()
+  }
+})
+
 // 暴露方法给父组件
 defineExpose({
   uploadVideo,
@@ -339,67 +627,105 @@ defineExpose({
 .upload-mode-switch {
   display: flex;
   gap: 12px;
-  margin-bottom: 20px;
-  padding: 4px;
-  background: #f0f0f0;
-  border-radius: 8px;
+  margin-bottom: 24px;
+  background: linear-gradient(135deg, rgba(31, 58, 82, 0.05) 0%, rgba(74, 159, 184, 0.05) 100%);
+  padding: 8px;
+  border-radius: 12px;
+  border: 1px solid rgba(212, 165, 116, 0.15);
 }
 
 .mode-btn {
   flex: 1;
-  padding: 10px 20px;
-  border: none;
+  padding: 14px 20px;
+  border: 2px solid transparent;
   background: transparent;
-  color: #666;
-  font-size: 14px;
-  font-weight: 500;
-  border-radius: 6px;
+  color: #8B8680;
+  font-size: 15px;
+  font-weight: 600;
+  border-radius: 10px;
   cursor: pointer;
-  transition: all 0.3s;
+  transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+.mode-icon {
+  width: 20px;
+  height: 20px;
 }
 
 .mode-btn:hover {
-  background: rgba(24, 144, 255, 0.1);
-  color: #1890ff;
+  background: rgba(74, 159, 184, 0.1);
+  color: #4A9FB8;
 }
 
 .mode-btn.active {
-  background: white;
-  color: #1890ff;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  background: linear-gradient(135deg, #4A9FB8 0%, #1F3A52 100%);
+  color: white;
+  border-color: #D4A574;
+  box-shadow: 0 8px 20px rgba(74, 159, 184, 0.3);
+  transform: translateY(-2px);
 }
 
 /* 文件上传区域 */
 .drag-drop-area {
   width: 100%;
-  min-height: 120px;
-  border: 2px dashed #1890ff;
-  border-radius: 8px;
-  background-color: #f0f7ff;
+  min-height: 160px;
+  border: 2px dashed #4A9FB8;
+  border-radius: 16px;
+  background: linear-gradient(135deg, rgba(74, 159, 184, 0.08) 0%, rgba(212, 165, 116, 0.05) 100%);
   cursor: pointer;
-  transition: all 0.3s;
+  transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  padding: 20px;
+  padding: 28px;
+  position: relative;
+  overflow: hidden;
+}
+
+.drag-drop-area::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: radial-gradient(circle at 50% 0%, rgba(212, 165, 116, 0.1), transparent 70%);
+  pointer-events: none;
 }
 
 .drag-drop-area:hover {
-  border-color: #40a9ff;
-  background-color: #e6f4ff;
+  border-color: #D4A574;
+  background: linear-gradient(135deg, rgba(212, 165, 116, 0.15) 0%, rgba(74, 159, 184, 0.08) 100%);
+  box-shadow: 0 8px 24px rgba(74, 159, 184, 0.2);
 }
 
 .drag-drop-area.dragging {
-  border-color: #52c41a;
-  background-color: #f6ffed;
+  border-color: #D4A574;
+  background: linear-gradient(135deg, rgba(212, 165, 116, 0.25) 0%, rgba(74, 159, 184, 0.15) 100%);
+  box-shadow: 0 12px 32px rgba(212, 165, 116, 0.3);
+  transform: scale(1.02);
 }
 
-/* 已上传文件样式 */
 .drag-drop-area.has-file {
   border-color: #52c41a;
-  background-color: #f6ffed;
-  cursor: default;
+  background: linear-gradient(135deg, rgba(82, 196, 26, 0.1) 0%, rgba(74, 159, 184, 0.08) 100%);
+}
+
+.upload-icon-large {
+  font-size: 48px;
+  color: #4A9FB8;
+  margin-bottom: 12px;
+  animation: float 3s ease-in-out infinite;
+}
+
+.upload-icon-large svg {
+  width: 48px;
+  height: 48px;
 }
 
 .drag-drop-content {
@@ -410,78 +736,76 @@ defineExpose({
   gap: 8px;
 }
 
-/* 文件信息内容样式 */
+.upload-text {
+  color: #1F3A52;
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.upload-hint {
+  color: #8B8680;
+  font-size: 13px;
+}
+
+.file-icon-large {
+  font-size: 40px;
+  margin-bottom: 12px;
+  animation: scaleIn 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.file-icon-large svg {
+  width: 40px;
+  height: 40px;
+  color: #52c41a;
+}
+
 .file-info-content {
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: center;
   gap: 12px;
-  width: 100%;
   text-align: center;
 }
 
-.file-icon {
-  font-size: 36px;
-}
-
 .file-name {
-  color: #333;
-  font-size: 16px;
-  font-weight: 500;
-  max-width: 100%;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-  padding: 0 20px;
+  color: #1F3A52;
+  font-size: 15px;
+  font-weight: 600;
+  word-break: break-all;
 }
 
 .remove-button {
-  background-color: #ff4d4f;
+  background: linear-gradient(135deg, #D4A574 0%, #C89564 100%);
   color: white;
   border: none;
-  padding: 6px 16px;
-  border-radius: 4px;
+  padding: 8px 20px;
+  border-radius: 8px;
   cursor: pointer;
-  font-size: 14px;
-  transition: background-color 0.3s;
+  font-size: 13px;
+  font-weight: 600;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 12px rgba(212, 165, 116, 0.2);
 }
 
 .remove-button:hover {
-  background-color: #ff7875;
-}
-
-.upload-icon {
-  font-size: 32px;
-  color: #1890ff;
-  font-weight: bold;
-}
-
-.upload-text {
-  color: #666;
-  font-size: 16px;
-  font-weight: 500;
-}
-
-.upload-hint {
-  color: #999;
-  font-size: 12px;
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(212, 165, 116, 0.3);
 }
 
 /* URL 输入区域 */
 .url-input-area {
-  width: 100%;
-  background: white;
-  border-radius: 8px;
-  padding: 20px;
-  border: 1px solid #e0e0e0;
+  background: linear-gradient(135deg, rgba(31, 58, 82, 0.05) 0%, rgba(74, 159, 184, 0.05) 100%);
+  border-radius: 16px;
+  padding: 28px;
+  border: 1px solid rgba(212, 165, 116, 0.15);
+  box-shadow: 0 4px 12px rgba(31, 58, 82, 0.08);
 }
 
-.url-input-wrapper {
-  margin-bottom: 16px;
+.form-group {
+  margin-bottom: 24px;
 }
 
-.url-input-wrapper:last-of-type {
+.form-group:last-child {
   margin-bottom: 0;
 }
 
@@ -490,60 +814,213 @@ defineExpose({
   margin-bottom: 8px;
   font-size: 14px;
   font-weight: 600;
-  color: #333;
+  color: #1F3A52;
+}
+
+/* Glowing input styles */
+.glowing-input-container {
+  position: relative;
+  width: 100%;
+}
+
+.glow-overlay {
+  position: absolute;
+  inset: 0;
+  border-radius: 12px;
+  transition: opacity 300ms ease;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.glow-overlay.active {
+  opacity: 100%;
+}
+
+.input-wrapper {
+  position: relative;
+  border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: rgba(26, 35, 50, 0.5);
+  backdrop-filter: blur(10px);
+  overflow: hidden;
+}
+
+.spotlight-overlay {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  transition: opacity 300ms ease;
+  opacity: 0;
+}
+
+.spotlight-overlay.active {
+  opacity: 100%;
 }
 
 .url-input {
   width: 100%;
-  padding: 10px 12px;
-  border: 1px solid #d9d9d9;
-  border-radius: 6px;
-  font-size: 14px;
-  transition: all 0.3s;
-  box-sizing: border-box;
+  padding: 16px 20px;
+  border: none;
+  border-radius: 12px;
+  font-size: 15px;
+  font-weight: 500;
+  transition: all 0.3s ease;
+  background: transparent;
+  color: white;
+  outline: none;
+  position: relative;
+  z-index: 2;
+  caret-color: white;
 }
 
 .url-input:focus {
-  outline: none;
-  border-color: #1890ff;
-  box-shadow: 0 0 0 2px rgba(24, 144, 255, 0.1);
+  color: white;
+}
+
+.url-input::placeholder {
+  color: rgba(255, 255, 255, 0.4);
 }
 
 .url-textarea {
   width: 100%;
-  padding: 10px 12px;
-  border: 1px solid #d9d9d9;
-  border-radius: 6px;
-  font-size: 14px;
+  padding: 16px 20px;
+  border: none;
+  border-radius: 12px;
+  font-size: 15px;
+  font-weight: 500;
   font-family: inherit;
   resize: vertical;
-  transition: all 0.3s;
-  box-sizing: border-box;
+  transition: all 0.3s ease;
+  background: transparent;
+  color: white;
+  outline: none;
+  min-height: 120px;
+  position: relative;
+  z-index: 2;
+  caret-color: white;
 }
 
 .url-textarea:focus {
-  outline: none;
-  border-color: #1890ff;
-  box-shadow: 0 0 0 2px rgba(24, 144, 255, 0.1);
+  color: white;
+}
+
+.url-textarea::placeholder {
+  color: rgba(255, 255, 255, 0.4);
+}
+
+/* Measurement span for cursor position */
+.measure-span {
+  position: absolute;
+  left: 20px;
+  top: 16px;
+  font-size: 15px;
+  font-weight: 500;
+  opacity: 0;
+  pointer-events: none;
+  white-space: pre;
+  color: transparent;
+  background: transparent;
+  border: none;
+  padding: 0;
+  margin: 0;
+  font-family: inherit;
 }
 
 .error-message {
   margin-top: 12px;
-  padding: 10px 12px;
-  background: #fff2f0;
-  border: 1px solid #ffccc7;
-  border-radius: 6px;
-  color: #ff4d4f;
-  font-size: 14px;
+  padding: 12px 16px;
+  background: linear-gradient(135deg, rgba(220, 53, 69, 0.1) 0%, rgba(220, 53, 69, 0.05) 100%);
+  border: 1px solid rgba(220, 53, 69, 0.3);
+  border-radius: 10px;
+  color: #C82333;
+  font-size: 13px;
+  animation: slideDown 0.3s ease;
 }
 
 .success-message {
   margin-top: 12px;
-  padding: 10px 12px;
-  background: #f6ffed;
-  border: 1px solid #b7eb8f;
-  border-radius: 6px;
+  padding: 12px 16px;
+  background: linear-gradient(135deg, rgba(82, 196, 26, 0.1) 0%, rgba(82, 196, 26, 0.05) 100%);
+  border: 1px solid rgba(82, 196, 26, 0.3);
+  border-radius: 10px;
   color: #52c41a;
-  font-size: 14px;
+  font-size: 13px;
+  animation: slideDown 0.3s ease;
+}
+
+@keyframes float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-8px); }
+}
+
+@keyframes scaleIn {
+  from { transform: scale(0.8); opacity: 0; }
+  to { transform: scale(1); opacity: 1; }
+}
+
+@keyframes slideDown {
+  from { opacity: 0; transform: translateY(-8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.fade-enter-active,
+.fade-leave-active {
+  transition: opacity 0.3s ease, transform 0.3s ease;
+}
+
+.fade-enter-from {
+  opacity: 0;
+  transform: translateY(-10px);
+}
+
+.fade-leave-to {
+  opacity: 0;
+  transform: translateY(10px);
+}
+
+/* 上传进度缓冲圈样式 */
+.progress-container {
+  margin: 16px 0;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  position: relative;
+}
+
+.progress-circle {
+  transform: rotate(-90deg); /* 将圆的起始点调整到顶部 */
+}
+
+.progress-circle-bg {
+  fill: none;
+  stroke: rgba(74, 159, 184, 0.2);
+  stroke-width: 4;
+}
+
+.progress-circle-fill {
+  fill: none;
+  stroke: #4A9FB8;
+  stroke-width: 4;
+  stroke-linecap: round;
+  transition: stroke-dashoffset 0.3s ease;
+  animation: progress-animation 1s ease-in-out;
+}
+
+.progress-text {
+  font-size: 12px;
+  font-weight: 600;
+  fill: #1F3A52;
+  transform: rotate(90deg); /* 补偿SVG的旋转 */
+}
+
+@keyframes progress-animation {
+  from {
+    opacity: 0;
+    transform: scale(0.8);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
 }
 </style>

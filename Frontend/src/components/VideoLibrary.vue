@@ -2,17 +2,21 @@
   <div class="video-library">
     <!-- 头部 -->
     <div class="library-header">
-      <h2>视频库</h2>
+      <div class="header-title-section">
+        <h2 class="library-title">📹 视频库</h2>
+      </div>
       <div class="header-actions">
         <div class="search-box">
+          <svg class="search-icon" viewBox="0 0 24 24" fill="currentColor">
+            <path d="M15.5 1h-8C6.12 1 5 2.12 5 3.5v17C5 21.88 6.12 23 7.5 23h8c1.38 0 2.5-1.12 2.5-2.5v-17C18 2.12 16.88 1 15.5 1zm-4 21c-.83 0-1.5-.67-1.5-1.5s.67-1.5 1.5-1.5 1.5.67 1.5 1.5-.67 1.5-1.5 1.5zm4.5-4H7V4h9v14z"/>
+          </svg>
           <input 
             v-model="searchQuery" 
             type="text" 
-            placeholder="搜索视频标题..." 
+            placeholder="搜索视频..." 
             @input="debouncedSearch"
             class="search-input"
           />
-          <span class="search-icon">🔍</span>
         </div>
         <button @click="refreshList" class="refresh-btn" :disabled="loading">
           <span :class="{ spinning: loading }">🔄</span> 刷新
@@ -115,12 +119,12 @@
         <!-- 视频信息 -->
         <div class="video-info">
           <h3 class="video-title" :title="video.title">{{ video.title }}</h3>
-          <div class="video-meta-row">
-            <span class="meta-date">
+          <div class="video-meta">
+            <span class="meta-item">
               <span class="meta-icon">📅</span>
               {{ formatDate(video.created_at) }}
             </span>
-            <span class="meta-duration">
+            <span class="meta-item">
               <span class="meta-icon">⏱️</span>
               {{ formatDuration(video.duration) }}
             </span>
@@ -131,22 +135,21 @@
         <div class="video-actions">
           <button 
             @click.stop="playVideo(video)" 
-            class="action-btn play-btn"
+            class="video-action-btn play-btn"
             title="播放视频"
           >
             <span class="btn-icon">▶️</span>
-            <span class="btn-text">播放</span>
           </button>
           <button 
             @click.stop="viewDetails(video)" 
-            class="action-btn details-btn"
+            class="video-action-btn details-btn"
             title="查看详情"
           >
             <span class="btn-icon">ℹ️</span>
           </button>
           <button 
             @click.stop="deleteVideo(video)" 
-            class="action-btn delete-btn"
+            class="video-action-btn delete-btn"
             title="删除视频"
           >
             <span class="btn-icon">🗑️</span>
@@ -365,7 +368,7 @@ const fetchVideos = async () => {
   error.value = '';
   
   try {
-    const params: any = {
+    const params: { limit: number; offset: number; keyword?: string } = {
       limit: pageSize.value,
       offset: (currentPage.value - 1) * pageSize.value
     };
@@ -397,9 +400,10 @@ const fetchVideos = async () => {
     } else {
       error.value = response.data.message || '获取视频列表失败';
     }
-  } catch (err: any) {
+  } catch (err: unknown) {
     console.error('获取视频列表失败:', err);
-    error.value = err.response?.data?.message || err.message || '网络错误';
+    const errorObj = err as { response?: { data?: { message?: string } }; message?: string };
+    error.value = errorObj.response?.data?.message || errorObj.message || '网络错误';
   } finally {
     loading.value = false;
   }
@@ -543,9 +547,10 @@ const uploadThumbnail = async () => {
       alert('上传失败: ' + response.data.message);
       console.error('❌ 上传失败:', response.data);
     }
-  } catch (err: any) {
-    console.error('❌ 上传缩略图失败:', err);
-    alert('上传失败: ' + (err.response?.data?.message || err.message));
+  } catch (err: unknown) {
+    console.error('上传缩略图失败:', err);
+    const errorObj = err as { response?: { data?: { message?: string } }; message?: string };
+    alert('上传失败: ' + (errorObj.response?.data?.message || errorObj.message || '未知错误'));
   } finally {
     isUploadingThumbnail.value = false;
   }
@@ -571,9 +576,10 @@ const deleteVideo = async (video: Video) => {
     } else {
       alert('删除失败: ' + response.data.message);
     }
-  } catch (err: any) {
+  } catch (err: unknown) {
     console.error('删除视频失败:', err);
-    alert('删除失败: ' + (err.response?.data?.message || err.message));
+    const errorObj = err as { response?: { data?: { message?: string } }; message?: string };
+    alert('删除失败: ' + (errorObj.response?.data?.message || errorObj.message || '未知错误'));
   }
 };
 
@@ -646,7 +652,7 @@ const batchDelete = async () => {
     } else {
       alert(`删除完成!\n成功: ${successCount} 个\n失败: ${failCount} 个`);
     }
-  } catch (err: any) {
+  } catch (err: unknown) {
     console.error('批量删除失败:', err);
     alert('批量删除过程中出现错误');
   } finally {
@@ -727,76 +733,99 @@ defineExpose({
   display: flex;
   flex-direction: column;
   height: 100%;
-  background: #f5f7fa;
-  border-radius: 8px;
-  overflow: hidden;
+  background: linear-gradient(135deg, #f8f7f5 0%, #ffffff 100%);
+  border-radius: 16px;
+  box-shadow: 0 4px 12px rgba(31, 58, 82, 0.08);
+  padding: 28px;
 }
 
 /* 头部 */
 .library-header {
-  padding: 20px;
-  background: white;
-  border-bottom: 1px solid #e4e7ed;
   display: flex;
   justify-content: space-between;
   align-items: center;
+  margin-bottom: 28px;
+  gap: 20px;
 }
 
-.library-header h2 {
+.header-title-section {
+  flex: 1;
+}
+
+.library-title {
   margin: 0;
-  font-size: 20px;
-  color: #303133;
+  font-size: 28px;
+  font-weight: 700;
+  color: #1F3A52;
 }
 
 .header-actions {
   display: flex;
   gap: 12px;
-  align-items: center;
 }
 
 .search-box {
   position: relative;
+  display: flex;
+  align-items: center;
+  background: white;
+  border: 2px solid rgba(212, 165, 116, 0.2);
+  border-radius: 12px;
+  padding: 0 12px;
+  transition: all 0.3s ease;
 }
 
-.search-input {
-  padding: 8px 35px 8px 12px;
-  border: 1px solid #dcdfe6;
-  border-radius: 4px;
-  font-size: 14px;
-  width: 250px;
-  transition: all 0.3s;
+.search-box:hover {
+  border-color: #4A9FB8;
+  box-shadow: 0 4px 12px rgba(74, 159, 184, 0.15);
 }
 
-.search-input:focus {
-  outline: none;
-  border-color: #409eff;
-  box-shadow: 0 0 0 2px rgba(64, 158, 255, 0.1);
+.search-box:focus-within {
+  border-color: #4A9FB8;
+  box-shadow: 0 0 0 3px rgba(74, 159, 184, 0.15);
 }
 
 .search-icon {
-  position: absolute;
-  right: 10px;
-  top: 50%;
-  transform: translateY(-50%);
-  color: #909399;
+  width: 18px;
+  height: 18px;
+  color: #8B8680;
+  margin-right: 8px;
+  flex-shrink: 0;
+}
+
+.search-input {
+  border: none;
+  outline: none;
+  padding: 10px 0;
+  width: 200px;
+  font-size: 14px;
+  background: transparent;
+  color: #2D2D2D;
+}
+
+.search-input::placeholder {
+  color: #8B8680;
 }
 
 .refresh-btn {
-  padding: 8px 16px;
-  background: #409eff;
+  background: linear-gradient(135deg, #1F3A52 0%, #4A9FB8 100%);
   color: white;
   border: none;
-  border-radius: 4px;
+  padding: 10px 18px;
+  border-radius: 10px;
+  font-weight: 600;
   cursor: pointer;
+  transition: all 0.3s ease;
   font-size: 14px;
+  box-shadow: 0 4px 12px rgba(74, 159, 184, 0.2);
   display: flex;
   align-items: center;
-  gap: 4px;
-  transition: all 0.3s;
+  gap: 6px;
 }
 
-.refresh-btn:hover:not(:disabled) {
-  background: #66b1ff;
+.refresh-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 20px rgba(74, 159, 184, 0.3);
 }
 
 .refresh-btn:disabled {
@@ -882,10 +911,10 @@ defineExpose({
 
 .spinning {
   display: inline-block;
-  animation: spin 1s linear infinite;
+  animation: spinSmooth 1.2s ease-in-out infinite;
 }
 
-@keyframes spin {
+@keyframes spinSmooth {
   from { transform: rotate(0deg); }
   to { transform: rotate(360deg); }
 }
@@ -903,13 +932,25 @@ defineExpose({
   text-align: center;
 }
 
+.loading-state {
+  padding: 60px 20px;
+  gap: 16px;
+}
+
 .spinner {
-  width: 40px;
-  height: 40px;
-  border: 4px solid #e4e7ed;
-  border-top-color: #409eff;
+  width: 48px;
+  height: 48px;
+  border: 3px solid rgba(74, 159, 184, 0.2);
+  border-top-color: #4A9FB8;
   border-radius: 50%;
-  animation: spin 1s linear infinite;
+  animation: spinSmooth 1.2s ease-in-out infinite;
+}
+
+.loading-state p {
+  color: #4A9FB8;
+  font-size: 14px;
+  font-weight: 500;
+  margin: 0;
 }
 
 .empty-icon {
@@ -930,6 +971,14 @@ defineExpose({
   border: none;
   border-radius: 4px;
   cursor: pointer;
+  font-weight: 500;
+  transition: all 0.2s;
+}
+
+.retry-btn:hover {
+  background: #66b1ff;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 8px rgba(64, 158, 255, 0.3);
 }
 
 /* 视频列表 */
@@ -937,315 +986,184 @@ defineExpose({
   flex: 1;
   padding: 24px;
   overflow-y: auto;
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 24px;
-  align-content: start;
-}
-
-@media (max-width: 1400px) {
-  .video-list {
-    grid-template-columns: repeat(2, 1fr);
-  }
-}
-
-@media (max-width: 900px) {
-  .video-list {
-    grid-template-columns: 1fr;
-  }
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-bottom: 24px;
 }
 
 .video-item {
-  background: white;
-  border-radius: 16px;
-  overflow: hidden;
-  cursor: pointer;
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  border: 2px solid transparent;
-  display: flex;
-  flex-direction: column;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
-  position: relative;
-}
-
-/* 复选框 */
-.video-checkbox {
-  position: absolute;
-  top: 12px;
-  left: 12px;
-  z-index: 10;
-  width: 32px;
-  height: 32px;
-  background: rgba(255, 255, 255, 0.95);
-  border-radius: 8px;
   display: flex;
   align-items: center;
-  justify-content: center;
+  gap: 16px;
+  padding: 16px;
+  background: linear-gradient(135deg, white 0%, rgba(248, 247, 245, 0.8) 100%);
+  border: 1px solid rgba(212, 165, 116, 0.2);
+  border-radius: 14px;
+  transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
   cursor: pointer;
-  transition: all 0.2s;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
-}
-
-.video-checkbox:hover {
-  background: white;
-  transform: scale(1.1);
-  box-shadow: 0 3px 12px rgba(0, 0, 0, 0.25);
-}
-
-.video-checkbox .checkbox-input {
-  pointer-events: none;
 }
 
 .video-item:hover {
-  transform: translateY(-6px);
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
-  border-color: #409eff;
+  border-color: #4A9FB8;
+  box-shadow: 0 8px 24px rgba(74, 159, 184, 0.15);
+  transform: translateY(-2px);
 }
 
-.video-item:hover .video-thumbnail img {
-  transform: scale(1.05);
+.video-checkbox {
+  flex-shrink: 0;
 }
 
-.video-item:hover .play-overlay {
-  opacity: 1;
+.checkbox-input {
+  width: 20px;
+  height: 20px;
+  cursor: pointer;
+  accent-color: #4A9FB8;
 }
 
-.video-item.selected {
-  border-color: #409eff;
-  box-shadow: 0 0 0 4px rgba(64, 158, 255, 0.2);
-}
-
-.video-item.checkbox-selected {
-  border-color: #67c23a;
-  box-shadow: 0 0 0 3px rgba(103, 194, 58, 0.2);
-}
-
-.video-item.checkbox-selected .video-checkbox {
-  background: #67c23a;
-}
-
-.video-item.checkbox-selected .video-checkbox .checkbox-input {
-  filter: brightness(0) invert(1);
-}
-
-/* 缩略图 */
 .video-thumbnail {
   position: relative;
-  width: 100%;
-  padding-top: 56.25%; /* 16:9 */
-  background: #000;
+  width: 120px;
+  height: 80px;
+  flex-shrink: 0;
+  border-radius: 10px;
   overflow: hidden;
-}
-
-.video-thumbnail img {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  transition: transform 0.3s ease;
+  background: linear-gradient(135deg, #1F3A52 0%, #4A9FB8 100%);
 }
 
 .thumbnail-placeholder {
-  position: absolute;
-  top: 0;
-  left: 0;
   width: 100%;
   height: 100%;
   display: flex;
   align-items: center;
   justify-content: center;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  font-size: 32px;
 }
 
-.placeholder-icon {
-  font-size: 64px;
-  opacity: 0.9;
-}
-
-/* 时长标签 - 更突出的设计 */
 .video-duration-badge {
   position: absolute;
-  bottom: 12px;
-  right: 12px;
-  background: rgba(0, 0, 0, 0.85);
+  bottom: 8px;
+  right: 8px;
+  background: rgba(0, 0, 0, 0.7);
   color: white;
-  padding: 6px 12px;
+  padding: 4px 8px;
   border-radius: 6px;
-  font-size: 13px;
+  font-size: 11px;
   font-weight: 600;
-  display: flex;
-  align-items: center;
-  gap: 4px;
-  backdrop-filter: blur(4px);
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
 }
 
-.duration-icon {
-  font-size: 14px;
-}
-
-/* 播放覆盖层 */
 .play-overlay {
   position: absolute;
   top: 0;
   left: 0;
-  width: 100%;
-  height: 100%;
-  background: rgba(0, 0, 0, 0.4);
+  right: 0;
+  bottom: 0;
   display: flex;
   align-items: center;
   justify-content: center;
-  opacity: 0;
-  transition: opacity 0.3s ease;
+  background: rgba(0, 0, 0, 0);
+  color: white;
+  font-size: 32px;
+  transition: all 0.3s ease;
 }
 
-.play-icon {
-  width: 64px;
-  height: 64px;
-  background: rgba(255, 255, 255, 0.95);
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 24px;
-  color: #409eff;
-  padding-left: 4px;
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3);
-  transition: transform 0.2s ease;
+.video-item:hover .play-overlay {
+  background: rgba(0, 0, 0, 0.5);
 }
 
-.play-icon:hover {
-  transform: scale(1.1);
-}
-
-/* 视频信息 */
 .video-info {
-  padding: 16px;
   flex: 1;
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
+  min-width: 0;
 }
 
 .video-title {
-  margin: 0;
-  font-size: 17px;
-  font-weight: 600;
-  color: #303133;
+  margin: 0 0 8px 0;
+  font-size: 16px;
+  font-weight: 700;
+  color: #1F3A52;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-  line-height: 1.4;
 }
 
-/* 元数据行 - 更紧凑突出的设计 */
-.video-meta-row {
+.video-meta {
+  display: flex;
+  gap: 12px;
+  font-size: 12px;
+  color: #8B8680;
+}
+
+.meta-item {
   display: flex;
   align-items: center;
-  gap: 16px;
-  font-size: 13px;
+  gap: 4px;
 }
 
-.meta-date,
-.meta-duration {
-  display: flex;
-  align-items: center;
-  gap: 5px;
-  color: #606266;
-  font-weight: 500;
-}
-
-.meta-icon {
-  font-size: 15px;
-}
-
-/* 操作按钮 */
 .video-actions {
-  padding: 14px 16px;
   display: flex;
-  gap: 10px;
-  border-top: 1px solid #e4e7ed;
-  background: #fafafa;
+  gap: 8px;
+  flex-shrink: 0;
 }
 
-.action-btn {
-  padding: 10px 16px;
-  border: none;
+.video-action-btn {
+  width: 36px;
+  height: 36px;
+  border: 1px solid rgba(212, 165, 116, 0.2);
+  background: white;
   border-radius: 8px;
   cursor: pointer;
-  font-size: 14px;
-  font-weight: 500;
-  transition: all 0.2s ease;
+  font-size: 16px;
+  transition: all 0.3s ease;
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 6px;
 }
 
-.play-btn {
-  flex: 2;
-  background: #409eff;
-  color: white;
-}
-
-.play-btn:hover {
-  background: #66b1ff;
+.video-action-btn:hover {
+  border-color: #4A9FB8;
+  background: rgba(74, 159, 184, 0.1);
   transform: translateY(-2px);
-  box-shadow: 0 4px 8px rgba(64, 158, 255, 0.3);
-}
-
-.details-btn,
-.delete-btn {
-  flex: 0;
-  padding: 10px 12px;
-  background: #f5f7fa;
-  color: #606266;
-}
-
-.details-btn:hover {
-  background: #ecf5ff;
-  color: #409eff;
 }
 
 .delete-btn:hover {
-  background: #fef0f0;
-  color: #f56c6c;
+  border-color: #D4A574;
+  background: rgba(212, 165, 116, 0.1);
 }
 
 .btn-icon {
   font-size: 16px;
 }
 
-.btn-text {
-  font-weight: 600;
-}
-
-/* 分页 */
+/* 分页控制 */
 .pagination {
-  padding: 20px;
-  background: white;
-  border-top: 1px solid #e4e7ed;
   display: flex;
   justify-content: center;
   align-items: center;
-  gap: 20px;
+  gap: 12px;
+  padding: 16px;
+  background: rgba(248, 247, 245, 0.8);
+  border-radius: 12px;
+  border: 1px solid rgba(212, 165, 116, 0.15);
+  margin-top: auto;
 }
 
 .page-btn {
+  background: linear-gradient(135deg, rgba(31, 58, 82, 0.9) 0%, rgba(74, 159, 184, 0.8) 100%);
+  color: white;
+  border: none;
   padding: 8px 16px;
-  background: white;
-  border: 1px solid #dcdfe6;
-  border-radius: 4px;
+  border-radius: 8px;
   cursor: pointer;
-  transition: all 0.3s;
+  font-weight: 600;
+  font-size: 13px;
+  transition: all 0.3s ease;
+  box-shadow: 0 2px 6px rgba(31, 58, 82, 0.15);
 }
 
 .page-btn:hover:not(:disabled) {
-  background: #409eff;
-  color: white;
-  border-color: #409eff;
+  transform: translateY(-1px);
+  box-shadow: 0 3px 12px rgba(74, 159, 184, 0.25);
+  background: linear-gradient(135deg, rgba(31, 58, 82, 1) 0%, rgba(74, 159, 184, 0.9) 100%);
 }
 
 .page-btn:disabled {
@@ -1254,8 +1172,9 @@ defineExpose({
 }
 
 .page-info {
-  color: #606266;
-  font-size: 14px;
+  color: #8B8680;
+  font-size: 13px;
+  font-weight: 500;
 }
 
 /* 详情模态框 */
@@ -1274,26 +1193,30 @@ defineExpose({
 
 .modal-content {
   background: white;
-  border-radius: 8px;
+  border-radius: 12px;
   max-width: 600px;
   width: 90%;
   max-height: 80vh;
   overflow: hidden;
   display: flex;
   flex-direction: column;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
 }
 
 .modal-header {
-  padding: 20px;
+  padding: 24px;
   border-bottom: 1px solid #e4e7ed;
   display: flex;
   justify-content: space-between;
   align-items: center;
+  background: linear-gradient(135deg, #f8f9fa 0%, #ffffff 100%);
 }
 
 .modal-header h3 {
   margin: 0;
-  font-size: 18px;
+  font-size: 20px;
+  font-weight: 700;
+  color: #1F3A52;
 }
 
 .close-btn {
@@ -1308,24 +1231,26 @@ defineExpose({
   display: flex;
   align-items: center;
   justify-content: center;
-  border-radius: 4px;
+  border-radius: 8px;
   transition: all 0.3s;
 }
 
 .close-btn:hover {
   background: #f5f7fa;
   color: #303133;
+  transform: rotate(90deg);
 }
 
 .modal-body {
-  padding: 20px;
+  padding: 24px;
   overflow-y: auto;
 }
 
 .detail-row {
   display: flex;
-  padding: 12px 0;
+  padding: 16px 0;
   border-bottom: 1px solid #f0f0f0;
+  align-items: center;
 }
 
 .detail-row:last-child {
@@ -1337,6 +1262,7 @@ defineExpose({
   font-weight: 600;
   color: #606266;
   flex-shrink: 0;
+  font-size: 14px;
 }
 
 .detail-row span,
@@ -1344,22 +1270,26 @@ defineExpose({
   flex: 1;
   color: #303133;
   word-break: break-all;
+  font-size: 14px;
 }
 
 .detail-row a {
-  color: #409eff;
+  color: #4A9FB8;
   text-decoration: none;
+  transition: color 0.2s;
 }
 
 .detail-row a:hover {
+  color: #1F3A52;
   text-decoration: underline;
 }
 
 .status-badge {
-  padding: 2px 8px;
-  border-radius: 4px;
+  padding: 4px 12px;
+  border-radius: 12px;
   font-size: 12px;
   display: inline-block;
+  font-weight: 600;
 }
 
 .status-badge.active {
@@ -1376,11 +1306,12 @@ defineExpose({
 .thumbnail-upload-section {
   flex-direction: column !important;
   align-items: flex-start !important;
+  padding: 16px 0;
 }
 
 .thumbnail-upload-section label {
   width: 100% !important;
-  margin-bottom: 12px;
+  margin-bottom: 16px;
 }
 
 .thumbnail-upload-content {
@@ -1394,14 +1325,21 @@ defineExpose({
 .new-thumbnail-preview {
   width: 240px;
   height: 135px;
-  border: 2px dashed #dcdfe6;
-  border-radius: 8px;
+  border: 2px solid rgba(212, 165, 116, 0.2);
+  border-radius: 10px;
   overflow: hidden;
   display: flex;
   align-items: center;
   justify-content: center;
-  background: #fafafa;
+  background: white;
   position: relative;
+  transition: all 0.3s;
+}
+
+.thumbnail-preview:hover,
+.new-thumbnail-preview:hover {
+  border-color: #4A9FB8;
+  box-shadow: 0 4px 12px rgba(74, 159, 184, 0.15);
 }
 
 .thumbnail-preview img,
@@ -1440,10 +1378,11 @@ defineExpose({
   right: 0;
   background: rgba(103, 194, 58, 0.9);
   color: white;
-  padding: 4px 8px;
+  padding: 6px 12px;
   font-size: 12px;
   text-align: center;
   font-weight: 600;
+  border-radius: 0 0 8px 8px;
 }
 
 .upload-controls {
@@ -1458,36 +1397,37 @@ defineExpose({
 .cancel-btn {
   padding: 10px 20px;
   border: none;
-  border-radius: 6px;
+  border-radius: 8px;
   cursor: pointer;
   font-size: 14px;
   font-weight: 500;
   display: flex;
   align-items: center;
   gap: 6px;
-  transition: all 0.2s ease;
+  transition: all 0.3s ease;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 }
 
 .select-file-btn {
-  background: #409eff;
+  background: linear-gradient(135deg, #4A9FB8 0%, #1F3A52 100%);
   color: white;
 }
 
 .select-file-btn:hover {
-  background: #66b1ff;
+  background: linear-gradient(135deg, #1F3A52 0%, #4A9FB8 100%);
   transform: translateY(-2px);
-  box-shadow: 0 4px 8px rgba(64, 158, 255, 0.3);
+  box-shadow: 0 4px 16px rgba(74, 159, 184, 0.25);
 }
 
 .upload-btn {
-  background: #67c23a;
+  background: linear-gradient(135deg, #67c23a 0%, #529b2e 100%);
   color: white;
 }
 
 .upload-btn:hover:not(:disabled) {
-  background: #85ce61;
+  background: linear-gradient(135deg, #529b2e 0%, #67c23a 100%);
   transform: translateY(-2px);
-  box-shadow: 0 4px 8px rgba(103, 194, 58, 0.3);
+  box-shadow: 0 4px 16px rgba(103, 194, 58, 0.25);
 }
 
 .upload-btn:disabled {
@@ -1497,29 +1437,31 @@ defineExpose({
 }
 
 .cancel-btn {
-  background: #f56c6c;
+  background: linear-gradient(135deg, #f56c6c 0%, #e64949 100%);
   color: white;
 }
 
 .cancel-btn:hover {
-  background: #f78989;
+  background: linear-gradient(135deg, #e64949 0%, #f56c6c 100%);
   transform: translateY(-2px);
-  box-shadow: 0 4px 8px rgba(245, 108, 108, 0.3);
+  box-shadow: 0 4px 16px rgba(245, 108, 108, 0.25);
 }
 
 .upload-hint {
   display: flex;
   align-items: center;
   gap: 8px;
-  padding: 12px;
+  padding: 16px;
   background: #f0f9ff;
   border: 1px solid #b3d8ff;
-  border-radius: 6px;
+  border-radius: 8px;
   font-size: 13px;
   color: #606266;
+  margin-top: 8px;
 }
 
 .hint-icon {
   font-size: 16px;
+  color: #4A9FB8;
 }
 </style>

@@ -36,7 +36,7 @@
                 </svg>
                 {{ formatTimeRange(card?.startTime, card?.endTime) }}
               </span>
-              <span v-if="card?.is_ai_generated" class="ai-badge">AI生成</span>
+              <span v-if="card?.is_ai_generated" class="ai-badge">🤖 AI生成</span>
               <span class="type-badge">{{ getContentTypeLabel(card?.content_type) }}</span>
             </div>
           </div>
@@ -582,7 +582,8 @@ onUnmounted(() => {
   left: 0;
   right: 0;
   bottom: 0;
-  z-index: 9999;
+  background: transparent;
+  z-index: 1000;
   pointer-events: none;
   display: flex;
   align-items: flex-start;
@@ -593,16 +594,16 @@ onUnmounted(() => {
 /* 弹窗主体 */
 .knowledge-card-popup {
   position: relative;
-  background: white;
+  background: linear-gradient(135deg, #ffffff 0%, #f8f7f5 100%);
   border-radius: 16px;
-  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2), 0 0 0 1px rgba(0, 0, 0, 0.05);
-  pointer-events: auto;
   display: flex;
   flex-direction: column;
+  box-shadow: 0 20px 60px rgba(31, 58, 82, 0.3);
+  border: 1px solid rgba(212, 165, 116, 0.3);
+  animation: slideInPopup 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
   overflow: hidden;
-  animation: slideIn 0.3s ease-out;
-  transition: box-shadow 0.2s ease;
   --scale-ratio: 1; /* 默认缩放比例 */
+  pointer-events: auto;
 }
 
 /* 可拖动状态 */
@@ -711,34 +712,35 @@ onUnmounted(() => {
   position: absolute;
   top: 12px;
   right: 12px;
-  width: 32px;
-  height: 32px;
-  border: none;
-  background: rgba(0, 0, 0, 0.05);
-  color: #666;
-  border-radius: 50%;
+  background: rgba(212, 165, 116, 0.15);
+  border: 1px solid rgba(212, 165, 116, 0.3);
+  color: #1F3A52;
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
   cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: all 0.2s;
+  transition: all 0.3s ease;
   z-index: 10;
 }
 
 .close-btn:hover {
-  background: rgba(0, 0, 0, 0.1);
-  color: #333;
-  transform: scale(1.1);
+  background: #D4A574;
+  color: white;
+  transform: rotate(90deg) scale(1.15);
+  box-shadow: 0 4px 12px rgba(212, 165, 116, 0.3);
 }
 
 /* 弹窗头部 */
 .popup-header {
-  display: flex;
-  align-items: flex-start;
-  gap: calc(12px * var(--scale-ratio, 1));
-  padding: calc(24px * var(--scale-ratio, 1)) calc(24px * var(--scale-ratio, 1)) calc(16px * var(--scale-ratio, 1));
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(135deg, #1F3A52 0%, #4A9FB8 100%);
+  padding: 20px 52px 20px 20px; /* 右侧增加padding，为关闭按钮预留空间 */
   color: white;
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
   position: relative;
 }
 
@@ -768,19 +770,19 @@ onUnmounted(() => {
 
 .header-icon {
   flex-shrink: 0;
-  width: calc(40px * var(--scale-ratio, 1));
-  height: calc(40px * var(--scale-ratio, 1));
-  background: rgba(255, 255, 255, 0.2);
-  border-radius: calc(12px * var(--scale-ratio, 1));
+  width: 40px;
+  height: 40px;
+  background: rgba(255, 255, 255, 0.15);
+  border-radius: 10px;
   display: flex;
   align-items: center;
   justify-content: center;
-  margin-left: calc(24px * var(--scale-ratio, 1));
+  margin-left: 0;
 }
 
 .header-icon svg {
-  width: calc(24px * var(--scale-ratio, 1));
-  height: calc(24px * var(--scale-ratio, 1));
+  width: 24px;
+  height: 24px;
 }
 
 .popup-header:not(.draggable-header) .header-icon {
@@ -830,7 +832,7 @@ onUnmounted(() => {
 }
 
 .ai-badge {
-  background: rgba(243, 104, 104, 0.9);
+  background: rgba(79, 172, 254, 0.3);
   color: white;
 }
 
@@ -842,9 +844,12 @@ onUnmounted(() => {
 /* 弹窗主体 */
 .popup-body {
   flex: 1;
+  padding: 20px;
   overflow-y: auto;
-  padding: calc(20px * var(--scale-ratio, 1)) calc(24px * var(--scale-ratio, 1));
-  background: #fafafa;
+  color: #2D2D2D;
+  font-size: 14px;
+  line-height: 1.7;
+  background: transparent;
   min-height: 0; /* 允许flex子元素正确收缩 */
 }
 
@@ -883,15 +888,15 @@ onUnmounted(() => {
 }
 
 .content-wrapper :deep(a) {
-  color: #667eea;
+  color: #4A9FB8;
   text-decoration: none;
-  border-bottom: 1px dotted #667eea;
-  transition: all 0.2s;
+  border-bottom: 2px solid #D4A574;
+  transition: all 0.3s ease;
 }
 
 .content-wrapper :deep(a:hover) {
-  color: #764ba2;
-  border-bottom-style: solid;
+  color: #1F3A52;
+  border-bottom-color: #4A9FB8;
 }
 
 .content-wrapper :deep(strong) {
@@ -987,21 +992,21 @@ onUnmounted(() => {
 
 /* 链接样式增强 */
 .content-wrapper :deep(a.card-link) {
-  color: #667eea;
+  color: #4A9FB8;
   text-decoration: none;
-  border-bottom: 1px solid #667eea;
+  border-bottom: 2px solid #D4A574;
   padding: calc(2px * var(--scale-ratio, 1));
   border-radius: calc(2px * var(--scale-ratio, 1));
-  background-color: rgba(102, 126, 234, 0.05);
-  transition: all 0.2s ease;
+  background-color: transparent;
+  transition: all 0.3s ease;
 }
 
 .content-wrapper :deep(a.card-link:hover) {
-  color: #fff;
-  background-color: #667eea;
-  border-bottom-color: #667eea;
+  color: #1F3A52;
+  border-bottom-color: #4A9FB8;
+  background-color: transparent;
   transform: translateY(calc(-0.5px * var(--scale-ratio, 1)));
-  box-shadow: 0 2px 4px rgba(102, 126, 234, 0.3);
+  box-shadow: none;
 }
 
 /* 表格样式 */
@@ -1023,7 +1028,7 @@ onUnmounted(() => {
 }
 
 .content-wrapper :deep(th) {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(135deg, #1F3A52 0%, #4A9FB8 100%);
   color: white;
   font-weight: 600;
 }
@@ -1098,22 +1103,23 @@ onUnmounted(() => {
 
 /* 弹窗底部 */
 .popup-footer {
+  padding: 16px 20px;
+  background: rgba(248, 247, 245, 0.8);
+  border-top: 1px solid rgba(212, 165, 116, 0.15);
   display: flex;
-  gap: calc(12px * var(--scale-ratio, 1));
-  padding: calc(16px * var(--scale-ratio, 1)) calc(24px * var(--scale-ratio, 1));
-  background: white;
-  border-top: 1px solid #e0e0e0;
+  justify-content: flex-end;
+  gap: 12px;
 }
 
 .action-btn {
-  flex: 1;
-  padding: calc(10px * var(--scale-ratio, 1)) calc(20px * var(--scale-ratio, 1));
+  padding: 10px 24px;
   border: none;
-  border-radius: calc(8px * var(--scale-ratio, 1));
-  font-size: calc(14px * var(--scale-ratio, 1));
-  font-weight: 500;
+  border-radius: 10px;
   cursor: pointer;
-  transition: all 0.2s;
+  font-weight: 600;
+  transition: all 0.3s ease;
+  flex: 1;
+  font-size: calc(14px * var(--scale-ratio, 1));
 }
 
 .secondary-btn {
@@ -1127,20 +1133,26 @@ onUnmounted(() => {
 }
 
 .primary-btn {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(135deg, #1F3A52 0%, #4A9FB8 100%);
   color: white;
+  box-shadow: 0 4px 12px rgba(31, 58, 82, 0.2);
 }
 
 .primary-btn:hover {
-  transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px rgba(74, 159, 184, 0.4);
 }
 
 /* 动画效果 */
-@keyframes slideIn {
+@keyframes fadeInOverlay {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes slideInPopup {
   from {
     opacity: 0;
-    transform: translateY(-20px) scale(0.95);
+    transform: translateY(20px) scale(0.95);
   }
   to {
     opacity: 1;
@@ -1151,14 +1163,12 @@ onUnmounted(() => {
 /* 过渡动画 */
 .popup-fade-enter-active,
 .popup-fade-leave-active {
-  transition: all 0.6s cubic-bezier(0.25, 1, 0.5, 1);
+  transition: all 0.3s ease;
 }
 
 .popup-fade-enter-from,
 .popup-fade-leave-to {
   opacity: 0;
-  transform: translateY(-40px) scale(0.9);
-  box-shadow: 0 0 0 rgba(0, 0, 0, 0.1);
 }
 
 /* 卡片位置变化过渡 */
@@ -1181,7 +1191,7 @@ onUnmounted(() => {
   }
   
   .popup-header {
-    padding: 20px 20px 12px;
+    padding: 20px 52px 12px 20px;
   }
   
   .popup-title {

@@ -182,6 +182,7 @@
             class="form-input"
           >
             <option value="rich_text">富文本</option>
+            <option value="text">文本</option>
             <option value="markdown">Markdown</option>
           </select>
         </div>

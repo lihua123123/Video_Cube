@@ -1,5 +1,12 @@
 <template>
   <div class="markdown-editor-wrapper">
+    <div class="editor-header">
+      <h3 class="editor-title">Markdown 编辑器</h3>
+      <div class="editor-controls">
+        <button class="control-btn" title="全屏编辑" @click="toggleFullScreen">⛶</button>
+        <button class="control-btn" title="清空内容" @click="clearContent">🗑️</button>
+      </div>
+    </div>
     <div ref="editorElement" class="markdown-editor"></div>
   </div>
 </template>
@@ -187,6 +194,27 @@ onBeforeUnmount(() => {
   }
 })
 
+// 全屏切换功能
+const toggleFullScreen = () => {
+  const wrapper = document.querySelector('.markdown-editor-wrapper') as HTMLElement;
+  if (!wrapper) return;
+  
+  if (document.fullscreenElement) {
+    document.exitFullscreen();
+  } else {
+    wrapper.requestFullscreen();
+  }
+};
+
+// 清空内容功能
+const clearContent = () => {
+  if (editorInstance) {
+    editorInstance.setMarkdown('', false);
+    emit('update:modelValue', '');
+    emit('change', '');
+  }
+};
+
 // 暴露方法给父组件使用
 defineExpose({
   getMarkdown: () => editorInstance?.getMarkdown() || '',
@@ -194,63 +222,101 @@ defineExpose({
   setMarkdown: (markdown: string) => editorInstance?.setMarkdown(markdown),
   insertText: (text: string) => editorInstance?.insertText(text),
   focus: () => editorInstance?.focus(),
+  toggleFullScreen,
+  clearContent,
 })
 </script>
 
 <style scoped>
 .markdown-editor-wrapper {
   width: 100%;
-  border: 1px solid #e5e7eb;
-  border-radius: 8px;
+  border-radius: 16px;
   overflow: hidden;
+  box-shadow: 0 4px 12px rgba(31, 58, 82, 0.12);
+  border: 1px solid rgba(212, 165, 116, 0.2);
+  background: white;
+}
+
+.editor-header {
+  padding: 16px 20px;
+  background: linear-gradient(135deg, #1F3A52 0%, #4A9FB8 100%);
+  color: white;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.editor-title {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.editor-controls {
+  display: flex;
+  gap: 8px;
+}
+
+.control-btn {
+  background: rgba(255, 255, 255, 0.15);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  color: white;
+  padding: 6px 12px;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  font-size: 14px;
+}
+
+.control-btn:hover {
+  background: rgba(255, 255, 255, 0.25);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
 }
 
 .markdown-editor {
   width: 100%;
+  min-height: 400px;
 }
 
-/* 自定义编辑器样式 */
 .markdown-editor-wrapper :deep(.toastui-editor-defaultUI) {
   border: none;
 }
 
 .markdown-editor-wrapper :deep(.toastui-editor-toolbar) {
-  background-color: #f9fafb;
-  border-bottom: 1px solid #e5e7eb;
-  padding: 8px;
+  background: linear-gradient(135deg, rgba(248, 247, 245, 0.8) 0%, rgba(212, 165, 116, 0.05) 100%);
+  border-bottom: 1px solid rgba(212, 165, 116, 0.15);
+  padding: 12px;
 }
 
 .markdown-editor-wrapper :deep(.toastui-editor-toolbar button) {
-  border-radius: 4px;
-  transition: background-color 0.2s;
+  border-radius: 8px;
+  transition: all 0.3s ease;
+  color: #1F3A52;
 }
 
 .markdown-editor-wrapper :deep(.toastui-editor-toolbar button:hover) {
-  background-color: #e5e7eb;
+  background-color: #D4A574;
+  color: white;
+  transform: translateY(-2px);
 }
 
 .markdown-editor-wrapper :deep(.toastui-editor-main-container) {
-  background-color: #ffffff;
+  background-color: white;
 }
 
 .markdown-editor-wrapper :deep(.toastui-editor-md-container) {
-  background-color: #ffffff;
+  background: linear-gradient(to right, white, rgba(74, 159, 184, 0.02));
 }
 
 .markdown-editor-wrapper :deep(.toastui-editor-md-preview) {
-  background-color: #f9fafb;
+  background: linear-gradient(to left, white, rgba(212, 165, 116, 0.02));
+  padding: 20px;
 }
 
 .markdown-editor-wrapper :deep(.ProseMirror) {
-  padding: 16px;
-  font-size: 14px;
-  line-height: 1.6;
-}
-
-.markdown-editor-wrapper :deep(.toastui-editor-md-preview) {
-  padding: 16px;
-  font-size: 14px;
-  line-height: 1.6;
+  padding: 20px;
+  font-size: 15px;
+  line-height: 1.8;
 }
 
 /* Markdown 预览样式优化 */

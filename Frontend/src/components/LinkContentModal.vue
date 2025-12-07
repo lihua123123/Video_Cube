@@ -16,9 +16,7 @@
             </svg>
           </button>
           <div class="drag-handle" title="拖动移动窗口">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
-              <path d="M9 3h2v2H9V3zm4 0h2v2h-2V3zM9 7h2v2H9V7zm4 0h2v2h-2V7zm-4 4h2v2H9v-2zm4 0h2v2h-2v-2zm-4 4h2v2H9v-2zm4 0h2v2h-2v-2zm-4 4h2v2H9v-2zm4 0h2v2h-2v-2z"/>
-            </svg>
+            ⋮⋮
           </div>
           <div class="link-modal-title">{{ title || '链接内容' }}</div>
         </div>
@@ -30,27 +28,27 @@
       </div>
       
       <!-- 加载状态 -->
-      <div v-if="isLoading" class="loading-content">
-        <div class="loading-spinner"></div>
-        <div class="loading-text">正在加载内容...</div>
-      </div>
-      
-      <!-- 错误状态 -->
-      <div v-else-if="error" class="error-content">
-        <div class="error-icon">⚠️</div>
-        <div class="error-message">{{ error }}</div>
-        <button class="retry-button" @click="loadLinkContent">重试</button>
-      </div>
-      
-      <!-- 内容区域 -->
-      <div v-else class="link-modal-content">
-        <!-- 内容头部 -->
-        <div class="content-header">
-          <div class="link-info">
-            <div class="link-url-label">链接地址:</div>
-            <div class="link-url">{{ safeUrl || '内部链接' }}</div>
-          </div>
-          <div class="content-actions">
+      <transition name="content-fade" mode="out-in">
+        <div v-if="isLoading" class="loading-content" key="loading">
+          <div class="loading-spinner"></div>
+          <div class="loading-text">正在加载内容...</div>
+        </div>
+        
+        <!-- 错误状态 -->
+        <div v-else-if="error" class="error-content" key="error">
+          <div class="error-icon">⚠️</div>
+          <div class="error-message">{{ error }}</div>
+          <button class="retry-button" @click="loadLinkContent">重试</button>
+        </div>
+        
+        <!-- 内容区域 -->
+        <div v-else class="link-modal-content" key="content">
+          <!-- 内容头部 -->
+          <div class="content-header">
+            <div class="link-info">
+              <div class="link-url-label">链接地址:</div>
+              <div class="link-url">{{ safeUrl || '内部链接' }}</div>
+            </div>
             <button 
               class="external-link-btn" 
               @click="openExternal" 
@@ -63,35 +61,35 @@
               在新窗口打开
             </button>
           </div>
-        </div>
-        
-        <!-- 主体内容 -->
-        <div class="content-body" v-html="content"></div>
-        
-        <!-- 提示信息 -->
-        <div class="content-hint">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
-            <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z"/>
-          </svg>
-          <span>如果页面加载失败或显示不完整,请点击"在新窗口打开"按钮查看完整内容</span>
-        </div>
-        
-        <!-- 相关知识卡片推荐 -->
-        <div v-if="relatedCards && relatedCards.length > 0" class="related-cards">
-          <h3 class="related-title">相关知识卡片</h3>
-          <div class="related-cards-list">
-            <div 
-              v-for="card in relatedCards" 
-              :key="card.id"
-              class="related-card-item"
-              @click="handleRelatedCardClick(card)"
-            >
-              <div class="card-item-title">{{ card.title }}</div>
-              <div class="card-item-time">{{ formatTimeRange(card.startTime, card.endTime) }}</div>
+          
+          <!-- 主体内容 -->
+          <div class="content-body" v-html="content"></div>
+          
+          <!-- 提示信息 -->
+          <div class="content-hint">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+              <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z"/>
+            </svg>
+            <span>如果页面加载失败或显示不完整,请点击"在新窗口打开"按钮查看完整内容</span>
+          </div>
+          
+          <!-- 相关知识卡片推荐 -->
+          <div v-if="relatedCards && relatedCards.length > 0" class="related-cards">
+            <h3 class="related-title">相关知识卡片</h3>
+            <div class="related-cards-list">
+              <div 
+                v-for="card in relatedCards" 
+                :key="card.id"
+                class="related-card-item"
+                @click="handleRelatedCardClick(card)"
+              >
+                <div class="card-item-title">{{ card.title }}</div>
+                <div class="card-item-time">{{ formatTimeRange(card.startTime, card.endTime) }}</div>
+              </div>
             </div>
           </div>
         </div>
-      </div>
+      </transition>
       
       <!-- 底部操作区 -->
       <div class="link-modal-footer">
@@ -248,11 +246,10 @@ const sanitizeHtml = (html: string): string => {
   // 简单的过滤示例
   const div = document.createElement('div');
   div.textContent = html;
-  let cleanHtml = div.innerHTML;
+  const cleanHtml = div.innerHTML;
   
   // 允许的标签和属性白名单（简化版）
-  const allowedTags = ['h1', 'h2', 'h3', 'p', 'span', 'strong', 'em', 'br', 'ul', 'ol', 'li', 'blockquote', 'img', 'a'];
-  const allowedAttrs = ['src', 'alt', 'href', 'target', 'rel'];
+  // 注意：这些变量在当前实现中未使用，实际应用中应使用专门的HTML清理库
   
   // 实际应用中应使用专门的HTML清理库
   // 这里仅作为演示，返回处理后的内容
@@ -494,28 +491,27 @@ onUnmounted(() => {
   left: 0;
   right: 0;
   bottom: 0;
-  background-color: rgba(0, 0, 0, 0.5);
+  background: linear-gradient(135deg, rgba(31, 58, 82, 0.4) 0%, rgba(74, 159, 184, 0.2) 100%);
   display: flex;
   align-items: center;
   justify-content: center;
   z-index: 2000;
-  animation: fadeIn 0.2s ease-out;
-  pointer-events: none; /* 关键:让overlay不捕获鼠标事件,避免缩放时意外关闭 */
+  animation: fadeInOverlay 0.4s ease;
 }
 
 /* 弹窗容器 */
 .link-modal-container {
-  background: white;
-  border-radius: 12px;
-  width: 900px;
-  height: 600px;
+  background: linear-gradient(135deg, #ffffff 0%, #f8f7f5 100%);
+  border-radius: 18px;
+  width: 92%;
+  max-width: 900px;
+  height: 75vh;
   display: flex;
   flex-direction: column;
-  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.15);
-  animation: slideIn 0.3s ease-out;
+  box-shadow: 0 25px 60px rgba(31, 58, 82, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.6);
+  animation: slideUpScale 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+  border: 1px solid rgba(212, 165, 116, 0.3);
   overflow: hidden;
-  transition: box-shadow 0.2s ease;
-  pointer-events: auto; /* 让模态框本身可以接收鼠标事件 */
 }
 
 /* 头部 */
@@ -523,11 +519,10 @@ onUnmounted(() => {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 16px 24px;
-  border-bottom: 1px solid #e0e0e0;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  padding: 18px 24px;
+  background: linear-gradient(135deg, #1F3A52 0%, #4A9FB8 100%);
   color: white;
-  cursor: move;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
 }
 
 .header-left {
@@ -538,106 +533,70 @@ onUnmounted(() => {
   min-width: 0;
 }
 
-.link-modal-title {
-  font-size: 18px;
-  font-weight: 600;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-.link-modal-close {
-  background: none;
-  border: none;
-  color: white;
-  padding: 4px;
-  cursor: pointer;
-  border-radius: 4px;
-  transition: background-color 0.2s;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.link-modal-close:hover {
-  background-color: rgba(255, 255, 255, 0.2);
-}
-
-/* 返回按钮 */
 .back-btn {
-  background: none;
-  border: none;
+  background: rgba(255, 255, 255, 0.15);
+  border: 1px solid rgba(255, 255, 255, 0.2);
   color: white;
-  padding: 4px;
+  width: 36px;
+  height: 36px;
+  border-radius: 8px;
   cursor: pointer;
-  border-radius: 4px;
-  transition: all 0.2s;
   display: flex;
   align-items: center;
   justify-content: center;
+  transition: all 0.3s ease;
   flex-shrink: 0;
 }
 
 .back-btn:hover {
-  background-color: rgba(255, 255, 255, 0.2);
+  background: rgba(255, 255, 255, 0.25);
   transform: translateX(-2px);
 }
 
-.back-btn:active {
-  transform: translateX(-4px);
+.back-btn svg {
+  width: 18px;
+  height: 18px;
 }
 
-/* 内容区域 */
-.link-modal-content {
-  flex: 1;
-  overflow-y: auto;
-  padding: 0;
-  display: flex;
-  flex-direction: column;
-}
-
-/* 内容头部 */
-.content-header {
-  padding: 12px 24px;
-  border-bottom: 1px solid #e0e0e0;
-  background-color: #fafafa;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  flex-wrap: wrap;
-  gap: 12px;
+.drag-handle {
+  opacity: 0.5;
+  cursor: move;
+  font-size: 12px;
   flex-shrink: 0;
 }
 
-.link-info {
+.link-modal-title {
+  font-size: 18px;
+  font-weight: 700;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
   flex: 1;
-  min-width: 200px;
+}
+
+.link-modal-close {
+  background: rgba(255, 255, 255, 0.15);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  color: white;
+  width: 36px;
+  height: 36px;
+  border-radius: 8px;
+  cursor: pointer;
   display: flex;
   align-items: center;
-  gap: 8px;
+  justify-content: center;
+  transition: all 0.3s ease;
+  flex-shrink: 0;
 }
 
-.link-url-label {
-  font-size: 13px;
-  color: #666;
-  font-weight: 500;
-  white-space: nowrap;
+.link-modal-close:hover {
+  background: rgba(255, 255, 255, 0.25);
+  transform: rotate(90deg) scale(1.1);
 }
 
-.link-url {
-  font-size: 12px;
-  color: #667eea;
-  word-break: break-all;
-  font-family: 'Courier New', Courier, monospace;
-  background: white;
-  padding: 4px 8px;
-  border-radius: 4px;
-  border: 1px solid #e0e0e0;
-}
-
-.content-actions {
-  display: flex;
-  gap: 8px;
+.link-modal-close svg {
+  width: 20px;
+  height: 20px;
 }
 
 /* 拖动状态 */
@@ -664,64 +623,138 @@ onUnmounted(() => {
   user-select: none;
 }
 
-/* 拖动手柄 */
-.drag-handle {
-  opacity: 0.6;
-  transition: opacity 0.3s;
-  cursor: move;
+/* 加载状态 */
+.loading-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  flex: 1;
+  gap: 16px;
+}
+
+.loading-spinner {
+  width: 48px;
+  height: 48px;
+  border: 3px solid rgba(74, 159, 184, 0.2);
+  border-top-color: #4A9FB8;
+  border-radius: 50%;
+  animation: spinSmooth 1.2s ease-in-out infinite;
+}
+
+.loading-text {
+  color: #4A9FB8;
+  font-size: 14px;
+  font-weight: 500;
+}
+
+/* 错误状态 */
+.error-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  flex: 1;
+  gap: 16px;
+  padding: 40px;
+}
+
+.error-icon {
+  font-size: 48px;
+}
+
+.error-message {
+  color: #C82333;
+  text-align: center;
+  max-width: 400px;
+}
+
+.retry-button {
+  background: linear-gradient(135deg, #D4A574 0%, #C89564 100%);
+  color: white;
+  border: none;
+  padding: 10px 24px;
+  border-radius: 10px;
+  cursor: pointer;
+  font-weight: 600;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 12px rgba(212, 165, 116, 0.2);
+}
+
+.retry-button:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px rgba(212, 165, 116, 0.3);
+}
+
+/* 内容区域 */
+.link-modal-content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+/* 内容头部 */
+.content-header {
+  padding: 16px 24px;
+  background: rgba(248, 247, 245, 0.8);
+  border-bottom: 1px solid rgba(212, 165, 116, 0.15);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 16px;
   flex-shrink: 0;
 }
 
-.link-modal-header:hover .drag-handle {
-  opacity: 1;
-}
-
-/* 缩放手柄 */
-.resize-handle {
-  position: absolute;
-  bottom: 0;
-  right: 0;
-  width: 20px;
-  height: 20px;
-  cursor: nwse-resize;
-  z-index: 1000;
+.link-info {
+  flex: 1;
   display: flex;
-  align-items: flex-end;
-  justify-content: flex-end;
-  padding: 2px;
-  opacity: 0.3;
-  transition: opacity 0.3s;
+  align-items: center;
+  gap: 8px;
 }
 
-.resize-handle:hover {
-  opacity: 0.8;
+.link-url-label {
+  font-size: 13px;
+  color: #8B8680;
+  font-weight: 600;
+  white-space: nowrap;
 }
 
-.resize-handle svg {
-  width: 16px;
-  height: 16px;
-  color: #666;
+.link-url {
+  font-size: 12px;
+  color: #4A9FB8;
+  word-break: break-all;
+  font-family: 'Courier New', Courier, monospace;
+  background: white;
+  padding: 6px 10px;
+  border-radius: 6px;
+  border: 1px solid rgba(212, 165, 116, 0.2);
+}
+
+.content-actions {
+  display: flex;
+  gap: 8px;
 }
 
 .external-link-btn {
   display: flex;
   align-items: center;
-  gap: 6px;
-  padding: 6px 12px;
-  background: white;
-  border: 1px solid #667eea;
-  border-radius: 6px;
-  color: #667eea;
+  gap: 8px;
+  padding: 8px 16px;
+  background: linear-gradient(135deg, #4A9FB8 0%, #1F3A52 100%);
+  border: none;
+  border-radius: 8px;
+  color: white;
   font-size: 13px;
   cursor: pointer;
-  transition: all 0.2s;
+  font-weight: 600;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 12px rgba(74, 159, 184, 0.2);
 }
 
 .external-link-btn:hover:not(:disabled) {
-  background-color: #667eea;
-  color: white;
-  transform: translateY(-1px);
-  box-shadow: 0 2px 8px rgba(102, 126, 234, 0.3);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 20px rgba(74, 159, 184, 0.3);
 }
 
 .external-link-btn:disabled {
@@ -729,16 +762,31 @@ onUnmounted(() => {
   cursor: not-allowed;
 }
 
+.external-link-btn svg {
+  width: 14px;
+  height: 14px;
+}
+
 /* 主体内容 */
 .content-body {
   flex: 1;
-  padding: 0;
-  overflow: hidden;
+  padding: 24px;
+  overflow-y: auto;
+  color: #2D2D2D;
   font-size: 15px;
-  line-height: 1.7;
-  color: #333;
-  display: flex;
-  flex-direction: column;
+  line-height: 1.8;
+}
+
+.content-body a {
+  color: #4A9FB8;
+  text-decoration: none;
+  border-bottom: 2px solid #D4A574;
+  transition: all 0.3s ease;
+}
+
+.content-body a:hover {
+  color: #1F3A52;
+  border-bottom-color: #4A9FB8;
 }
 
 /* iframe容器 */
@@ -771,13 +819,13 @@ onUnmounted(() => {
   width: 40px;
   height: 40px;
   border: 3px solid #f3f3f3;
-  border-top: 3px solid #667eea;
+  border-top: 3px solid #4A9FB8;
   border-radius: 50%;
-  animation: spin 1s linear infinite;
+  animation: spinSmooth 1s linear infinite;
 }
 
 :deep(.iframe-loading .loading-text) {
-  color: #667eea;
+  color: #4A9FB8;
   font-size: 14px;
 }
 
@@ -831,7 +879,7 @@ onUnmounted(() => {
 .content-body blockquote {
   margin: 16px 0;
   padding: 12px 16px;
-  border-left: 4px solid #667eea;
+  border-left: 4px solid #4A9FB8;
   background-color: #f8f9ff;
   color: #555;
   font-style: italic;
@@ -844,20 +892,30 @@ onUnmounted(() => {
   margin: 16px 0;
 }
 
-.content-body a {
-  color: #667eea;
-  text-decoration: none;
-  border-bottom: 1px dotted #667eea;
+/* 提示信息 */
+.content-hint {
+  padding: 16px 24px;
+  background: linear-gradient(135deg, rgba(74, 159, 184, 0.08) 0%, rgba(212, 165, 116, 0.05) 100%);
+  border-top: 1px solid rgba(212, 165, 116, 0.15);
+  color: #8B8680;
+  font-size: 12px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
 }
 
-.content-body a:hover {
-  border-bottom-style: solid;
+.content-hint svg {
+  width: 16px;
+  height: 16px;
+  flex-shrink: 0;
+  color: #4A9FB8;
 }
 
-/* 相关知识卡片 */
+/* 相关知识卡片推荐 */
 .related-cards {
   padding: 24px;
-  border-top: 1px solid #f0f0f0;
+  border-top: 1px solid rgba(212, 165, 116, 0.15);
   background-color: #fafafa;
 }
 
@@ -876,7 +934,7 @@ onUnmounted(() => {
 .related-card-item {
   padding: 12px 16px;
   background: white;
-  border: 1px solid #e0e0e0;
+  border: 1px solid rgba(212, 165, 116, 0.2);
   border-radius: 8px;
   cursor: pointer;
   transition: all 0.2s;
@@ -904,139 +962,102 @@ onUnmounted(() => {
   font-family: 'Courier New', Courier, monospace;
 }
 
-/* 加载状态 */
-.loading-content {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  padding: 60px 24px;
-  gap: 16px;
-}
-
-.loading-spinner {
-  width: 40px;
-  height: 40px;
-  border: 3px solid #f3f3f3;
-  border-top: 3px solid #667eea;
-  border-radius: 50%;
-  animation: spin 1s linear infinite;
-}
-
-.loading-text {
-  color: #667eea;
-  font-size: 14px;
-}
-
-/* 错误状态 */
-.error-content {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  padding: 60px 24px;
-  gap: 16px;
-  text-align: center;
-}
-
-.error-icon {
-  font-size: 48px;
-}
-
-.error-message {
-  color: #e74c3c;
-  font-size: 16px;
-  max-width: 400px;
-}
-
-.retry-button {
-  padding: 8px 16px;
-  background-color: #667eea;
-  color: white;
-  border: none;
-  border-radius: 6px;
-  cursor: pointer;
-  font-size: 14px;
-  transition: background-color 0.2s;
-}
-
-.retry-button:hover {
-  background-color: #764ba2;
-}
-
-/* 提示信息 */
-.content-hint {
-  padding: 12px 24px;
-  background: #fff9e6;
-  border-top: 1px solid #ffe7a0;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  font-size: 12px;
-  color: #856404;
-  flex-shrink: 0;
-}
-
-.content-hint svg {
-  flex-shrink: 0;
-  color: #ffc107;
-}
-
-/* 底部 */
+/* 底部操作区 */
 .link-modal-footer {
   padding: 16px 24px;
-  border-top: 1px solid #e0e0e0;
+  background: rgba(248, 247, 245, 0.8);
+  border-top: 1px solid rgba(212, 165, 116, 0.15);
   display: flex;
   justify-content: flex-end;
-  gap: 12px;
-  background-color: #fafafa;
   flex-shrink: 0;
 }
 
 .primary-button {
-  padding: 10px 24px;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(135deg, #1F3A52 0%, #4A9FB8 100%);
   color: white;
   border: none;
-  border-radius: 6px;
-  font-size: 14px;
-  font-weight: 500;
+  padding: 10px 28px;
+  border-radius: 10px;
   cursor: pointer;
-  transition: all 0.2s;
+  font-weight: 600;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 12px rgba(31, 58, 82, 0.2);
 }
 
 .primary-button:hover {
-  transform: translateY(-1px);
-  box-shadow: 0 2px 8px rgba(102, 126, 234, 0.4);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px rgba(74, 159, 184, 0.4);
+}
+
+/* 调整尺寸手柄 */
+.resize-handle {
+  position: absolute;
+  bottom: 0;
+  right: 0;
+  width: 20px;
+  height: 20px;
+  cursor: nwse-resize;
+  z-index: 1000;
+  display: flex;
+  align-items: flex-end;
+  justify-content: flex-end;
+  padding: 2px;
+  opacity: 0.3;
+  transition: opacity 0.3s;
+}
+
+.resize-handle:hover {
+  opacity: 0.8;
+}
+
+.resize-handle svg {
+  width: 16px;
+  height: 16px;
+  color: #666;
 }
 
 /* 动画效果 */
-@keyframes fadeIn {
+@keyframes fadeInOverlay {
   from { opacity: 0; }
   to { opacity: 1; }
 }
 
-@keyframes slideIn {
+@keyframes slideUpScale {
   from {
     opacity: 0;
-    transform: translateY(-20px);
+    transform: translateY(40px) scale(0.92);
   }
   to {
     opacity: 1;
-    transform: translateY(0);
+    transform: translateY(0) scale(1);
   }
 }
 
-@keyframes spin {
-  0% { transform: rotate(0deg); }
-  100% { transform: rotate(360deg); }
+@keyframes spinSmooth {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+.content-fade-enter-active,
+.content-fade-leave-active {
+  transition: opacity 0.3s ease, transform 0.3s ease;
+}
+
+.content-fade-enter-from {
+  opacity: 0;
+  transform: translateY(-10px);
+}
+
+.content-fade-leave-to {
+  opacity: 0;
+  transform: translateY(10px);
 }
 
 /* 文档内容样式 */
 :deep(.document-content) {
   h2 {
-    color: #667eea;
-    border-bottom: 2px solid #667eea;
+    color: #4A9FB8;
+    border-bottom: 2px solid #4A9FB8;
     padding-bottom: 8px;
   }
 }
@@ -1050,7 +1071,7 @@ onUnmounted(() => {
     padding: 16px;
     background-color: #f8f9ff;
     border-radius: 8px;
-    border-left: 4px solid #667eea;
+    border-left: 4px solid #4A9FB8;
   }
   
   .related-info {
@@ -1058,7 +1079,7 @@ onUnmounted(() => {
   }
   
   .related-info h3 {
-    color: #667eea;
+    color: #4A9FB8;
     margin-bottom: 12px;
   }
 }

@@ -466,31 +466,32 @@
               </svg>
               卡片预览
             </label>
-            <div class="knowledge-card-preview">
-              <!-- 卡片头部 -->
-              <div class="preview-header">
-                <div class="preview-header-icon">
+            <div class="knowledge-card-preview knowledge-card-popup size-medium">
+              <!-- 卡片头部 - 与弹窗卡片保持一致 -->
+              <div class="popup-header">
+                <div class="header-icon">
                   <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
                     <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
                   </svg>
                 </div>
-                <div class="preview-header-content">
-                  <h3 class="preview-card-title">{{ cardTitle || '卡片标题' }}</h3>
-                  <div class="preview-meta">
-                    <span class="preview-time-badge">
+                <div class="header-content">
+                  <h3 class="popup-title">{{ cardTitle || '卡片标题' }}</h3>
+                  <div class="popup-meta">
+                    <span class="popup-time">
                       <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
                         <path d="M11.99 2C6.47 2 2 6.48 2 12s4.47 10 9.99 10C17.52 22 22 17.52 22 12S17.52 2 11.99 2zM12 20c-4.42 0-8-3.58-8-8s3.59-8 8-8 8 3.58 8 8-3.58 8-8 8z"/>
                         <path d="M12.5 7H11v6l5.25 3.15.75-1.23-4.5-2.67z"/>
                       </svg>
                       {{ formatTimeRange(cardStartTime, cardEndTime) }}
                     </span>
-                    <span class="preview-type-badge">富文本</span>
+                    <span class="popup-type">富文本</span>
                   </div>
                 </div>
               </div>
-              <!-- 卡片内容 -->
-              <div class="preview-body">
-                <div class="preview-content-wrapper" ref="previewWrapper" v-html="formatContent(cardContent)"></div>
+              
+              <!-- 卡片内容 - 与弹窗卡片保持一致 -->
+              <div class="popup-content">
+                <div class="content-wrapper" ref="previewWrapper" v-html="formatContent(cardContent)"></div>
               </div>
             </div>
           </div>
@@ -1657,6 +1658,13 @@ const formatTimeRange = (start: number, end: number): string => {
   }
   
   return `${formatTime(start)} - ${formatTime(end)}`
+}
+
+// 格式化卡片时间（与实际卡片保持一致）
+const formatCardTime = (seconds: number): string => {
+  const mins = Math.floor(seconds / 60)
+  const secs = Math.floor(seconds % 60)
+  return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`
 }
 
 // 格式化内容 - 使用 Markdown 渲染
@@ -3347,9 +3355,11 @@ onMounted(async () => {
 }
 
 .knowledge-card-preview {
-  background: white;
+  position: relative;
+  background: linear-gradient(135deg, #ffffff 0%, #f8f7f5 100%);
   border-radius: 16px;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+  box-shadow: 0 10px 40px rgba(31, 58, 82, 0.08);
+  border: 1px solid rgba(212, 165, 116, 0.15);
   overflow: hidden;
   max-width: 100%;
   animation: slideIn 0.3s ease-out;
@@ -3366,35 +3376,14 @@ onMounted(async () => {
   }
 }
 
-/* 预览卡片头部 */
+/* 预览卡片头部 - 与实际卡片保持一致 */
 .knowledge-card-preview .preview-header {
-  display: flex;
-  align-items: flex-start;
-  gap: 12px;
-  padding: 20px;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(135deg, #1F3A52 0%, #4A9FB8 100%);
+  padding: 16px 20px;
   color: white;
-}
-
-.preview-header-icon {
-  flex-shrink: 0;
-  width: 36px;
-  height: 36px;
-  background: rgba(255, 255, 255, 0.2);
-  border-radius: 10px;
   display: flex;
+  justify-content: space-between;
   align-items: center;
-  justify-content: center;
-}
-
-.preview-header-icon svg {
-  width: 20px;
-  height: 20px;
-}
-
-.preview-header-content {
-  flex: 1;
-  min-width: 0;
 }
 
 .preview-card-title {
@@ -3421,11 +3410,9 @@ onMounted(async () => {
   padding: 4px 10px;
   border-radius: 12px;
   font-weight: 500;
-}
-
-.preview-time-badge {
   background: rgba(255, 255, 255, 0.25);
   color: white;
+  font-size: 0.75rem;
 }
 
 .preview-time-badge svg {
@@ -3435,15 +3422,277 @@ onMounted(async () => {
 
 .preview-type-badge {
   background: rgba(255, 255, 255, 0.2);
+}
+
+/* 移除不再使用的样式 */
+.preview-header-icon,
+.preview-header-content {
+  display: none;
+}
+
+/* 弹窗卡片预览样式 - 与KnowledgeCardPopup.vue保持一致 */
+.knowledge-card-popup {
+  position: relative;
+  background: linear-gradient(135deg, #ffffff 0%, #f8f7f5 100%);
+  border-radius: 16px;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 20px 60px rgba(31, 58, 82, 0.3);
+  border: 1px solid rgba(212, 165, 116, 0.3);
+  animation: slideInPopup 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+  overflow: hidden;
+  --scale-ratio: 1;
+  pointer-events: auto;
+}
+
+@keyframes slideInPopup {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* 尺寸样式 - 调整宽度以适应编辑框 */
+.size-small {
+  width: 320px;
+}
+
+/* 修改为与markdown编辑器宽度一致 */
+.size-medium {
+  width: 100%;
+  max-width: none;
+}
+
+.size-large {
+  width: 540px;
+}
+
+/* 确保卡片预览占满容器宽度 */
+.knowledge-card-preview {
+  width: 100%;
+}
+
+/* 确保内容区域占满宽度 */
+.popup-content {
+  width: 100%;
+  box-sizing: border-box;
+}
+
+/* 确保内容包装器占满宽度 */
+.content-wrapper {
+  width: 100%;
+  box-sizing: border-box;
+}
+
+/* 弹窗头部样式 */
+.popup-header {
+  background: linear-gradient(135deg, #1F3A52 0%, #4A9FB8 100%);
+  padding: 20px 20px;
+  color: white;
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+  position: relative;
+}
+
+.header-icon {
+  flex-shrink: 0;
+  width: 40px;
+  height: 40px;
+  background: rgba(255, 255, 255, 0.15);
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-left: 0;
+}
+
+.header-icon svg {
+  width: 24px;
+  height: 24px;
+}
+
+.header-content {
+  flex: 1;
+  min-width: 0;
+}
+
+.popup-title {
+  font-size: 18px;
+  font-weight: 600;
+  margin: 0 0 8px 0;
+  line-height: 1.3;
   color: white;
 }
 
-/* 预览卡片内容 */
-.preview-body {
+.popup-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+  font-size: 12px;
+}
+
+.popup-time,
+.popup-type {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 10px;
+  border-radius: 12px;
+  font-weight: 500;
+  background: rgba(255, 255, 255, 0.25);
+  color: white;
+}
+
+.popup-time svg {
+  width: 14px;
+  height: 14px;
+}
+
+.popup-type {
+  background: rgba(255, 255, 255, 0.2);
+}
+
+/* 弹窗内容样式 */
+.popup-content {
+  flex: 1;
   padding: 20px;
-  background: #fafafa;
+  overflow-y: auto;
+  color: #2D2D2D;
+  font-size: 14px;
+  line-height: 1.7;
+  background: transparent;
+  min-height: 0;
+}
+
+.content-wrapper {
+  font-size: 14px;
+  line-height: 1.8;
+  color: #333;
+  word-break: break-word;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+/* 内容样式 - 与弹窗卡片保持一致 */
+.content-wrapper h1,
+.content-wrapper h2,
+.content-wrapper h3 {
+  margin-top: 16px;
+  margin-bottom: 8px;
+  color: #222;
+  font-weight: 600;
+}
+
+.content-wrapper h1 {
+  font-size: 20px;
+}
+
+.content-wrapper h2 {
+  font-size: 18px;
+}
+
+.content-wrapper h3 {
+  font-size: 16px;
+}
+
+.content-wrapper p {
+  margin: 8px 0;
+}
+
+.content-wrapper a {
+  color: #4A9FB8;
+  text-decoration: none;
+  border-bottom: 2px solid #D4A574;
+  transition: all 0.3s ease;
+}
+
+.content-wrapper a:hover {
+  color: #1F3A52;
+  border-bottom-color: #4A9FB8;
+}
+
+.content-wrapper strong {
+  font-weight: 600;
+  color: #222;
+}
+
+.content-wrapper em {
+  font-style: italic;
+}
+
+.content-wrapper code {
+  background: rgba(102, 126, 234, 0.1);
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-family: 'Courier New', monospace;
+  font-size: 13px;
+}
+
+.content-wrapper pre {
+  background: #282c34;
+  color: #abb2bf;
+  padding: 16px;
+  border-radius: 8px;
+  overflow-x: auto;
+  margin: 12px 0;
+  max-width: 100%;
+  box-sizing: border-box;
+  font-size: 13px;
+}
+
+.content-wrapper ul,
+.content-wrapper ol {
+  margin: 8px 0;
+  padding-left: 24px;
+}
+
+.content-wrapper li {
+  margin: 4px 0;
+}
+
+.content-wrapper blockquote {
+  border-left: 4px solid #667eea;
+  padding: 12px 16px;
+  margin: 12px 0;
+  color: #555;
+  font-style: italic;
+  background: linear-gradient(90deg, rgba(102, 126, 234, 0.05), transparent);
+  border-radius: 4px;
+  max-width: 100%;
+  box-sizing: border-box;
+}
+
+.content-wrapper img {
+  max-width: 100%;
+  width: auto;
+  height: auto;
+  display: block;
+  margin: 12px auto;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  cursor: zoom-in;
+  transition: transform 0.2s, box-shadow 0.2s;
+  object-fit: contain;
+  max-height: 300px;
+}
+
+.content-wrapper img:hover {
+  transform: scale(1.02);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+/* 预览卡片内容 - 与实际卡片保持一致 */
+.preview-body {
+  padding: 0 20px 16px;
   max-height: 400px;
   overflow-y: auto;
+  background: transparent;
 }
 
 .preview-content-wrapper {
@@ -3451,6 +3700,8 @@ onMounted(async () => {
   line-height: 1.8;
   color: #333;
   word-break: break-word;
+  width: 100%;
+  box-sizing: border-box;
 }
 
 .preview-content-wrapper h1,
@@ -3479,15 +3730,21 @@ onMounted(async () => {
 }
 
 .preview-content-wrapper a {
-  color: #667eea;
+  color: #4A9FB8;
   text-decoration: none;
-  border-bottom: 1px dotted #667eea;
-  transition: all 0.2s;
+  border-bottom: 2px solid #D4A574;
+  padding: 2px;
+  border-radius: 2px;
+  background-color: transparent;
+  transition: all 0.3s ease;
+  cursor: pointer;
 }
 
 .preview-content-wrapper a:hover {
-  color: #764ba2;
-  border-bottom-style: solid;
+  color: #1F3A52;
+  border-bottom-color: #4A9FB8;
+  background-color: transparent;
+  transform: translateY(-0.5px);
 }
 
 .preview-content-wrapper strong {
@@ -3502,49 +3759,50 @@ onMounted(async () => {
 
 .preview-content-wrapper code {
   background: rgba(102, 126, 234, 0.1);
-  color: #667eea;
   padding: 2px 6px;
   border-radius: 4px;
-  font-family: 'Courier New', Courier, monospace;
-  font-size: 0.9em;
+  font-family: 'Courier New', monospace;
+  font-size: 13px;
 }
 
 .preview-content-wrapper pre {
-  background: #2d2d2d;
-  color: #f8f8f2;
+  background: #282c34;
+  color: #abb2bf;
   padding: 16px;
   border-radius: 8px;
   overflow-x: auto;
-  margin: 16px 0;
+  margin: 12px 0;
+  max-width: 100%;
+  box-sizing: border-box;
+  font-size: 13px;
 }
 
 .preview-content-wrapper pre code {
   background: none;
   color: inherit;
   padding: 0;
-  font-size: 13px;
-  line-height: 1.5;
 }
 
 .preview-content-wrapper blockquote {
   border-left: 4px solid #667eea;
-  padding-left: 16px;
-  margin: 16px 0;
-  color: #666;
-  font-style: italic;
-  background: rgba(102, 126, 234, 0.05);
   padding: 12px 16px;
+  margin: 12px 0;
+  color: #555;
+  font-style: italic;
+  background: linear-gradient(90deg, rgba(102, 126, 234, 0.05), transparent);
   border-radius: 4px;
+  max-width: 100%;
+  box-sizing: border-box;
 }
 
 .preview-content-wrapper ul,
 .preview-content-wrapper ol {
-  margin: 12px 0;
+  margin: 8px 0;
   padding-left: 24px;
 }
 
 .preview-content-wrapper li {
-  margin: 6px 0;
+  margin: 4px 0;
   line-height: 1.6;
 }
 
@@ -3553,14 +3811,14 @@ onMounted(async () => {
   max-width: 100%;
   width: auto;
   height: auto;
-  border-radius: 8px;
-  margin: 16px auto;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
   display: block;
-  max-height: 400px;
-  object-fit: contain;
+  margin: 12px auto;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
   cursor: zoom-in;
   transition: transform 0.2s, box-shadow 0.2s;
+  object-fit: contain;
+  max-height: 200px;
 }
 
 .preview-content-wrapper img:hover,
