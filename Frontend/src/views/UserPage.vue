@@ -465,7 +465,8 @@
     <div class="video-action-buttons premium-actions">
         <button @click="openVideoLibrary" class="premium-action-btn library-btn">
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" style="margin-right: 2px; vertical-align: middle;">
-            <path d="M4 19.5v-15A2.5 2.5 0 016.5 2H20v20H6.5A2.5 2.5 0 014 19.5zM18 6H8v2h10V6zm0 4H8v2h10v-2zm0 4H8v2h10v-2z" />
+            <path d="M21 6H3v12h18V6zM3 4h18a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2z"/>
+            <path d="M8 8h8M8 12h8M8 16h5"/>
           </svg>视频库
         </button>
         <button @click="saveProject" class="premium-action-btn save-btn">保存项目</button>
@@ -479,8 +480,12 @@
       <aside v-if="showKnowledgeCards" class="knowledge-cards-sidebar">
         <div class="sidebar-header">
           <h2>
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" style="margin-right: 2px; vertical-align: middle;">
-            <path d="M4 19.5v-15A2.5 2.5 0 016.5 2H20v20H6.5A2.5 2.5 0 014 19.5zM18 6H8v2h10V6zm0 4H8v2h10v-2zm0 4H8v2h10v-2z" />
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-right: 2px; vertical-align: middle;">
+            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+            <polyline points="14,2 14,8 20,8"/>
+            <line x1="16" y1="13" x2="8" y2="13"/>
+            <line x1="16" y1="17" x2="8" y2="17"/>
+            <polyline points="10,9 9,9 8,9"/>
           </svg>相关知识 ({{ knowledgeCards.length }})
         </h2>
           <!-- 调试信息 -->
@@ -539,58 +544,62 @@
     />
     
     <!-- 视频库模态框 -->
-    <div v-if="showVideoLibrary" class="modal-overlay" @click.self="closeVideoLibrary">
-      <div class="modal-content library-modal">
-        <div class="modal-header">
-          <h3>视频库</h3>
-          <button class="close-btn" @click="closeVideoLibrary">×</button>
-        </div>
-        <div class="modal-body library-body">
-          <VideoLibrary 
-            ref="videoLibraryRef"
-            @play="handleLibraryVideoPlay"
-            @select="handleLibraryVideoSelect"
-          />
+    <transition name="modal-zoom">
+      <div v-if="showVideoLibrary" class="modal-overlay" @click.self="closeVideoLibrary">
+        <div class="modal-content library-modal">
+          <div class="modal-header">
+            <h3>视频库</h3>
+            <button class="close-btn" @click="closeVideoLibrary">×</button>
+          </div>
+          <div class="modal-body library-body">
+            <VideoLibrary 
+              ref="videoLibraryRef"
+              @play="handleLibraryVideoPlay"
+              @select="handleLibraryVideoSelect"
+            />
+          </div>
         </div>
       </div>
-    </div>
+    </transition>
 
     <!-- 上传模态框 -->
-    <div v-if="showUploadModal" class="modal-overlay" @click.self="closeUploadModal">
-      <div class="modal-content">
-        <div class="modal-header">
-          <h3>上传视频</h3>
-          <button class="close-btn" @click="closeUploadModal">×</button>
-        </div>
-        <div class="modal-body">
-          <VideoUpload ref="videoUploadRef" @success="handleUploadSuccess" @progress="handleUploadProgress" @error="handleUploadError" />
-          
-          <div class="modal-actions">
-            <button @click="closeUploadModal" class="btn-secondary">取消</button>
-            <template v-if="videoUploadRef?.uploadMode === 'file'">
-              <button @click="triggerFileSelection" class="btn-primary">选择视频文件</button>
-              <button @click="confirmUpload" class="btn-primary" :disabled="!videoUploadRef?.hasFile()">
-                确认上传
-              </button>
-            </template>
-            <template v-else>
-              <button @click="confirmUrlUpload" class="btn-primary">
-                创建视频
-              </button>
-            </template>
+    <transition name="modal-zoom">
+      <div v-if="showUploadModal" class="modal-overlay" @click.self="closeUploadModal">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h3>上传视频</h3>
+            <button class="close-btn" @click="closeUploadModal">×</button>
           </div>
-          
-          <!-- 隐藏的文件输入 -->
-          <input
-            ref="hiddenFileInput"
-            type="file"
-            accept="video/mp4,video/webm,video/ogg,video/quicktime"
-            @change="handleHiddenFileChange"
-            style="display: none"
-          />
+          <div class="modal-body">
+            <VideoUpload ref="videoUploadRef" @success="handleUploadSuccess" @progress="handleUploadProgress" @error="handleUploadError" />
+            
+            <div class="modal-actions">
+              <button @click="closeUploadModal" class="btn-secondary">取消</button>
+              <template v-if="videoUploadRef?.uploadMode === 'file'">
+                <button @click="triggerFileSelection" class="btn-primary">选择视频文件</button>
+                <button @click="confirmUpload" class="btn-primary" :disabled="!videoUploadRef?.hasFile()">
+                  确认上传
+                </button>
+              </template>
+              <template v-else>
+                <button @click="confirmUrlUpload" class="btn-primary">
+                  创建视频
+                </button>
+              </template>
+            </div>
+            
+            <!-- 隐藏的文件输入 -->
+            <input
+              ref="hiddenFileInput"
+              type="file"
+              accept="video/mp4,video/webm,video/ogg,video/quicktime"
+              @change="handleHiddenFileChange"
+              style="display: none"
+            />
+          </div>
         </div>
       </div>
-    </div>
+    </transition>
   
   <!-- 通知提示组件 -->
   <div v-if="notification.show" :class="['notification', notification.type]" class="notification">
@@ -699,49 +708,49 @@
 
 /* 保持原有按钮颜色 */
 .library-btn {
-  background: #4ecdc4;
+  background: #1b2a31;
   color: white;
 }
 
 .save-btn {
-  background: #52c41a;
+  background: #5399A0;
   color: white;
 }
 
 .export-btn {
-  background: #1890ff;
+  background: #98C3C7;
   color: white;
 }
 
 .upload-btn {
-  background: #fa8c16;
+  background: #BE9F89;
   color: white;
 }
 
 .edit-cards-btn {
-  background: #722ed1;
+  background: #E0D7C7;
   color: white;
 }
 
 /* 按钮hover效果 */
 .library-btn:hover {
-  box-shadow: 0 6px 20px rgba(78, 205, 196, 0.4);
+  box-shadow: 0 6px 20px rgba(27, 42, 49, 0.4);
 }
 
 .save-btn:hover {
-  box-shadow: 0 6px 20px rgba(82, 196, 26, 0.4);
+  box-shadow: 0 6px 20px rgba(83, 153, 160, 0.4);
 }
 
 .export-btn:hover {
-  box-shadow: 0 6px 20px rgba(24, 144, 255, 0.4);
+  box-shadow: 0 6px 20px rgba(152, 195, 199, 0.4);
 }
 
 .upload-btn:hover {
-  box-shadow: 0 6px 20px rgba(250, 140, 22, 0.4);
+  box-shadow: 0 6px 20px rgba(190, 159, 137, 0.4);
 }
 
 .edit-cards-btn:hover {
-  box-shadow: 0 6px 20px rgba(114, 46, 209, 0.4);
+  box-shadow: 0 6px 20px rgba(224, 215, 199, 0.4);
 }
 
 .premium-action-btn:disabled {
@@ -862,6 +871,7 @@ const currentModalCard = ref<Card | null>(null)
 // 知识卡片弹窗相关状态
 const visiblePopupCards = ref<Card[]>([])
 const displayedCardIds = ref<Set<string | number>>(new Set())
+const manuallyOpenedCards = ref<Card[]>([]) // 手动打开的卡片
 let popupTimer: number | null = null
 
 // 全屏相关状态和引用
@@ -1472,10 +1482,17 @@ const handleMouseLeave = () => {
 // 点击视频区域 - 播放/暂停
 const handleVideoClick = (event: MouseEvent) => {
   const target = event.target as HTMLElement
-  // 如果点击的是控制UI,不处理
+  
+  // 如果点击的是控制UI中的按钮，不处理视频点击（让按钮自己的事件处理）
+  if (target.closest('.control-btn') || target.closest('.volume-slider') || target.closest('.rate-menu')) {
+    return
+  }
+  
+  // 如果点击的是控制UI的其他区域（非按钮），也不处理
   if (target.closest('.custom-controls')) {
     return
   }
+  
   togglePlay()
 }
 
@@ -2237,6 +2254,13 @@ const handlePopupClose = (cardId: string | number) => {
     console.log('✅ 弹窗已关闭,剩余可见卡片:', visiblePopupCards.value.map(c => c.title))
   }
   
+  // 从手动打开的卡片列表中移除
+  const manualIndex = manuallyOpenedCards.value.findIndex(card => card.id === cardId)
+  if (manualIndex > -1) {
+    manuallyOpenedCards.value.splice(manualIndex, 1)
+    console.log('✅ 从手动打开列表中移除卡片')
+  }
+  
   if (popupTimer !== null) {
     clearTimeout(popupTimer)
     popupTimer = null
@@ -2255,13 +2279,23 @@ const getPopupStyle = (index: number) => {
   }
 }
 
-// 知识卡片点击事件 - 已禁用详情查看功能
+// 知识卡片点击事件 - 打开知识卡片弹窗
 const handleCardClick = (card: Card) => {
-  console.log('卡片被点击:', card.title)
-  // 不再打开详情模态框,用户可以通过点击时间跳转或点击链接来交互
-  // selectedCardId.value = card.id
-  // currentModalCard.value = card
-  // showCardModal.value = true
+  console.log('🔍 查看按钮被点击，打开知识卡片弹窗:', card.title)
+  
+  // 检查卡片是否已经在手动打开的列表中
+  const isAlreadyOpened = manuallyOpenedCards.value.some(c => c.id === card.id)
+  if (!isAlreadyOpened) {
+    // 添加到手动打开的卡片列表
+    manuallyOpenedCards.value.push(card)
+    
+    // 添加到可见弹窗列表
+    visiblePopupCards.value.push(card)
+    
+    console.log('✅ 知识卡片弹窗已打开:', card.title)
+  } else {
+    console.log('ℹ️ 该知识卡片弹窗已经打开:', card.title)
+  }
 }
 
 // 知识卡片链接点击事件
@@ -2816,6 +2850,12 @@ const handleVideoError = (event: Event) => {
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
 }
 
+:root {
+  --neutral-dark: #2c3e50;
+  --transition-smooth: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+  --transition-bounce: all 0.6s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+}
+
 /* 视频上传区域 */
 .video-upload-section {
   padding: 20px;
@@ -2854,6 +2894,32 @@ const handleVideoError = (event: Event) => {
   max-height: 80vh;
   overflow-y: auto;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.modal-zoom-enter-active {
+  animation: modalZoomIn 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+}
+
+.modal-zoom-leave-active {
+  animation: modalZoomOut 0.3s ease-in;
+}
+
+@keyframes modalZoomIn {
+  from {
+    opacity: 0;
+    transform: scale(0.8);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes modalZoomOut {
+  to {
+    opacity: 0;
+    transform: scale(0.9);
+  }
 }
 
 /* 视频库模态框样式 */
@@ -2909,40 +2975,42 @@ const handleVideoError = (event: Event) => {
 }
 
 .video-info-inputs {
-  margin-bottom: 20px;
+  margin-bottom: 24px;
 }
 
 .input-group {
-  margin-bottom: 16px;
+  margin-bottom: 20px;
 }
 
 .input-group label {
   display: block;
   margin-bottom: 8px;
   font-size: 14px;
-  color: #333;
-  font-weight: 500;
+  font-weight: 600;
+  color: var(--neutral-dark);
 }
 
 .form-input,
 .form-textarea {
   width: 100%;
-  padding: 8px 12px;
-  border: 1px solid #d9d9d9;
-  border-radius: 4px;
-  font-size: 14px;
-  transition: border-color 0.3s;
+  padding: 14px 18px;
+  border: 2px solid #e8eef2;
+  border-radius: 14px;
+  font-size: 15px;
+  transition: var(--transition-smooth);
+  background: white;
 }
 
 .form-input:focus,
 .form-textarea:focus {
   outline: none;
-  border-color: #1890ff;
+  border-color: #FF6B6B;
+  box-shadow: 0 0 0 4px rgba(255, 107, 107, 0.1);
 }
 
 .form-textarea {
   resize: vertical;
-  min-height: 60px;
+  min-height: 80px;
 }
 
 .modal-actions {
@@ -2950,41 +3018,56 @@ const handleVideoError = (event: Event) => {
   justify-content: flex-end;
   gap: 12px;
   margin-top: 24px;
+  padding-top: 24px;
+  border-top: 1px solid #e8eef2;
 }
 
 .btn-primary,
 .btn-secondary {
-  padding: 8px 16px;
-  border-radius: 4px;
-  font-size: 14px;
+  padding: 12px 24px;
+  border-radius: 12px;
+  font-size: 15px;
+  font-weight: 600;
   cursor: pointer;
-  transition: all 0.3s;
+  transition: var(--transition-bounce);
 }
 
 .btn-primary {
-  background: #1890ff;
+  background: linear-gradient(135deg, #4ECDC4, #45B7D1);
   color: white;
   border: none;
+  box-shadow: 0 4px 15px rgba(78, 205, 196, 0.3);
 }
 
 .btn-primary:hover:not(:disabled) {
-  background: #40a9ff;
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(78, 205, 196, 0.4);
 }
 
 .btn-primary:disabled {
-  background: #d9d9d9;
+  opacity: 0.5;
   cursor: not-allowed;
+  transform: none;
+}
+
+.btn-confirm {
+  background: linear-gradient(135deg, #FF6B6B, #F38181);
+  box-shadow: 0 4px 15px rgba(255, 107, 107, 0.3);
+}
+
+.btn-confirm:hover:not(:disabled) {
+  box-shadow: 0 6px 20px rgba(255, 107, 107, 0.4);
 }
 
 .btn-secondary {
   background: white;
-  color: #333;
-  border: 1px solid #d9d9d9;
+  color: var(--neutral-dark);
+  border: 2px solid #e8eef2;
 }
 
 .btn-secondary:hover {
-  border-color: #1890ff;
-  color: #1890ff;
+  border-color: #FF6B6B;
+  color: #FF6B6B;
 }
 
 
@@ -3513,9 +3596,13 @@ const handleVideoError = (event: Event) => {
   transform: translateX(-50%);
   margin-bottom: 10px;
   background: rgba(0, 0, 0, 0.9);
-  padding: 12px 8px;
+  padding: 12px 16px;
   border-radius: 8px;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 32px;
 }
 
 .volume-input {
@@ -3526,17 +3613,19 @@ const handleVideoError = (event: Event) => {
   -webkit-appearance: slider-vertical;
   appearance: slider-vertical;
   cursor: pointer;
+  margin: 0 auto;
 }
 
 .volume-input::-webkit-slider-thumb {
   -webkit-appearance: none;
   appearance: none;
-  width: 12px;
-  height: 12px;
+  width: 16px;
+  height: 16px;
   border-radius: 50%;
   background: white;
   cursor: pointer;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+  margin-left: -6px; /* 精确居中调整 */
 }
 
 .volume-input::-webkit-slider-runnable-track {
@@ -3544,6 +3633,7 @@ const handleVideoError = (event: Event) => {
   height: 100px;
   background: rgba(255, 255, 255, 0.3);
   border-radius: 2px;
+  margin: 0 auto;
 }
 
 /* 时间显示 */
@@ -3834,27 +3924,27 @@ const handleVideoError = (event: Event) => {
 }
 
 .save-btn {
-  background: #89b40b;
+  background: #5399A0;
   color: white;
 }
 
 .export-btn {
-  background: #2c5b9f;
+  background: #98C3C7;
   color: white;
 }
 
 .upload-btn {
-  background: #89b40b;
+  background: #BE9F89;
   color: white;
 }
 
 .library-btn {
-  background: #6c5ce7;
+  background: #1b2a31;
   color: white;
 }
 
 .edit-cards-btn {
-  background: #dc3545;
+  background: #E0D7C7;
   color: white;
 }
 
@@ -3862,25 +3952,66 @@ const handleVideoError = (event: Event) => {
   opacity: 0.9;
 }
 
-/* 响应式设计 */
-@media (max-width: 1024px) {
+/* ========== Responsive Design ========== */
+@media (max-width: 1200px) {
   .main-content-wrapper {
     flex-direction: column;
   }
   
   .knowledge-cards-sidebar {
     width: 100%;
-    border-left: none;
-    border-top: 1px solid #e0e0e0;
     max-height: 400px;
-  }
-  
-  .sidebar-header h2 {
-    font-size: 16px;
   }
 }
 
 @media (max-width: 768px) {
+  .premium-header {
+    padding: 12px 16px;
+  }
+  
+  .header-content {
+    flex-direction: column;
+    gap: 16px;
+  }
+  
+  .header-actions {
+    width: 100%;
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+  
+  .header-btn {
+    flex: 1;
+    min-width: 100px;
+    justify-content: center;
+  }
+  
+  .app-title {
+    font-size: 24px;
+  }
+  
+  .main-content-wrapper {
+    padding: 16px;
+    gap: 16px;
+  }
+  
+  .url-input-card {
+    padding: 20px;
+  }
+  
+  .input-wrapper {
+    flex-direction: column;
+  }
+  
+  .load-btn {
+    width: 100%;
+    justify-content: center;
+  }
+  
+  .knowledge-cards-sidebar {
+    max-height: 300px;
+  }
+  
   .video-main {
     padding: 16px;
   }
@@ -3893,11 +4024,6 @@ const handleVideoError = (event: Event) => {
     min-width: 80px;
     font-size: 13px;
     padding: 6px 12px;
-  }
-  
-  .knowledge-cards-sidebar {
-    max-height: 280px;
-    width: 100%;
   }
   
   .sidebar-header {
@@ -3924,6 +4050,35 @@ const handleVideoError = (event: Event) => {
 }
 
 @media (max-width: 480px) {
+  .logo-section {
+    flex-direction: column;
+    text-align: center;
+  }
+  
+  .header-btn {
+    padding: 10px 16px;
+    font-size: 13px;
+  }
+  
+  .controls-buttons {
+    gap: 4px;
+  }
+  
+  .control-btn {
+    min-width: 36px;
+    min-height: 36px;
+    padding: 8px;
+  }
+  
+  .play-btn {
+    width: 44px;
+    height: 44px;
+  }
+  
+  .time-display {
+    font-size: 12px;
+  }
+  
   .knowledge-cards-sidebar {
     max-height: 250px;
   }

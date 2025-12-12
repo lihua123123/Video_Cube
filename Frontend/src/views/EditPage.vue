@@ -4006,8 +4006,9 @@ onMounted(async () => {
   
   .logo-section {
     display: flex;
-    align-items: center;
-    gap: 12px;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0;
   }
   
   .logo-section .app-title {
