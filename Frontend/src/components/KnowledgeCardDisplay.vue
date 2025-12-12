@@ -12,10 +12,9 @@
             'active': isCardActive(card),
             'expanded': expandedCardId === card.id
           }"
-          @click="toggleCard(card.id)"
         >
           <!-- 卡片头部 -->
-          <div class="card-header-optimized">
+          <div class="card-header-optimized" @click.stop="toggleCard(card.id)">
             <span class="card-badge">{{ getCardType(card) }}</span>
             <span 
               class="card-time clickable-time" 
@@ -27,15 +26,15 @@
           </div>
           
           <!-- 卡片标题 -->
-          <h4 class="card-title-optimized">{{ card.title }}</h4>
+          <h4 class="card-title-optimized" @click.stop="toggleCard(card.id)">{{ card.title }}</h4>
           
-          <!-- 卡片内容 -->
+          <!-- 卡片内容 - 只在展开状态下显示 -->
           <div v-if="isExpanded(card.id)" class="card-content-optimized" @click.stop="handleContentClick($event)">
             <div class="content-preview" v-html="generatePreview(card.content)"></div>
           </div>
           
-          <!-- 卡片底部 -->
-          <div v-if="isExpanded(card.id)" class="card-footer-optimized">
+          <!-- 卡片底部 - 统一显示查看和展开/收起按钮 -->
+          <div class="card-footer-optimized">
             <button class="card-action-btn view" @click.stop="handleCardClick(card)">
               <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
                 <path d="M12 4.5C7 4.5 2.73 7.61 1 12c1.73 4.39 6 7.5 11 7.5s9.27-3.11 11-7.5c-1.73-4.39-6-7.5-11-7.5zM12 17c-2.76 0-5-2.24-5-5s2.24-5 5-5 5 2.24 5 5-2.24 5-5 5zm0-8c-1.66 0-3 1.34-3 3s1.34 3 3 3 3-1.34 3-3-1.34-3-3-3z"/>
@@ -47,16 +46,7 @@
                 <path v-if="expandedCardId === card.id" d="M7.41 8.59L12 13.17l4.59-4.58L18 10l-6 6-6-6z"/>
                 <path v-else d="M7.41 15.41L12 10.83l4.59 4.58L18 14l-6-6-6 6z"/>
               </svg>
-              收起
-            </button>
-          </div>
-          <!-- 收起状态下的展开按钮 -->
-          <div v-else class="card-expand-only">
-            <button class="card-action-btn expand-only-btn" @click.stop="toggleCard(card.id)">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
-                <path d="M7.41 15.41L12 10.83l4.59 4.58L18 14l-6-6-6 6z"/>
-              </svg>
-              展开
+              {{ expandedCardId === card.id ? '收起' : '展开' }}
             </button>
           </div>
         </div>
@@ -296,7 +286,7 @@ const jumpToCardTime = (card: KnowledgeCard) => {
 
 /* 卡片容器 */
 .cards-container {
-  background: white;
+  background: transparent;
   overflow: hidden;
   transition: all 0.3s ease;
   flex: 1;
@@ -315,6 +305,7 @@ const jumpToCardTime = (card: KnowledgeCard) => {
   display: flex;
   flex-direction: column;
   gap: 16px;
+  /* 移除最大高度限制，让卡片列表完全自适应内容 */
 }
 
 /* 美化滚动条 */
@@ -346,7 +337,11 @@ const jumpToCardTime = (card: KnowledgeCard) => {
   border: 1px solid rgba(212, 165, 116, 0.15);
   transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
   cursor: pointer;
-  overflow: hidden;
+  overflow: visible;
+  display: flex;
+  flex-direction: column;
+  min-height: auto; /* 自动高度，根据内容调整 */
+  min-height: min-content;
 }
 
 .knowledge-card-optimized:hover,
@@ -359,6 +354,9 @@ const jumpToCardTime = (card: KnowledgeCard) => {
 .knowledge-card-optimized.expanded {
   background: linear-gradient(135deg, #ffffff 0%, #f8f7f5 100%);
   border-left: 4px solid #D4A574;
+  /* 移除固定最小高度，根据内容自适应 */
+  max-height: none; /* 移除最大高度限制 */
+  height: auto; /* 高度自适应内容 */
 }
 
 /* 卡片头部 - 与Popup保持一致的蓝色渐变 */
@@ -369,6 +367,8 @@ const jumpToCardTime = (card: KnowledgeCard) => {
   display: flex;
   justify-content: space-between;
   align-items: center;
+  border-top-left-radius: 16px;
+  border-top-right-radius: 16px;
 }
 
 .card-badge {
@@ -412,27 +412,30 @@ const jumpToCardTime = (card: KnowledgeCard) => {
   font-weight: 600;
   color: #1F3A52;
   line-height: 1.4;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  display: -webkit-box;
-  -webkit-line-clamp: 2;
-  line-clamp: 2;
-  -webkit-box-orient: vertical;
-  padding: 12px 20px 8px;
+  overflow: visible;
+  text-overflow: unset;
+  display: block;
+  padding: 16px 20px 12px; /* 增加上下内边距，给标题更多空间 */
+  cursor: pointer;
+  transition: color 0.3s ease;
+}
+
+.card-title-optimized:hover {
+  color: #4A9FB8;
 }
 
 /* 卡片内容 */
 .card-content-optimized {
-  padding: 0 20px 16px;
-  max-height: 120px;
-  overflow-y: auto;
+  padding: 0 20px 20px; /* 增加底部内边距 */
+  /* 移除固定最大高度，根据内容自适应 */
   transition: all 0.3s ease;
   cursor: default;
   min-height: 0;
 }
 
 .knowledge-card-optimized.expanded .card-content-optimized {
-  max-height: 400px;
+  max-height: none; /* 移除高度限制，让内容完全展开 */
+  overflow-y: visible; /* 移除滚动条，完整显示内容 */
 }
 
 /* 卡片内容滚动条样式 */
@@ -574,7 +577,7 @@ const jumpToCardTime = (card: KnowledgeCard) => {
 /* 展开状态下的图片 - 与Popup保持一致 */
 .knowledge-card-optimized.expanded .content-preview img,
 .knowledge-card-optimized.expanded .content-preview img.preview-image {
-  max-height: 300px;
+  max-height: none; /* 移除图片高度限制，让图片完整显示 */
 }
 
 .content-preview img:hover,
@@ -598,6 +601,9 @@ const jumpToCardTime = (card: KnowledgeCard) => {
   border-top: 1px solid rgba(212, 165, 116, 0.15);
   display: flex;
   gap: 12px;
+  margin-top: auto; /* 确保按钮始终在底部 */
+  border-bottom-left-radius: 16px;
+  border-bottom-right-radius: 16px;
 }
 
 /* 按钮样式 - 与Popup保持一致 */
@@ -650,6 +656,7 @@ const jumpToCardTime = (card: KnowledgeCard) => {
   color: #8B8680;
   text-align: center;
   min-height: 200px;
+  background: transparent;
 }
 
 .empty-icon {
@@ -677,6 +684,7 @@ const jumpToCardTime = (card: KnowledgeCard) => {
   justify-content: center;
   padding: 3rem 1rem;
   color: #8B8680;
+  background: transparent;
 }
 
 .spinner {
@@ -701,28 +709,7 @@ const jumpToCardTime = (card: KnowledgeCard) => {
   }
 }
 
-/* 收起状态下的展开按钮容器 */
-.card-expand-only {
-  padding: 16px 20px;
-  background: rgba(248, 247, 245, 0.8);
-  border-top: 1px solid rgba(212, 165, 116, 0.15);
-  display: flex;
-  justify-content: center;
-}
 
-/* 收起状态下的展开按钮样式 */
-.expand-only-btn {
-  width: 100%;
-  background: linear-gradient(135deg, #D4A574 0%, #E6B88E 100%);
-  color: white;
-  box-shadow: 0 4px 12px rgba(212, 165, 116, 0.3);
-}
-
-.expand-only-btn:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 8px 24px rgba(212, 165, 116, 0.4);
-  background: linear-gradient(135deg, #C49568 0%, #D4A574 100%);
-}
 
 /* 响应式设计 */
 @media (max-width: 768px) {
@@ -730,14 +717,85 @@ const jumpToCardTime = (card: KnowledgeCard) => {
     flex-direction: column;
     align-items: flex-start;
     gap: 0.5rem;
+    padding: 12px 16px;
+  }
+  
+  .card-title-optimized {
+    font-size: 15px;
+    padding: 10px 16px 6px;
+    overflow: visible;
+    text-overflow: unset;
+    display: block;
+  }
+  
+  .card-content-optimized {
+    padding: 0 16px 12px;
   }
   
   .card-footer-optimized {
     flex-direction: column;
+    gap: 8px;
+    padding: 12px 16px;
   }
   
-  .card-expand-only {
-    padding: 12px 16px;
+  .card-action-btn {
+    padding: 10px 16px;
+    font-size: 14px;
+    min-height: 40px; /* 确保按钮有足够高度 */
+  }
+  
+  .cards-list {
+    gap: 12px;
+    padding: 0.5rem;
+  }
+  
+  .knowledge-card-optimized {
+    min-height: auto; /* 移动端自动高度 */
+    min-height: min-content;
+  }
+}
+
+@media (max-width: 480px) {
+  .card-header-optimized {
+    padding: 10px 14px;
+  }
+  
+  .card-title-optimized {
+    font-size: 14px;
+    padding: 8px 14px 4px;
+    overflow: visible;
+    text-overflow: unset;
+    display: block;
+  }
+  
+  .card-content-optimized {
+    padding: 0 14px 10px;
+  }
+  
+  .card-footer-optimized {
+    padding: 10px 14px;
+    gap: 6px;
+  }
+  
+  .card-action-btn {
+    padding: 8px 12px;
+    font-size: 13px;
+    min-height: 36px;
+  }
+  
+  .card-badge {
+    font-size: 0.7rem;
+    padding: 3px 8px;
+  }
+  
+  .card-time {
+    font-size: 0.7rem;
+    padding: 3px 6px;
+  }
+  
+  .knowledge-card-optimized {
+    min-height: auto; /* 小屏幕自动高度 */
+    min-height: min-content;
   }
 }
 </style>

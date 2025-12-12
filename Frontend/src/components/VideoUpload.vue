@@ -45,35 +45,44 @@
           </div>
           
           <!-- 上传进度缓冲圈 -->
-          <div class="progress-container" v-if="uploadProgress > 0">
-            <svg class="progress-circle" width="60" height="60" viewBox="0 0 60 60">
-              <!-- 背景圆 -->
-              <circle 
-                class="progress-circle-bg" 
-                cx="30" 
-                cy="30" 
-                r="25" 
-              />
-              <!-- 进度圆 -->
-              <circle 
-                class="progress-circle-fill" 
-                cx="30" 
-                cy="30" 
-                r="25" 
-                :stroke-dasharray="157" 
-                :stroke-dashoffset="157 - (157 * uploadProgress) / 100" 
-              />
-              <!-- 进度文字 -->
-              <text 
-                class="progress-text" 
-                x="30" 
-                y="30" 
-                text-anchor="middle" 
-                dominant-baseline="middle"
-              >
-                {{ uploadProgress }}%
-              </text>
-            </svg>
+          <div class="progress-container" v-if="uploadProgress > 0 || isProcessing">
+            <div class="progress-wrapper">
+              <!-- 光晕效果 -->
+              <div class="progress-glow" :class="{ 'complete': isComplete }"></div>
+              
+              <svg class="progress-circle" width="60" height="60" viewBox="0 0 60 60">
+                <!-- 背景圆 -->
+                <circle 
+                  class="progress-circle-bg" 
+                  cx="30" 
+                  cy="30" 
+                  r="25" 
+                  :class="{ 'complete': isComplete }"
+                />
+                <!-- 进度圆 -->
+                <circle 
+                  class="progress-circle-fill" 
+                  cx="30" 
+                  cy="30" 
+                  r="25" 
+                  :stroke-dasharray="157" 
+                  :stroke-dashoffset="157 - (157 * uploadProgress) / 100" 
+                  :class="{ 'processing': isProcessing, 'complete': isComplete }"
+                />
+                <!-- 移除对勾效果 -->
+                <!-- 进度文字 -->
+                <text 
+                  class="progress-text" 
+                  x="30" 
+                  y="30" 
+                  text-anchor="middle" 
+                  dominant-baseline="middle"
+                  :class="{ 'complete': isComplete }"
+                >
+                  {{ isProcessing ? '处理中' : isComplete ? '完成' : `${uploadProgress}%` }}
+                </text>
+              </svg>
+            </div>
           </div>
           
           <div class="file-name">{{ fileName }}</div>
@@ -347,6 +356,9 @@ const triggerFileSelection = () => {
 }
 
 // 上传视频 - 文件上传模式
+const isProcessing = ref(false);
+const isComplete = ref(false);
+
 const uploadVideo = async (title?: string, description?: string) => {
   if (!selectedFile.value) {
     errorMessage.value = '请先通过编程方式设置视频文件'
@@ -362,6 +374,7 @@ const uploadVideo = async (title?: string, description?: string) => {
   
   try {
     uploadProgress.value = 0
+    isProcessing.value = false
     
     // 使用XMLHttpRequest以便监听上传进度
     return new Promise((resolve, reject) => {
@@ -369,14 +382,28 @@ const uploadVideo = async (title?: string, description?: string) => {
       
       xhr.upload.addEventListener('progress', (event) => {
         if (event.lengthComputable) {
-          const percentComplete = Math.round((event.loaded / event.total) * 100)
+          const percentComplete = Math.round((event.loaded / event.total) * 90) // 只到90%，留10%给处理
           uploadProgress.value = percentComplete
           emit('progress', percentComplete)
         }
       })
       
+      xhr.addEventListener('loadstart', () => {
+        // 上传开始
+      })
+      
+      xhr.addEventListener('loadend', () => {
+        // 上传结束，开始处理
+        isProcessing.value = true
+      })
+      
       xhr.addEventListener('load', () => {
+        // 处理完成 - 避免状态突然变化导致缓冲圈异常
+        // 先设置完成状态，再更新进度
+        isComplete.value = true
+        isProcessing.value = false
         uploadProgress.value = 100
+        
         if (xhr.status === 201) {
           const response = JSON.parse(xhr.responseText)
           emit('success', response.data)
@@ -392,6 +419,7 @@ const uploadVideo = async (title?: string, description?: string) => {
       xhr.addEventListener('error', () => {
         errorMessage.value = '网络错误，上传失败'
         emit('error', errorMessage.value)
+        isProcessing.value = false
         reject(new Error(errorMessage.value))
       })
       
@@ -401,13 +429,25 @@ const uploadVideo = async (title?: string, description?: string) => {
   } catch (error) {
     errorMessage.value = '上传失败：' + (error instanceof Error ? error.message : String(error))
     emit('error', errorMessage.value)
+    isProcessing.value = false
     throw error
   } finally {
-    // 重置上传进度
-    setTimeout(() => {
-      uploadProgress.value = 0
-    }, 1000)
-  }
+        // 重置上传进度 - 完成状态下延迟更长时间让成功动画完整显示
+        setTimeout(() => {
+          if (!isProcessing.value && isComplete.value) {
+            // 重置完成状态 - 延长完成状态显示时间，让用户清晰看到完成状态
+            setTimeout(() => {
+              isComplete.value = false
+              // 延迟重置进度，避免突然消失
+              setTimeout(() => {
+                uploadProgress.value = 0
+              }, 500)
+            }, 2500) // 增加显示时间到2.5秒
+          } else if (!isProcessing.value) {
+            uploadProgress.value = 0
+          }
+        }, 1000)
+      }
 }
 
 // 通过 URL 创建视频记录
@@ -840,7 +880,7 @@ defineExpose({
   position: relative;
   border-radius: 12px;
   border: 1px solid rgba(255, 255, 255, 0.1);
-  background: rgba(26, 35, 50, 0.5);
+  background: rgba(26, 35, 50, 0.3);
   backdrop-filter: blur(10px);
   overflow: hidden;
 }
@@ -878,7 +918,7 @@ defineExpose({
 }
 
 .url-input::placeholder {
-  color: rgba(255, 255, 255, 0.4);
+  color: white;
 }
 
 .url-textarea {
@@ -905,7 +945,7 @@ defineExpose({
 }
 
 .url-textarea::placeholder {
-  color: rgba(255, 255, 255, 0.4);
+  color: white;
 }
 
 /* Measurement span for cursor position */
@@ -985,16 +1025,57 @@ defineExpose({
   justify-content: center;
   align-items: center;
   position: relative;
+  animation: fadeIn 0.6s ease-out;
+}
+
+.progress-wrapper {
+  position: relative;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  animation: scaleIn 0.4s ease-out 0.2s both;
+}
+
+.progress-glow {
+  position: absolute;
+  width: 80px;
+  height: 80px;
+  background: radial-gradient(circle, rgba(74, 159, 184, 0.3) 0%, transparent 70%);
+  border-radius: 50%;
+  animation: pulse 2s ease-in-out infinite;
+  opacity: 0.6;
+  transition: background 0.3s ease;
+}
+
+.progress-glow.complete {
+  background: radial-gradient(circle, rgba(76, 175, 80, 0.5) 0%, transparent 70%);
+  animation: completePulse 0.8s ease-out 0.3s, glowFade 1s ease-out 1.5s forwards;
+}
+
+@keyframes glowFade {
+  from {
+    opacity: 0.6;
+  }
+  to {
+    opacity: 0;
+  }
 }
 
 .progress-circle {
   transform: rotate(-90deg); /* 将圆的起始点调整到顶部 */
+  z-index: 1;
 }
 
 .progress-circle-bg {
   fill: none;
   stroke: rgba(74, 159, 184, 0.2);
   stroke-width: 4;
+  transition: all 0.3s ease;
+}
+
+.progress-circle-bg.complete {
+  stroke: rgba(76, 175, 80, 0.4);
+  animation: completePulse 0.8s ease-out 0.3s;
 }
 
 .progress-circle-fill {
@@ -1003,7 +1084,142 @@ defineExpose({
   stroke-width: 4;
   stroke-linecap: round;
   transition: stroke-dashoffset 0.3s ease;
-  animation: progress-animation 1s ease-in-out;
+}
+
+/* 保持完成状态时进度圆不消失 */
+.progress-circle-fill:not(.complete) {
+  transition: stroke-dashoffset 0.3s ease, stroke 0.3s ease;
+}
+
+.progress-circle-fill.processing {
+  stroke: #4A9FB8;
+  animation: rotate 1.5s linear infinite, processingPulse 2s ease-in-out infinite;
+}
+
+.progress-circle-fill.complete {
+  stroke: #4CAF50;
+  animation: completeFill 0.6s ease-out forwards, completePulse 0.8s ease-out 0.3s;
+  stroke-width: 4.5;
+}
+
+.progress-text {
+  font-size: 12px;
+  font-weight: 600;
+  fill: #2D2D2D;
+  transform: rotate(90deg); /* 抵消svg的旋转 */
+  transition: opacity 0.3s ease, transform 0.3s ease;
+  animation: textAppear 0.5s ease-out 0.5s both;
+}
+
+.progress-text.complete {
+  fill: white;
+  font-weight: 700;
+  animation: textScale 0.4s ease-out;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes scaleIn {
+  from {
+    transform: scale(0.8);
+    opacity: 0;
+  }
+  to {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+@keyframes pulse {
+  0%, 100% {
+    transform: scale(1);
+    opacity: 0.6;
+  }
+  50% {
+    transform: scale(1.1);
+    opacity: 0.8;
+  }
+}
+
+@keyframes rotate {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes processingPulse {
+  0%, 100% {
+    stroke-opacity: 1;
+    stroke-width: 4;
+  }
+  50% {
+    stroke-opacity: 0.8;
+    stroke-width: 5;
+  }
+}
+
+/* 完成动画 */
+@keyframes completeFill {
+  0% {
+    stroke-dashoffset: 157 - (157 * 90) / 100; /* 90% 位置开始 */
+    stroke-width: 4;
+  }
+  70% {
+    stroke-width: 5;
+  }
+  100% {
+    stroke-dashoffset: 0;
+    stroke-width: 4.5;
+  }
+}
+
+/* 移除对勾相关样式 */
+
+@keyframes completePulse {
+  0% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.15);
+    opacity: 0.85;
+  }
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+@keyframes textScale {
+  0% {
+    transform: rotate(90deg) scale(0.9);
+  }
+  50% {
+    transform: rotate(90deg) scale(1.2);
+  }
+  100% {
+    transform: rotate(90deg) scale(1);
+  }
+}
+
+@keyframes textAppear {
+  from {
+    opacity: 0;
+    transform: rotate(90deg) scale(0.8);
+  }
+  to {
+    opacity: 1;
+    transform: rotate(90deg) scale(1);
+  }
 }
 
 .progress-text {

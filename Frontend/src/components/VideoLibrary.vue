@@ -3,9 +3,6 @@
     <!-- 头部 -->
     <div class="library-header">
       <div class="header-title-section">
-        <h2 class="library-title">📹 视频库</h2>
-      </div>
-      <div class="header-actions">
         <div class="search-box">
           <svg class="search-icon" viewBox="0 0 24 24" fill="currentColor">
             <path d="M15.5 1h-8C6.12 1 5 2.12 5 3.5v17C5 21.88 6.12 23 7.5 23h8c1.38 0 2.5-1.12 2.5-2.5v-17C18 2.12 16.88 1 15.5 1zm-4 21c-.83 0-1.5-.67-1.5-1.5s.67-1.5 1.5-1.5 1.5.67 1.5 1.5-.67 1.5-1.5 1.5zm4.5-4H7V4h9v14z"/>
@@ -18,15 +15,21 @@
             class="search-input"
           />
         </div>
+      </div>
+      <div class="header-actions">
         <button @click="refreshList" class="refresh-btn" :disabled="loading">
-          <span :class="{ spinning: loading }">🔄</span> 刷新
+          <svg :class="{ spinning: loading }" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" style="margin-right: 6px; vertical-align: middle;">
+            <path d="M21.5 2v6h-6M2.5 22v-6h6M2 12a10 10 0 0120 0 10 10 0 01-20 0z"/>
+          </svg> 刷新
         </button>
         <button 
           v-if="selectedVideos.length > 0" 
           @click="batchDelete" 
           class="batch-delete-btn"
         >
-          <span class="btn-icon">🗑️</span> 批量删除 ({{ selectedVideos.length }})
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" style="margin-right: 6px; vertical-align: middle;">
+            <path d="M3 6h18M19 6v14c0 1.1-.9 2-2 2H7c-1.1 0-2-.9-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2"/>
+          </svg> 批量删除 ({{ selectedVideos.length }})
         </button>
       </div>
     </div>
@@ -68,7 +71,12 @@
 
     <!-- 空状态 -->
     <div v-else-if="videos.length === 0" class="empty-state">
-      <div class="empty-icon">📹</div>
+      <div class="empty-icon">
+          <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+            <path d="M23 7l-7 5 7 5V7z"/>
+            <rect x="1" y="5" width="15" height="14" rx="2" ry="2"/>
+          </svg>
+        </div>
       <p>还没有上传任何视频</p>
       <p class="empty-hint">点击"上传视频"按钮开始上传</p>
     </div>
@@ -103,11 +111,17 @@
             @error="handleImageError"
           />
           <div v-else class="thumbnail-placeholder">
-            <span class="placeholder-icon">🎬</span>
+            <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+              <path d="M23 7l-7 5 7 5V7z"/>
+              <rect x="1" y="5" width="15" height="14" rx="2" ry="2"/>
+            </svg>
           </div>
           <!-- 时长标签 -->
           <div class="video-duration-badge">
-            <span class="duration-icon">⏱</span>
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" style="vertical-align: middle; margin-right: 4px;">
+              <circle cx="12" cy="12" r="10"/>
+              <polyline points="12 6 12 12 16 14"/>
+            </svg>
             {{ formatDuration(video.duration) }}
           </div>
           <!-- 播放按钮覆盖层 -->
@@ -121,11 +135,19 @@
           <h3 class="video-title" :title="video.title">{{ video.title }}</h3>
           <div class="video-meta">
             <span class="meta-item">
-              <span class="meta-icon">📅</span>
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" style="vertical-align: middle; margin-right: 4px;">
+                <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>
+                <line x1="16" y1="2" x2="16" y2="6"/>
+                <line x1="8" y1="2" x2="8" y2="6"/>
+                <line x1="3" y1="10" x2="21" y2="10"/>
+              </svg>
               {{ formatDate(video.created_at) }}
             </span>
             <span class="meta-item">
-              <span class="meta-icon">⏱️</span>
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" style="vertical-align: middle; margin-right: 4px;">
+                <circle cx="12" cy="12" r="10"/>
+                <polyline points="12 6 12 12 16 14"/>
+              </svg>
               {{ formatDuration(video.duration) }}
             </span>
           </div>
@@ -138,21 +160,29 @@
             class="video-action-btn play-btn"
             title="播放视频"
           >
-            <span class="btn-icon">▶️</span>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+              <polygon points="5 3 19 12 5 21 5 3"/>
+            </svg>
           </button>
           <button 
             @click.stop="viewDetails(video)" 
             class="video-action-btn details-btn"
             title="查看详情"
           >
-            <span class="btn-icon">ℹ️</span>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+              <circle cx="12" cy="12" r="10"/>
+              <line x1="12" y1="16" x2="12" y2="12"/>
+              <line x1="12" y1="8" x2="12" y2="8"/>
+            </svg>
           </button>
           <button 
             @click.stop="deleteVideo(video)" 
             class="video-action-btn delete-btn"
             title="删除视频"
           >
-            <span class="btn-icon">🗑️</span>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+              <path d="M3 6h18M19 6v14c0 1.1-.9 2-2 2H7c-1.1 0-2-.9-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2"/>
+            </svg>
           </button>
         </div>
       </div>
@@ -184,7 +214,12 @@
       <div class="modal-content details-modal">
         <div class="modal-header">
           <h3>视频详情</h3>
-          <button @click="closeDetailsModal" class="close-btn">✕</button>
+          <button @click="closeDetailsModal" class="close-btn" style="vertical-align: middle;">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+              <line x1="18" y1="6" x2="6" y2="18"/>
+              <line x1="6" y1="6" x2="18" y2="18"/>
+            </svg>
+          </button>
         </div>
         <div v-if="detailsVideo" class="modal-body">
           <div class="detail-row">
@@ -226,7 +261,10 @@
                   @error="handleImageError"
                 />
                 <div v-else class="no-thumbnail">
-                  <span class="no-thumbnail-icon">🎬</span>
+                  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" style="vertical-align: middle; margin-right: 8px;">
+                    <path d="M23 7l-7 5 7 5V7z"/>
+                    <rect x="1" y="5" width="15" height="14" rx="2" ry="2"/>
+                  </svg>
                   <span class="no-thumbnail-text">暂无缩略图</span>
                 </div>
               </div>
@@ -247,7 +285,9 @@
                   style="display: none"
                 />
                 <button @click="triggerThumbnailSelect" class="select-file-btn">
-                  <span class="btn-icon">📁</span>
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" style="vertical-align: middle; margin-right: 6px;">
+                    <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/>
+                  </svg>
                   选择图片
                 </button>
                 <button 
@@ -256,7 +296,15 @@
                   class="upload-btn"
                   :disabled="isUploadingThumbnail"
                 >
-                  <span class="btn-icon">{{ isUploadingThumbnail ? '⏳' : '⬆️' }}</span>
+                  <svg v-if="isUploadingThumbnail" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" style="vertical-align: middle; margin-right: 6px; animation: spin 1s linear infinite;">
+                    <path d="M21.5 2v6h-6M2.5 22v-6h6M2 12a10 10 0 0120 0 10 10 0 01-20 0z"/>
+                  </svg>
+                  <svg v-else width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" style="vertical-align: middle; margin-right: 6px;">
+                    <path d="M12 19l7-7 3 3-7 7-3-3z"/>
+                    <path d="M18 13l-1.5-7.5L2 2l3.5 14.5L13 18l5-5z"/>
+                    <path d="M2 2l7.586 7.586"/>
+                    <circle cx="11" cy="11" r="2"/>
+                  </svg>
                   {{ isUploadingThumbnail ? '上传中...' : '上传缩略图' }}
                 </button>
                 <button 
@@ -264,15 +312,23 @@
                   @click="cancelThumbnailSelect" 
                   class="cancel-btn"
                 >
-                  <span class="btn-icon">✕</span>
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" style="vertical-align: middle; margin-right: 6px;">
+                    <line x1="18" y1="6" x2="6" y2="18"/>
+                    <line x1="6" y1="6" x2="18" y2="18"/>
+                  </svg>
                   取消
                 </button>
               </div>
               
               <!-- 上传提示 -->
               <div class="upload-hint">
-                <span class="hint-icon">💡</span>
-                支持 JPG、PNG、GIF、WebP 格式,建议大小不超过 2MB
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" style="vertical-align: middle; margin-right: 6px;">
+                  <path d="M9.4 18.6a2 2 0 0 0 3.2 0l10.2-10.2a2 2 0 0 0-3.2-3.2l-9 9a2 2 0 0 0-2.1 2.1c-.1.3 0 .7.3 1.1l1 1c.4.4.8.5 1.2.3z"/>
+                  <path d="M7 14h1"/>
+                  <path d="M7 10h1"/>
+                  <path d="M7 12h2"/>
+                </svg>
+                支持 JPG、PNG、GIF、WebP 格式，建议大小不超过 2MB
               </div>
             </div>
           </div>
@@ -797,7 +853,7 @@ defineExpose({
   border: none;
   outline: none;
   padding: 10px 0;
-  width: 200px;
+  width: 100%;
   font-size: 14px;
   background: transparent;
   color: #2D2D2D;

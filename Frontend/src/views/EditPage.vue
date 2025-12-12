@@ -30,31 +30,8 @@
       </div>
     </header>
 
-    <!-- 主内容区 - 三栏布局 -->
+    <!-- 主内容区 - 两栏布局 -->
     <main class="main-content premium-main-content">
-      <!-- 左侧：我的项目侧边栏 -->
-      <section class="project-sidebar glass-card">
-        <div class="sidebar-header">
-          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" class="sidebar-icon">
-            <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>
-            <polyline points="9 22 9 12 15 12 15 22"/>
-          </svg>
-          <h3 class="sidebar-title">我的项目</h3>
-        </div>
-        <div class="project-list">
-          <!-- 项目列表已清空 -->
-          <div class="empty-projects">
-            <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" class="empty-icon">
-              <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
-              <polyline points="14 2 14 8 20 8"/>
-              <line x1="16" y1="13" x2="8" y2="13"/>
-              <line x1="16" y1="17" x2="8" y2="17"/>
-              <polyline points="10 9 9 9 8 9"/>
-            </svg>
-            
-          </div>
-        </div>
-      </section>
 
       <!-- 中间：卡片编辑 -->
       <section class="card-editor-section glass-card">
@@ -2102,14 +2079,14 @@ onMounted(async () => {
   height: calc(100vh - 60px);
 }
 
-/* 左侧项目侧边栏 */
-.project-sidebar {
-  width: 220px;
-  background: white;
-  border-right: 1px solid #e8e8e8;
-  padding: 20px;
-  overflow-y: auto;
+/* 确保卡片编辑区域高度随父容器拉伸 */
+.card-editor-section {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
 }
+
+
 
 /* 侧边栏标题样式 */
 .sidebar-header {
@@ -2166,19 +2143,6 @@ onMounted(async () => {
   align-items: stretch;
 }
 
-/* 项目侧边栏样式 */
-.premium-main-content .project-sidebar {
-  width: 220px;
-  background: rgba(255, 255, 255, 0.1);
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
-  border: 1px solid rgba(255, 255, 255, 0.2);
-  border-radius: 16px;
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
-  margin-right: 24px;
-  padding: 20px;
-}
-
 .project-sidebar h3 {
   margin: 0;
   font-size: 18px;
@@ -2231,6 +2195,7 @@ onMounted(async () => {
   padding: 20px;
   overflow-y: auto;
   min-width: 0;
+  border-radius: 16px 0 0 16px;
 }
 
 .editor-header {
@@ -2484,12 +2449,15 @@ onMounted(async () => {
 
 /* 右侧视频预览 */
 .video-preview-section {
-  width: 450px;
+  flex: 0 0 500px; /* 固定宽度，高度随父容器拉伸 */
   background: white;
   border-left: 1px solid #e8e8e8;
   padding: 20px;
   display: flex;
   flex-direction: column;
+  border-radius: 0 16px 16px 0;
+  overflow-y: auto;
+  height: 100%; /* 确保高度与父容器一致 */
 }
 
 .video-preview-section h3 {
@@ -3840,11 +3808,8 @@ onMounted(async () => {
 
 /* 响应式设计 */
 @media (max-width: 1200px) {
-  .project-sidebar {
-    width: 200px;
-  }
   .video-preview-section {
-    width: 320px;
+    width: 360px;
   }
 }
 
@@ -3899,14 +3864,14 @@ onMounted(async () => {
   justify-content: space-between;
   align-items: center;
   padding: 12px 16px;
-  background: #f6ffed;
-  border: 1px solid #b7eb8f;
+  background: #f0f7ff;
+  border: 1px solid #91d5ff;
   border-radius: 6px;
   margin-bottom: 16px;
 }
 
 .example-title {
-  color: #52c41a;
+  color: #1890ff;
   font-size: 14px;
   font-weight: 600;
 }
@@ -3929,12 +3894,12 @@ onMounted(async () => {
 }
 
 .example-card {
-  border-left: 4px solid #52c41a;
-  background: #f6ffed;
+  border-left: 4px solid #1890ff;
+  background: #f0f7ff;
 }
 
 .example-badge {
-  background: #52c41a;
+  background: #1890ff;
   color: white;
   padding: 2px 8px;
   border-radius: 12px;
@@ -4140,17 +4105,7 @@ onMounted(async () => {
     padding: 0;
   }
   
-  /* 项目侧边栏样式 */
-  .project-sidebar {
-    background: rgba(255, 255, 255, 0.1);
-    backdrop-filter: blur(20px);
-    -webkit-backdrop-filter: blur(20px);
-    border: 1px solid rgba(255, 255, 255, 0.2);
-    border-radius: 16px;
-    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
-    margin-right: 24px;
-    padding: 20px;
-  }
+
   
   .sidebar-header {
     display: flex;
@@ -4399,15 +4354,14 @@ onMounted(async () => {
   
   @media (max-width: 768px) {
     .premium-main-content {
-      flex-direction: column;
-      gap: 16px;
-    }
-    
-    .project-sidebar,
-    .video-preview-section {
-      width: 100%;
-      margin: 0 0 16px 0;
-    }
+    flex-direction: column;
+    gap: 16px;
+  }
+  
+  .video-preview-section {
+    width: 100%;
+    margin: 0 0 16px 0;
+  }
     
     .premium-header {
       padding: 12px 16px;

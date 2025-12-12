@@ -1,6 +1,11 @@
 <template>
   <div class="test-page">
-    <h1>🎬 视频库数据测试页面</h1>
+    <h1>
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" style="vertical-align: middle; margin-right: 8px;">
+        <path d="M23 7l-7 5 7 5V7z"/>
+        <rect x="1" y="5" width="15" height="14" rx="2" ry="2"/>
+      </svg> 视频库数据测试页面
+    </h1>
     
     <div class="test-section">
       <h2>1. API 数据测试</h2>
@@ -35,10 +40,32 @@
       <div v-if="renderedVideos.length > 0" class="cards-container">
         <div v-for="video in renderedVideos" :key="video.id" class="video-card">
           <img :src="getFullUrl(video.thumbnail_url)" class="thumbnail" :alt="video.title">
-          <h4>📹 {{ video.title }}</h4>
-          <p>📅 {{ formatDate(video.created_at) }}</p>
-          <p>⏱️ {{ formatDuration(video.duration) }}</p>
-          <p>🎬 状态: {{ video.status }}</p>
+          <h4>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" style="vertical-align: middle; margin-right: 4px;">
+              <path d="M23 7l-7 5 7 5V7z"/>
+              <rect x="1" y="5" width="15" height="14" rx="2" ry="2"/>
+            </svg> {{ video.title }}
+          </h4>
+          <p>
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" style="vertical-align: middle; margin-right: 4px;">
+              <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>
+              <line x1="16" y1="2" x2="16" y2="6"/>
+              <line x1="8" y1="2" x2="8" y2="6"/>
+              <line x1="3" y1="10" x2="21" y2="10"/>
+            </svg> {{ formatDate(video.created_at) }}
+          </p>
+          <p>
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" style="vertical-align: middle; margin-right: 4px;">
+              <circle cx="12" cy="12" r="10"/>
+              <polyline points="12 6 12 12 16 14"/>
+            </svg> {{ formatDuration(video.duration) }}
+          </p>
+          <p>
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" style="vertical-align: middle; margin-right: 4px;">
+              <path d="M23 7l-7 5 7 5V7z"/>
+              <rect x="1" y="5" width="15" height="14" rx="2" ry="2"/>
+            </svg> 状态: {{ video.status }}
+          </p>
           <p class="id-text">ID: {{ video.id }}</p>
         </div>
       </div>

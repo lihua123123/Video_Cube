@@ -24,7 +24,7 @@
       <div class="video-url-section premium-input-section">
         <div class="url-input-group glass-card">
           <div class="input-header">
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" class="input-icon">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" class="input-icon" style="vertical-align: middle;">
               <path d="M23 7l-7 5 7 5V7z"/>
               <rect x="1" y="5" width="15" height="14" rx="2" ry="2"/>
             </svg>
@@ -38,7 +38,7 @@
               class="premium-url-input" 
             />
             <button @click="loadVideo" class="premium-load-btn">
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" style="vertical-align: middle;">
                 <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
                 <polyline points="7 10 12 15 17 10"/>
                 <line x1="12" y1="15" x2="12" y2="3"/>
@@ -88,7 +88,7 @@
               <!-- 顶部信息栏 -->
               <div class="controls-top glass-card">
                 <div class="video-title premium-title">
-                  <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" class="title-icon">
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" class="title-icon" style="vertical-align: middle;">
                     <path d="M23 7l-7 5 7 5V7z"/>
                     <rect x="1" y="5" width="15" height="14" rx="2" ry="2"/>
                   </svg>
@@ -289,7 +289,11 @@
           <transition name="fade">
             <div v-if="showFullscreenTip && !isFullscreen" class="fullscreen-tip">
               <div class="tip-content">
-                <div class="tip-icon">💡</div>
+                <div class="tip-icon">
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" style="vertical-align: middle;">
+                    <path d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
+                  </svg>
+                </div>
                 <div class="tip-text">
                   <div class="tip-title">提示:多种方式进入全屏</div>
                   <div class="tip-methods">
@@ -459,7 +463,11 @@
     
     <!-- 底部操作按钮 -->
     <div class="video-action-buttons premium-actions">
-        <button @click="openVideoLibrary" class="premium-action-btn library-btn">📚 视频库</button>
+        <button @click="openVideoLibrary" class="premium-action-btn library-btn">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" style="margin-right: 2px; vertical-align: middle;">
+            <path d="M4 19.5v-15A2.5 2.5 0 016.5 2H20v20H6.5A2.5 2.5 0 014 19.5zM18 6H8v2h10V6zm0 4H8v2h10v-2zm0 4H8v2h10v-2z" />
+          </svg>视频库
+        </button>
         <button @click="saveProject" class="premium-action-btn save-btn">保存项目</button>
         <button @click="exportProject" class="premium-action-btn export-btn">导出为可分享链接</button>
         <button @click="openUploadModal" class="premium-action-btn upload-btn">上传视频</button>
@@ -470,10 +478,19 @@
       <!-- 右侧：知识卡片侧边栏 -->
       <aside v-if="showKnowledgeCards" class="knowledge-cards-sidebar">
         <div class="sidebar-header">
-          <h2>📚 相关知识 ({{ knowledgeCards.length }})</h2>
+          <h2>
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" style="margin-right: 2px; vertical-align: middle;">
+            <path d="M4 19.5v-15A2.5 2.5 0 016.5 2H20v20H6.5A2.5 2.5 0 014 19.5zM18 6H8v2h10V6zm0 4H8v2h10v-2zm0 4H8v2h10v-2z" />
+          </svg>相关知识 ({{ knowledgeCards.length }})
+        </h2>
           <!-- 调试信息 -->
           <div class="debug-info" v-if="currentVideo" :title="`点击查看详细信息`" @click="showDebugInfo">
-            <span class="debug-icon">🔍</span>
+            <span class="debug-icon">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" style="vertical-align: middle;">
+                <circle cx="11" cy="11" r="8" />
+                <path d="M21 21l-4.35-4.35" />
+              </svg>
+            </span>
             <span class="debug-text">VideoID: {{ videoId || '未设置' }}</span>
           </div>
           <!-- 快速修复按钮 -->
@@ -483,7 +500,10 @@
             class="quick-fix-btn"
             title="尝试自动修复VideoID"
           >
-            <span>🔧</span> 自动修复
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" style="margin-right: 6px; vertical-align: middle;">
+              <path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7" />
+              <path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z" />
+            </svg>自动修复
           </button>
         </div>
         <div class="sidebar-content">
@@ -806,6 +826,9 @@ const currentCards = ref<Card[]>([])
 const isLoadingCards = ref(false)
 const videoId = ref<number | null>(null)
 const selectedCardId = ref<string | number | null>(null)
+// 弹窗相关变量
+const currentPopupCard = ref<Card | null>(null)
+const showCardPopup = ref(false)
 
 // 视频分段相关数据
 const videoSegments = ref<VideoSegment[]>([])
@@ -2062,6 +2085,7 @@ const checkAndShowPopup = (previousCards: Card[]) => {
   console.log('   displayedCardIds:', Array.from(displayedCardIds.value))
   console.log('   visiblePopupCards:', visiblePopupCards.value.map(c => c.title))
   console.log('   当前是否全屏:', isFullscreen.value)
+  console.log('   当前播放状态:', isPlaying.value)
   
   // 找到新出现的卡片（在当前时间范围内但之前没有显示的）
   const newCards = currentCards.value.filter(card => {
@@ -2084,9 +2108,18 @@ const checkAndShowPopup = (previousCards: Card[]) => {
     // 添加到可见弹窗卡片列表
     for (const card of sortedNewCards) {
       if (!visiblePopupCards.value.some(pc => pc.id === card.id)) {
-        console.log('✅ 准备显示卡片:', card.title, '(全屏模式:', isFullscreen.value, ')')
-        visiblePopupCards.value.push(card)
-        displayedCardIds.value.add(card.id)
+        // 检查是否是从第0秒开始的卡片
+        const isZeroSecondCard = card.startTime === 0
+        
+        // 如果是从第0秒开始的卡片，只有当视频播放时才显示
+        // 如果不是从第0秒开始的卡片，或者视频正在播放，则显示卡片
+        if (!isZeroSecondCard || (isZeroSecondCard && isPlaying.value)) {
+          console.log('✅ 准备显示卡片:', card.title, '(全屏模式:', isFullscreen.value, ')')
+          visiblePopupCards.value.push(card)
+          displayedCardIds.value.add(card.id)
+        } else {
+          console.log('⏸️  视频暂停，暂不显示第0秒卡片:', card.title)
+        }
       }
     }
   }
@@ -2095,6 +2128,36 @@ const checkAndShowPopup = (previousCards: Card[]) => {
   visiblePopupCards.value = visiblePopupCards.value.filter(card => {
     return currentCards.value.some(cc => cc.id === card.id)
   })
+}
+
+// 检查并显示第0秒开始的卡片
+const checkZeroSecondCards = () => {
+  console.log('🔍 检查第0秒开始的卡片')
+  
+  // 找到所有从第0秒开始但尚未显示的卡片
+  const zeroSecondCards = knowledgeCards.value.filter(card => {
+    // 卡片从第0秒开始
+    const isZeroSecond = card.startTime === 0
+    // 卡片未被显示过
+    const notDisplayed = !displayedCardIds.value.has(card.id)
+    // 当前时间在卡片时间范围内
+    const inTimeRange = currentTime.value >= card.startTime && currentTime.value <= card.endTime
+    // 视频正在播放
+    const isPlayingNow = isPlaying.value
+    
+    return isZeroSecond && notDisplayed && inTimeRange && isPlayingNow
+  })
+  
+  console.log('   找到需要显示的第0秒卡片:', zeroSecondCards.map(card => card.title))
+  
+  // 如果有匹配的卡片，添加到可见弹窗列表
+  for (const card of zeroSecondCards) {
+    if (!visiblePopupCards.value.some(pc => pc.id === card.id)) {
+      console.log('✅ 显示第0秒卡片:', card.title)
+      visiblePopupCards.value.push(card)
+      displayedCardIds.value.add(card.id)
+    }
+  }
 }
 
 
@@ -2698,6 +2761,10 @@ const handleVideoCanPlay = (event: Event) => {
   video.addEventListener('play', () => {
     isPlaying.value = true
     resetControlsTimer()
+    
+    // 当视频开始播放时，检查是否有第0秒开始的卡片需要显示
+    console.log('▶️  视频开始播放，检查第0秒卡片')
+    checkZeroSecondCards()
   })
   
   video.addEventListener('pause', () => {
@@ -2952,7 +3019,7 @@ const handleVideoError = (event: Event) => {
   display: flex;
   flex-direction: column;
   padding: 24px;
-  background: white;
+  background: transparent;
   overflow-y: auto;
   min-height: 0;
 }
@@ -2966,6 +3033,8 @@ const handleVideoError = (event: Event) => {
   flex-direction: column;
   flex-shrink: 0;
   box-shadow: -2px 0 8px rgba(0, 0, 0, 0.05);
+  overflow-y: hidden; /* 只隐藏水平溢出，允许垂直方向由内部组件处理 */
+  height: 100%; /* 确保侧边栏占满整个高度 */
 }
 
 .sidebar-header {
@@ -3044,11 +3113,34 @@ const handleVideoError = (event: Event) => {
 
 .sidebar-content {
   flex: 1;
-  overflow: hidden; /* 改为 hidden,让内部组件自己处理滚动 */
+  overflow-y: auto; /* 使用auto，需要时显示滚动条 */
   padding: 0; /* 移除 padding,避免影响高度计算 */
   min-height: 0; /* 确保 flex 子元素可以缩小 */
   display: flex;
   flex-direction: column;
+  height: 100%; /* 确保内容区域占满剩余高度 */
+  position: relative; /* 确保子元素定位正确 */
+  background: transparent; /* 确保背景透明 */
+}
+
+/* 相关知识栏滚动条样式 - 与视频预览区域进度条保持一致 */
+.sidebar-content::-webkit-scrollbar {
+  width: 6px;
+}
+
+.sidebar-content::-webkit-scrollbar-track {
+  background: transparent;
+  border-radius: 3px;
+}
+
+.sidebar-content::-webkit-scrollbar-thumb {
+  background: #1890ff;
+  border-radius: 3px;
+  transition: background 0.3s;
+}
+
+.sidebar-content::-webkit-scrollbar-thumb:hover {
+  background: #40a9ff;
 }
 
 .video-url-section {
@@ -3804,15 +3896,58 @@ const handleVideoError = (event: Event) => {
   }
   
   .knowledge-cards-sidebar {
-    max-height: 300px;
+    max-height: 280px;
+    width: 100%;
   }
   
   .sidebar-header {
-    padding: 15px;
+    padding: 12px 15px;
+  }
+  
+  .sidebar-header h2 {
+    font-size: 15px;
   }
   
   .sidebar-content {
-    padding: 12px;
+    padding: 8px;
+  }
+  
+  .debug-info {
+    font-size: 12px;
+    padding: 6px 10px;
+  }
+  
+  .quick-fix-btn {
+    font-size: 12px;
+    padding: 6px 12px;
+  }
+}
+
+@media (max-width: 480px) {
+  .knowledge-cards-sidebar {
+    max-height: 250px;
+  }
+  
+  .sidebar-header {
+    padding: 10px 12px;
+  }
+  
+  .sidebar-header h2 {
+    font-size: 14px;
+  }
+  
+  .sidebar-content {
+    padding: 6px;
+  }
+  
+  .debug-info {
+    font-size: 11px;
+    padding: 4px 8px;
+  }
+  
+  .quick-fix-btn {
+    font-size: 11px;
+    padding: 5px 10px;
   }
 }
 
@@ -4601,7 +4736,7 @@ const handleVideoError = (event: Event) => {
 .premium-url-input {
   flex: 1;
   padding: 14px 20px;
-  background-color: rgba(0, 0, 0, 0.3);
+  background-color: rgba(255, 255, 255, 0.5);
   border: 1px solid rgba(102, 126, 234, 0.5);
   border-radius: 12px;
   background-image: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
@@ -4613,7 +4748,7 @@ const handleVideoError = (event: Event) => {
 }
 
 .premium-url-input::placeholder {
-  color: rgba(255, 255, 255, 0.5);
+  color: rgba(0, 0, 0, 0.3);
 }
 
 .premium-url-input:focus {
@@ -4644,7 +4779,10 @@ const handleVideoError = (event: Event) => {
 
 .input-hint {
   font-size: 12px;
-  color: rgba(255, 255, 255, 0.6);
+  background-image: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
   margin-top: 12px;
   margin-bottom: 0;
 }

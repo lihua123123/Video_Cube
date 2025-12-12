@@ -3,8 +3,16 @@
     <div class="editor-header">
       <h3 class="editor-title">Markdown 编辑器</h3>
       <div class="editor-controls">
-        <button class="control-btn" title="全屏编辑" @click="toggleFullScreen">⛶</button>
-        <button class="control-btn" title="清空内容" @click="clearContent">🗑️</button>
+        <button class="control-btn" title="全屏编辑" @click="toggleFullScreen">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+            <path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"/>
+          </svg>
+        </button>
+        <button class="control-btn" title="清空内容" @click="clearContent">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+            <path d="M3 6h18M19 6v14c0 1.1-.9 2-2 2H7c-1.1 0-2-.9-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2"/>
+          </svg>
+        </button>
       </div>
     </div>
     <div ref="editorElement" class="markdown-editor"></div>
@@ -285,7 +293,40 @@ defineExpose({
 .markdown-editor-wrapper :deep(.toastui-editor-toolbar) {
   background: linear-gradient(135deg, rgba(248, 247, 245, 0.8) 0%, rgba(212, 165, 116, 0.05) 100%);
   border-bottom: 1px solid rgba(212, 165, 116, 0.15);
-  padding: 12px;
+  padding: 6px 10px;
+  min-height: 36px;
+  box-sizing: border-box;
+}
+
+.markdown-editor-wrapper :deep(.toastui-editor-toolbar-container) {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  height: 100%;
+}
+
+.markdown-editor-wrapper :deep(.toastui-editor-toolbar-group) {
+  margin-right: 8px;
+}
+
+.markdown-editor-wrapper :deep(.toastui-editor-toolbar-group:last-child) {
+  margin-right: 0;
+}
+
+.markdown-editor-wrapper :deep(.toastui-editor-toolbar button) {
+  border-radius: 6px;
+  transition: all 0.3s ease;
+  color: #1F3A52;
+  padding: 6px 8px;
+  font-size: 14px;
+  min-width: 32px;
+  height: 32px;
+}
+
+.markdown-editor-wrapper :deep(.toastui-editor-toolbar button .toastui-editor-toolbar-icon) {
+  font-size: 14px;
+  width: 14px;
+  height: 14px;
 }
 
 .markdown-editor-wrapper :deep(.toastui-editor-toolbar button) {
