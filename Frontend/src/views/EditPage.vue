@@ -3346,7 +3346,7 @@ onMounted(async () => {
 
 /* 预览卡片头部 - 与实际卡片保持一致 */
 .knowledge-card-preview .preview-header {
-  background: linear-gradient(135deg, #1F3A52 0%, #4A9FB8 100%);
+  background: linear-gradient(135deg, #1b2a31 0%, #243841 100%);
   padding: 16px 20px;
   color: white;
   display: flex;
@@ -3458,7 +3458,7 @@ onMounted(async () => {
 
 /* 弹窗头部样式 */
 .popup-header {
-  background: linear-gradient(135deg, #1F3A52 0%, #4A9FB8 100%);
+  background: linear-gradient(135deg, #1b2a31 0%, #243841 100%);
   padding: 20px 20px;
   color: white;
   display: flex;
@@ -3877,7 +3877,7 @@ onMounted(async () => {
 }
 
 .close-example-btn {
-  background: #ff4d4f;
+  background: linear-gradient(135deg, #1b2a31 0%, #243841 100%);
   color: white;
   border: none;
   padding: 4px 8px;
@@ -3889,7 +3889,7 @@ onMounted(async () => {
 }
 
 .close-example-btn:hover {
-  background: #ff7875;
+  background: linear-gradient(135deg, #243841 0%, #3a5260 100%);
   transform: scale(1.05);
 }
 

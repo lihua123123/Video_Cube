@@ -590,7 +590,7 @@ onUnmounted(() => {
   justify-content: space-between;
   align-items: center;
   padding: 20px;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(135deg, #1b2a31 0%, #243841 100%);
   color: white;
   position: relative;
   transition: all 0.3s ease;
@@ -945,17 +945,17 @@ onUnmounted(() => {
 }
 
 .close-btn {
-  background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
-  color: #6c757d;
-  border: 1px solid #dee2e6;
+  background: linear-gradient(135deg, #1b2a31 0%, #243841 100%);
+  color: white;
+  border: 1px solid rgba(36, 56, 65, 0.3);
 }
 
 .close-btn:hover {
-  background: linear-gradient(135deg, #e9ecef 0%, #dee2e6 100%);
-  color: #495057;
-  border-color: #ced4da;
+  background: linear-gradient(135deg, #243841 0%, #3a5260 100%);
+  color: white;
+  border-color: rgba(58, 82, 96, 0.5);
   transform: translateY(-1px);
-  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.15);
+  box-shadow: 0 4px 14px rgba(27, 42, 49, 0.3);
 }
 
 .close-btn:active {

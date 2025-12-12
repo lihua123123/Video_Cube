@@ -2953,21 +2953,22 @@ const handleVideoError = (event: Event) => {
 }
 
 .close-btn {
-  background: none;
-  border: none;
+  background: rgba(255, 255, 255, 0.15);
+  border: 1px solid rgba(255, 255, 255, 0.25);
   font-size: 24px;
   cursor: pointer;
-  color: #999;
+  color: white;
   padding: 0;
   width: 32px;
   height: 32px;
   display: flex;
   align-items: center;
   justify-content: center;
+  border-radius: 50%;
 }
 
 .close-btn:hover {
-  color: #333;
+  background: rgba(255, 255, 255, 0.3);
 }
 
 .modal-body {
@@ -3868,7 +3869,7 @@ const handleVideoError = (event: Event) => {
 }
 
 .knowledge-card-item .card-time {
-  background: #17a2b8;
+  background: linear-gradient(135deg, #1b2a31 0%, #243841 100%);
   color: white;
   padding: 4px 8px;
   border-radius: 4px;
@@ -4472,9 +4473,9 @@ const handleVideoError = (event: Event) => {
 }
 
 .segment-info-type.summary {
-  background: rgba(156, 39, 176, 0.15);
-  color: #7B1FA2;
-  border: 1px solid rgba(156, 39, 176, 0.3);
+  background: linear-gradient(135deg, #1b2a31 0%, #243841 100%);
+  color: white;
+  border: 1px solid rgba(36, 56, 65, 0.5);
 }
 
 .segment-info-type.exercise {

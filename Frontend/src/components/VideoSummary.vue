@@ -300,7 +300,7 @@ defineExpose({
 
 .summary-header {
   padding: 24px;
-  background: linear-gradient(135deg, #1F3A52 0%, #4A9FB8 100%);
+  background: linear-gradient(135deg, #1b2a31 0%, #243841 100%);
   color: white;
   display: flex;
   justify-content: space-between;
@@ -491,14 +491,14 @@ defineExpose({
 }
 
 .action-button.generate {
-  background: linear-gradient(135deg, #1F3A52 0%, #4A9FB8 100%);
+  background: linear-gradient(135deg, #1b2a31 0%, #243841 100%);
   color: white;
-  box-shadow: 0 4px 12px rgba(31, 58, 82, 0.2);
+  box-shadow: 0 4px 12px rgba(27, 42, 49, 0.2);
 }
 
 .action-button.generate:hover:not(:disabled) {
   transform: translateY(-2px);
-  box-shadow: 0 8px 24px rgba(74, 159, 184, 0.4);
+  box-shadow: 0 8px 24px rgba(36, 56, 65, 0.4);
 }
 
 .action-button.export {

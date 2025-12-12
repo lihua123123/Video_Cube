@@ -361,14 +361,13 @@ const jumpToCardTime = (card: KnowledgeCard) => {
 
 /* 卡片头部 - 与Popup保持一致的蓝色渐变 */
 .card-header-optimized {
-  background: linear-gradient(135deg, #1F3A52 0%, #4A9FB8 100%);
+  background: linear-gradient(135deg, #1b2a31 0%, #243841 100%);
   padding: 16px 20px;
   color: white;
   display: flex;
   justify-content: space-between;
   align-items: center;
-  border-top-left-radius: 16px;
-  border-top-right-radius: 16px;
+  border-radius: 12px 12px 0 0;
 }
 
 .card-badge {
@@ -623,14 +622,14 @@ const jumpToCardTime = (card: KnowledgeCard) => {
 }
 
 .card-action-btn.view {
-  background: linear-gradient(135deg, #1F3A52 0%, #4A9FB8 100%);
+  background: linear-gradient(135deg, #1b2a31 0%, #243841 100%);
   color: white;
-  box-shadow: 0 4px 12px rgba(31, 58, 82, 0.2);
+  box-shadow: 0 4px 12px rgba(27, 42, 49, 0.2);
 }
 
 .card-action-btn.view:hover {
   transform: translateY(-2px);
-  box-shadow: 0 8px 24px rgba(74, 159, 184, 0.4);
+  box-shadow: 0 8px 24px rgba(36, 56, 65, 0.4);
 }
 
 .card-action-btn.expand {

@@ -735,7 +735,7 @@ onUnmounted(() => {
 
 /* 弹窗头部 */
 .popup-header {
-  background: linear-gradient(135deg, #1F3A52 0%, #4A9FB8 100%);
+  background: linear-gradient(135deg, #1b2a31 0%, #243841 100%);
   padding: 20px 52px 20px 20px; /* 右侧增加padding，为关闭按钮预留空间 */
   color: white;
   display: flex;
@@ -1133,9 +1133,9 @@ onUnmounted(() => {
 }
 
 .primary-btn {
-  background: linear-gradient(135deg, #1F3A52 0%, #4A9FB8 100%);
+  background: linear-gradient(135deg, #1b2a31 0%, #243841 100%);
   color: white;
-  box-shadow: 0 4px 12px rgba(31, 58, 82, 0.2);
+  box-shadow: 0 4px 12px rgba(27, 42, 49, 0.2);
 }
 
 .primary-btn:hover {
