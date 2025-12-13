@@ -9,6 +9,8 @@ const adminVideosRouter = require('./routes/admin/videos');
 const adminKnowledgeCardsRouter = require('./routes/admin/knowledge_cards');
 const adminVideoSegmentsRouter = require('./routes/admin/video_segment');
 const adminAiAnalysisTasksRouter = require('./routes/admin/ai_analysis_tasks');
+const subtitlesRouter = require('./routes/subtitles');
+
 var app = express();
 
 // 数据库连接
@@ -54,5 +56,6 @@ app.use('/users', usersRouter);
 app.use('/admin/video-segments', adminVideoSegmentsRouter);
 app.use('/admin/video_segments', adminVideoSegmentsRouter);
 app.use('/admin/ai_analysis_tasks', adminAiAnalysisTasksRouter);
+app.use('/admin/subtitles', subtitlesRouter);
 
 module.exports = app;

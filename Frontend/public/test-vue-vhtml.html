@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Vue v-html 图片问题诊断</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            padding: 20px;
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+        .split-view {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+        .panel {
+            border: 2px solid #ddd;
+            padding: 20px;
+            border-radius: 8px;
+        }
+        h2 {
+            color: #333;
+            border-bottom: 2px solid #4CAF50;
+            padding-bottom: 10px;
+        }
+        .preview-content-wrapper {
+            font-size: 14px;
+            line-height: 1.8;
+            color: #333;
+            word-break: break-word;
+            padding: 15px;
+            background: #f9f9f9;
+            border-radius: 4px;
+            min-height: 200px;
+        }
+        .preview-content-wrapper img,
+        .preview-content-wrapper .content-image {
+            max-width: 100%;
+            height: auto;
+            border-radius: 8px;
+            margin: 16px 0;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+            display: block;
+        }
+        .html-source {
+            background: #2d2d2d;
+            color: #f8f8f2;
+            padding: 15px;
+            border-radius: 4px;
+            overflow-x: auto;
+            font-family: 'Courier New', Courier, monospace;
+            font-size: 12px;
+            line-height: 1.5;
+            white-space: pre-wrap;
+            word-break: break-all;
+        }
+        .test-btn {
+            padding: 10px 20px;
+            background: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            margin: 10px 5px;
+        }
+        .test-btn:hover {
+            background: #45a049;
+        }
+    </style>
+</head>
+<body>
+    <h1>🔬 Vue v-html 图片渲染诊断工具</h1>
+    
+    <div style="margin: 20px 0;">
+        <button class="test-btn" onclick="testBasic()">测试1: 基础HTML</button>
+        <button class="test-btn" onclick="testWithStyles()">测试2: 带样式类</button>
+        <button class="test-btn" onclick="testUserContent()">测试3: 用户实际内容</button>
+    </div>
+
+    <div class="split-view">
+        <div class="panel">
+            <h2>📄 HTML源代码</h2>
+            <div class="html-source" id="htmlSource">等待测试...</div>
+        </div>
+        
+        <div class="panel">
+            <h2>👁️ 渲染结果 (使用 innerHTML)</h2>
+            <div class="preview-content-wrapper" id="preview">等待测试...</div>
+        </div>
+    </div>
+
+    <script>
+        const imageUrl = 'http://localhost:3000/uploads/images/51c973ce-fd2c-405d-9b47-cd898959f874.png';
+        
+        function testBasic() {
+            const html = `<img src="${imageUrl}" alt="测试图片">`;
+            displayTest(html);
+        }
+        
+        function testWithStyles() {
+            const html = `<img src="${imageUrl}" alt="search-history.png" title="search-history.png" class="content-image" loading="lazy">`;
+            displayTest(html);
+        }
+        
+        function testUserContent() {
+            // 模拟formatContent的输出
+            const html = `<h3>智能问答使用指南</h3><br><img src="${imageUrl}" alt="search-history.png" title="search-history.png" class="content-image" loading="lazy"><br><p>这是测试文本</p>`;
+            displayTest(html);
+        }
+        
+        function displayTest(html) {
+            console.log('测试HTML:', html);
+            
+            // 显示源代码
+            document.getElementById('htmlSource').textContent = html;
+            
+            // 使用innerHTML渲染
+            const preview = document.getElementById('preview');
+            preview.innerHTML = html;
+            
+            // 检查图片是否加载
+            const imgs = preview.querySelectorAll('img');
+            imgs.forEach((img, index) => {
+                console.log(`图片${index + 1}:`, img.src);
+                
+                img.addEventListener('load', () => {
+                    console.log(`✅ 图片${index + 1}加载成功`);
+                });
+                
+                img.addEventListener('error', (e) => {
+                    console.error(`❌ 图片${index + 1}加载失败:`, e);
+                    console.error('  src:', img.src);
+                    console.error('  完整URL:', img.src);
+                });
+            });
+        }
+        
+        console.log('诊断工具已就绪');
+        console.log('图片URL:', imageUrl);
+    </script>
+</body>
+</html>
