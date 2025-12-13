@@ -7,6 +7,34 @@
           <h1 class="app-title">视频魔方</h1>
           <p class="subtitle">Premium Learning Platform</p>
         </div>
+        <div class="header-actions">
+          <button @click="openUploadModal" class="premium-action-btn upload-btn">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="url(#upload-gradient)">
+              <defs>
+                <linearGradient id="upload-gradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                  <stop offset="0%" style="stop-color:#3b82f6;stop-opacity:1" />
+                  <stop offset="100%" style="stop-color:#1d4ed8;stop-opacity:1" />
+                </linearGradient>
+              </defs>
+              <rect x="4" y="4" width="16" height="16" rx="2" ry="2"/>
+              <path d="M10 9.8L16 12L10 14.2V9.8Z" fill="url(#upload-gradient)"/>
+            </svg>
+            <span style="background: linear-gradient(135deg, #3b82f6, #1d4ed8); -webkit-background-clip: text; background-clip: text; color: transparent;">上传视频</span>
+          </button>
+          <button @click="goToEditPage" class="premium-action-btn edit-cards-btn" :disabled="!currentVideo">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="url(#edit-gradient)">
+              <defs>
+                <linearGradient id="edit-gradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                  <stop offset="0%" style="stop-color:#3b82f6;stop-opacity:1" />
+                  <stop offset="100%" style="stop-color:#1d4ed8;stop-opacity:1" />
+                </linearGradient>
+              </defs>
+              <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
+              <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
+            </svg>
+            <span style="background: linear-gradient(135deg, #3b82f6, #1d4ed8); -webkit-background-clip: text; background-clip: text; color: transparent;">编辑知识卡片</span>
+          </button>
+        </div>
       </div>
     </header>
 
@@ -482,19 +510,6 @@
             <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/>
           </svg>导出为可分享链接
         </button>
-        <button @click="openUploadModal" class="premium-action-btn upload-btn">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" style="margin-right: 2px; vertical-align: middle;">
-            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
-            <polyline points="17,8 12,3 7,8"/>
-            <line x1="12" y1="3" x2="12" y2="15"/>
-          </svg>上传视频
-        </button>
-        <button @click="goToEditPage" class="premium-action-btn edit-cards-btn" :disabled="!currentVideo">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" style="margin-right: 2px; vertical-align: middle;">
-            <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
-            <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
-          </svg>编辑知识卡片
-        </button>
       </div>
       </main>
       
@@ -745,13 +760,29 @@
 }
 
 .upload-btn {
-  background: #1b2a31;
-  color: white;
+  background: transparent;
+  border: none;
+  border-radius: 0;
+  padding: 8px 12px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
 }
 
 .edit-cards-btn {
-  background: #1b2a31;
-  color: white;
+  background: transparent;
+  border: none;
+  border-radius: 0;
+  padding: 8px 12px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
 }
 
 /* 按钮hover效果 */
@@ -768,11 +799,13 @@
 }
 
 .upload-btn:hover {
-  box-shadow: 0 6px 20px rgba(27, 42, 49, 0.4);
+  background: transparent;
+  box-shadow: none;
 }
 
 .edit-cards-btn:hover {
-  box-shadow: 0 6px 20px rgba(27, 42, 49, 0.4);
+  background: transparent;
+  box-shadow: none;
 }
 
 .premium-action-btn:disabled {
@@ -3957,8 +3990,7 @@ const handleVideoError = (event: Event) => {
 }
 
 .upload-btn {
-  background: #1b2a31;
-  color: white;
+  background: transparent;
 }
 
 .library-btn {
@@ -3967,8 +3999,7 @@ const handleVideoError = (event: Event) => {
 }
 
 .edit-cards-btn {
-  background: #1b2a31;
-  color: white;
+  background: transparent;
 }
 
 .action-btn:hover {
@@ -4886,6 +4917,53 @@ const handleVideoError = (event: Event) => {
   background: rgba(255, 255, 255, 0.2);
   transform: translateY(-1px);
   box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
+}
+
+/* 头部按钮样式 */
+.premium-action-btn {
+  background: rgba(255, 255, 255, 0.2);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  border-radius: 12px;
+  padding: 10px 20px;
+  color: white;
+  font-weight: 600;
+  font-size: 14px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+}
+
+.premium-action-btn:hover {
+  transform: translateY(-1px);
+  transition: all 0.3s ease;
+}
+
+.upload-btn {
+  background: transparent;
+  border: none;
+}
+
+.upload-btn:hover {
+  box-shadow: none;
+}
+
+.edit-cards-btn {
+  background: transparent;
+  border: none;
+}
+
+.edit-cards-btn:hover {
+  box-shadow: none;
+}
+
+.premium-action-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none;
 }
 
 /* 现代输入区域样式 */

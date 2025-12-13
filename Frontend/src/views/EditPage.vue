@@ -20,10 +20,16 @@
         </div>
         <div class="header-actions">
           <button @click="goBack" class="premium-action-btn back-btn">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="url(#back-gradient)">
+              <defs>
+                <linearGradient id="back-gradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                  <stop offset="0%" style="stop-color:#3b82f6;stop-opacity:1" />
+                  <stop offset="100%" style="stop-color:#1d4ed8;stop-opacity:1" />
+                </linearGradient>
+              </defs>
               <path d="M19 12H5M12 19l-7-7 7-7"/>
             </svg>
-            返回视频页面
+            <span style="background: linear-gradient(135deg, #3b82f6, #1d4ed8); -webkit-background-clip: text; background-clip: text; color: transparent;">返回视频页面</span>
           </button>
           <!-- 保存项目按钮已删除 -->
         </div>
@@ -3985,6 +3991,7 @@ onMounted(async () => {
   
   /* 顶部标题栏样式 */
   .premium-header {
+    width: 100%;
     padding: 16px 24px;
     margin-bottom: 24px;
     background: linear-gradient(135deg, rgba(102, 126, 234, 0.15) 0%, rgba(118, 75, 162, 0.1) 100%);
@@ -3995,13 +4002,14 @@ onMounted(async () => {
     box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
   }
   
-  .header-content {
+  /* 确保头部内容区域占满宽度并正确对齐 */
+  .premium-header .header-content {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    max-width: 1200px;
-    margin: 0;
     width: 100%;
+    margin: 0;
+    box-sizing: border-box;
   }
   
   .logo-section {
@@ -4068,11 +4076,14 @@ onMounted(async () => {
     font-weight: 500;
   }
   
-  .header-actions {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-}
+  /* 确保按钮区域靠右对齐 */
+  .premium-header .header-actions {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-left: auto;
+    box-sizing: border-box;
+  }
   
   .premium-btn {
     background: linear-gradient(135deg, #4a90e2, #a855f7);
@@ -4263,11 +4274,29 @@ onMounted(async () => {
     border: none;
   }
   
-  .add-card-btn {
-    background: linear-gradient(135deg, #3b82f6, #1d4ed8);
-    color: white;
+  .back-btn {
+    background: transparent;
     border: none;
+    border-radius: 0;
+    padding: 8px 12px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
   }
+  
+  .back-btn:hover {
+    background: transparent;
+    box-shadow: none;
+  }
+  
+  .add-card-btn {
+      background: linear-gradient(135deg, #3b82f6, #1d4ed8);
+      color: white;
+      border: none;
+    }
   
   .select-all-btn {
     background: linear-gradient(135deg, #f59e0b, #d97706);
@@ -4279,16 +4308,6 @@ onMounted(async () => {
     background: linear-gradient(135deg, #ef4444, #dc2626);
     color: white;
     border: none;
-  }
-  
-  .back-btn {
-    background: linear-gradient(135deg, #3b82f6, #1d4ed8);
-    color: white;
-    border: none;
-  }
-  
-  .back-btn:hover {
-    box-shadow: 0 6px 20px rgba(59, 130, 246, 0.4);
   }
   
   .batch-actions {
