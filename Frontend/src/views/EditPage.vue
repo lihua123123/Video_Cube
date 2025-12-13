@@ -4288,11 +4288,18 @@ onMounted(async () => {
   }
   
   .back-btn:hover {
-    background: transparent;
-    box-shadow: none;
-  }
-  
-  .add-card-btn {
+  background: transparent;
+  box-shadow: none;
+}
+
+/* 返回视频页面按钮自定义位置样式 */
+.header-actions .premium-action-btn.back-btn {
+  /* 返回按钮位置调节 */
+  margin-right: -300px; /* 向右移动15px，可根据需要调整 */
+  /* order: 1; 如果需要调整按钮顺序，可以取消注释 */
+}
+
+.add-card-btn {
       background: linear-gradient(135deg, #3b82f6, #1d4ed8);
       color: white;
       border: none;
