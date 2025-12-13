@@ -735,22 +735,22 @@
 }
 
 .save-btn {
-  background: #5399A0;
+  background: #1b2a31;
   color: white;
 }
 
 .export-btn {
-  background: #98C3C7;
+  background: #1b2a31;
   color: white;
 }
 
 .upload-btn {
-  background: #BE9F89;
+  background: #1b2a31;
   color: white;
 }
 
 .edit-cards-btn {
-  background: #E0D7C7;
+  background: #1b2a31;
   color: white;
 }
 
@@ -760,19 +760,19 @@
 }
 
 .save-btn:hover {
-  box-shadow: 0 6px 20px rgba(83, 153, 160, 0.4);
+  box-shadow: 0 6px 20px rgba(27, 42, 49, 0.4);
 }
 
 .export-btn:hover {
-  box-shadow: 0 6px 20px rgba(152, 195, 199, 0.4);
+  box-shadow: 0 6px 20px rgba(27, 42, 49, 0.4);
 }
 
 .upload-btn:hover {
-  box-shadow: 0 6px 20px rgba(190, 159, 137, 0.4);
+  box-shadow: 0 6px 20px rgba(27, 42, 49, 0.4);
 }
 
 .edit-cards-btn:hover {
-  box-shadow: 0 6px 20px rgba(224, 215, 199, 0.4);
+  box-shadow: 0 6px 20px rgba(27, 42, 49, 0.4);
 }
 
 .premium-action-btn:disabled {
@@ -3947,17 +3947,17 @@ const handleVideoError = (event: Event) => {
 }
 
 .save-btn {
-  background: #5399A0;
+  background: #1b2a31;
   color: white;
 }
 
 .export-btn {
-  background: #98C3C7;
+  background: #1b2a31;
   color: white;
 }
 
 .upload-btn {
-  background: #BE9F89;
+  background: #1b2a31;
   color: white;
 }
 
@@ -3967,7 +3967,7 @@ const handleVideoError = (event: Event) => {
 }
 
 .edit-cards-btn {
-  background: #E0D7C7;
+  background: #1b2a31;
   color: white;
 }
 

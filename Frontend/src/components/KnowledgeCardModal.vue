@@ -687,9 +687,9 @@ onUnmounted(() => {
 }
 
 .close-button:hover {
-  background: rgba(255, 255, 255, 0.3);
+  background: #efd8ce;
   transform: rotate(90deg) scale(1.15);
-  box-shadow: 0 4px 16px rgba(255, 255, 255, 0.25);
+  box-shadow: 0 4px 16px rgba(239, 216, 206, 0.3);
 }
 
 /* 主体内容样式 */

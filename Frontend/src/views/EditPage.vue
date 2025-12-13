@@ -3458,7 +3458,7 @@ onMounted(async () => {
 
 /* 弹窗头部样式 */
 .popup-header {
-  background: linear-gradient(135deg, #1b2a31 0%, #243841 100%);
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   padding: 20px 20px;
   color: white;
   display: flex;

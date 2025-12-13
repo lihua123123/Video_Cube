@@ -712,9 +712,9 @@ onUnmounted(() => {
   position: absolute;
   top: 12px;
   right: 12px;
-  background: rgba(212, 165, 116, 0.15);
-  border: 1px solid rgba(212, 165, 116, 0.3);
-  color: #1F3A52;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  border: 1px solid rgba(102, 126, 234, 0.3);
+  color: white;
   width: 36px;
   height: 36px;
   border-radius: 10px;
@@ -727,15 +727,15 @@ onUnmounted(() => {
 }
 
 .close-btn:hover {
-  background: #D4A574;
-  color: white;
+  background: #efd8ce;
+  color: #333;
   transform: rotate(90deg) scale(1.15);
-  box-shadow: 0 4px 12px rgba(212, 165, 116, 0.3);
+  box-shadow: 0 4px 12px rgba(239, 216, 206, 0.3);
 }
 
 /* 弹窗头部 */
 .popup-header {
-  background: linear-gradient(135deg, #1b2a31 0%, #243841 100%);
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   padding: 20px 52px 20px 20px; /* 右侧增加padding，为关闭按钮预留空间 */
   color: white;
   display: flex;
@@ -1133,14 +1133,14 @@ onUnmounted(() => {
 }
 
 .primary-btn {
-  background: linear-gradient(135deg, #1b2a31 0%, #243841 100%);
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   color: white;
-  box-shadow: 0 4px 12px rgba(27, 42, 49, 0.2);
+  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.2);
 }
 
 .primary-btn:hover {
   transform: translateY(-2px);
-  box-shadow: 0 8px 24px rgba(74, 159, 184, 0.4);
+  box-shadow: 0 8px 24px rgba(118, 75, 162, 0.4);
 }
 
 /* 动画效果 */

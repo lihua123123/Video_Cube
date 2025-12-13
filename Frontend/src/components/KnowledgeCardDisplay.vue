@@ -353,15 +353,15 @@ const jumpToCardTime = (card: KnowledgeCard) => {
 
 .knowledge-card-optimized.expanded {
   background: linear-gradient(135deg, #ffffff 0%, #f8f7f5 100%);
-  border-left: 4px solid #D4A574;
+  border-left: 4px solid f7ecd6;
   /* 移除固定最小高度，根据内容自适应 */
   max-height: none; /* 移除最大高度限制 */
   height: auto; /* 高度自适应内容 */
 }
 
-/* 卡片头部 - 与Popup保持一致的蓝色渐变 */
+/* 卡片头部 - 与相关知识头部保持一致的紫色渐变 */
 .card-header-optimized {
-  background: linear-gradient(135deg, #1b2a31 0%, #243841 100%);
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   padding: 16px 20px;
   color: white;
   display: flex;
@@ -622,27 +622,27 @@ const jumpToCardTime = (card: KnowledgeCard) => {
 }
 
 .card-action-btn.view {
-  background: linear-gradient(135deg, #1b2a31 0%, #243841 100%);
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   color: white;
-  box-shadow: 0 4px 12px rgba(27, 42, 49, 0.2);
+  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.2);
 }
 
 .card-action-btn.view:hover {
   transform: translateY(-2px);
-  box-shadow: 0 8px 24px rgba(36, 56, 65, 0.4);
+  box-shadow: 0 8px 24px rgba(118, 75, 162, 0.4);
 }
 
 .card-action-btn.expand {
-  background: rgba(212, 165, 116, 0.15);
+  background: rgba(239, 216, 206, 0.15);
   color: #1F3A52;
-  border: 1px solid rgba(212, 165, 116, 0.3);
+  border: 1px solid rgba(239, 216, 206, 0.3);
 }
 
 .card-action-btn.expand:hover {
-  background: #D4A574;
+  background: #f7ecd6;
   color: white;
   transform: translateY(-2px);
-  box-shadow: 0 6px 20px rgba(212, 165, 116, 0.3);
+  box-shadow: 0 6px 20px rgba(247, 236, 214, 0.3);
 }
 
 /* 优化的空状态 */
