@@ -803,6 +803,19 @@
   box-shadow: none;
 }
 
+/* 顶部导航栏按钮自定义位置样式 */
+.header-actions .premium-action-btn.upload-btn {
+  /* 上传按钮位置调节 */
+  margin-right: 20px; /* 向右移动20px，可根据需要调整 */
+  /* order: 1; 如果需要调整按钮顺序，可以取消注释 */
+}
+
+.header-actions .premium-action-btn.edit-cards-btn {
+  /* 编辑卡片按钮位置调节 */
+  margin-right: -200px; /* 向右移动10px，可根据需要调整 */
+  /* order: 2; 如果需要调整按钮顺序，可以取消注释 */
+}
+
 .edit-cards-btn:hover {
   background: transparent;
   box-shadow: none;
@@ -3285,6 +3298,8 @@ const handleVideoError = (event: Event) => {
 .video-url-section {
   margin-bottom: 20px;
   flex-shrink: 0;
+  /* 隐藏视频链接区域但保留功能 */
+  display: none;
 }
 
 .url-input-group label {
@@ -3989,9 +4004,7 @@ const handleVideoError = (event: Event) => {
   color: white;
 }
 
-.upload-btn {
-  background: transparent;
-}
+
 
 .library-btn {
   background: #1b2a31;
@@ -4942,12 +4955,12 @@ const handleVideoError = (event: Event) => {
   transition: all 0.3s ease;
 }
 
-.upload-btn {
+.edit-cards-btn {
   background: transparent;
   border: none;
 }
 
-.upload-btn:hover {
+.edit-cards-btn:hover {
   box-shadow: none;
 }
 
