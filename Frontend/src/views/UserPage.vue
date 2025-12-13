@@ -3298,6 +3298,8 @@ const handleVideoError = (event: Event) => {
 .video-url-section {
   margin-bottom: 20px;
   flex-shrink: 0;
+  /* 隐藏视频链接区域但保留功能 */
+  display: none;
 }
 
 .url-input-group label {
