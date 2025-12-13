@@ -4000,7 +4000,7 @@ onMounted(async () => {
     justify-content: space-between;
     align-items: center;
     max-width: 1200px;
-    margin: 0 auto;
+    margin: 0;
     width: 100%;
   }
   
@@ -4019,6 +4019,7 @@ onMounted(async () => {
     -webkit-text-fill-color: transparent;
     background-clip: text;
     margin: 0;
+    padding-left:6px;
   }
   
   .logo-section .subtitle {
@@ -4028,6 +4029,7 @@ onMounted(async () => {
     -webkit-text-fill-color: transparent;
     background-clip: text;
     margin: 4px 0 0 0;
+    padding-left:8px;
   }
   
   .header-logo-section {
@@ -4067,10 +4069,10 @@ onMounted(async () => {
   }
   
   .header-actions {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-  }
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
   
   .premium-btn {
     background: linear-gradient(135deg, #4a90e2, #a855f7);

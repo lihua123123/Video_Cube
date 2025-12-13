@@ -4815,7 +4815,7 @@ const handleVideoError = (event: Event) => {
   justify-content: space-between;
   align-items: center;
   max-width: 1200px;
-  margin: 0 auto;
+  margin: 0;
   width: 100%;
 }
 
@@ -4827,6 +4827,7 @@ const handleVideoError = (event: Event) => {
   -webkit-text-fill-color: transparent;
   background-clip: text;
   margin: 0;
+  padding-left: 8px;
 }
 
 .logo-section .subtitle {
@@ -4836,6 +4837,7 @@ const handleVideoError = (event: Event) => {
   -webkit-text-fill-color: transparent;
   background-clip: text;
   margin: 4px 0 0 0;
+  padding-left: 8px;
 }
 
 .header-actions {
